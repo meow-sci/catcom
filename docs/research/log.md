@@ -1,6 +1,9 @@
 # Research bundle update log
 
 ## 2026-10-17
+* **Implementation landed**: ksa-scripting v0.1.0 implemented from the plans by two manager agents (see `docs/progress/manager-a.md`, `docs/progress/manager-b.md`) — Core (contracts, hooks, scheduler, catalog, terminals, API schema + preludes, nvim RPC client), Ksa facade (gatOS ports, ActionExecutor, Step/Solver slots, event patches), GameMod (Script Manager window, shells, editor launcher, dist), LuaJIT and V8 runtimes with tests (816 + 613 + 542 green), purrTTY launcher contract on `feature/scripting` (purrtty `16c6d91`), tools and editor assets. Facts learned during implementation: hammering `lua_sethook` from another thread at an unbounded rate with the JIT on crashes LuaJIT (the runtime rate-limits re-arming to 50 Hz); one V8 isolate per script is needed for per-script heap limits and interrupts; the §5 API names changed to `setX` methods (JS getters cannot share a name with a method) and Lua uses `wait_until`/`next_step` (reserved word). The build book is `docs/IMPLEMENTATION_GUIDE.md`; in-game validation is pending per `docs/VALIDATION.md`.
+
+## 2026-10-17
 * **Update**: Scope revision from the maintainer: Jint fallback dropped (research kept, plan removed); nvim RPC moves to loopback TCP with a stubbed shell ([neovim TCP launch](editor/neovim-tcp-launch.md), verified locally); new designs for the ImGui [Script Manager](architecture/script-manager-ui.md), [exports and bindings](architecture/script-exports-and-bindings.md) and [terminal scripts](architecture/terminal-scripts-and-virtual-terminals.md); new purrTTY concepts [virtual-pty bridge](existing-mods/purrtty-virtual-pty-bridge.md) and [in-world terminals](existing-mods/purrtty-in-world-terminals.md) from a second purrTTY research pass (mirrored under references/). Plans 00/01/02 revised; plan 00b (purrTTY side) added.
 
 ## 2026-10-16
