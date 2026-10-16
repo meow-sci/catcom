@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AssemblyName>KsaScripting.HookCompileCheck</AssemblyName>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.4.2"><PrivateAssets>all</PrivateAssets></PackageReference>
+    <PackageReference Include="StarMap.API" Version="0.3.6"><PrivateAssets>all</PrivateAssets></PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="KSA"><HintPath>$(KSAFolder)KSA.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Brutal.Core.Numerics"><HintPath>$(KSAFolder)Brutal.Core.Numerics.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Brutal.Core.Common"><HintPath>$(KSAFolder)Brutal.Core.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Brutal.Concurrency"><HintPath>$(KSAFolder)Brutal.Concurrency.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Brutal.ImGui"><HintPath>$(KSAFolder)Brutal.ImGui.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Brutal.ImGui.Abstractions"><HintPath>$(KSAFolder)Brutal.ImGui.Abstractions.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

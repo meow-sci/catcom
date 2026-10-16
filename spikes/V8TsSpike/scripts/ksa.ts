@@ -1,0 +1,1 @@
+export const vessel = { altitude: 1234.5, speed: 7.8 }; export function hello(name: string): string { return `hi ${name}`; }
