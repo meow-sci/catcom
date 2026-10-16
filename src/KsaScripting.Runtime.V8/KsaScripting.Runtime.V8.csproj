@@ -5,6 +5,10 @@
         <AssemblyName>KsaScripting.Runtime.V8</AssemblyName>
         <RootNamespace>KsaScripting.Runtime.V8</RootNamespace>
         <Description>V8 (ClearScript) TypeScript/JavaScript script runtime adapter.</Description>
+        <!-- A class library does not copy its NuGet dependencies to its own output by default. This project's
+             output (and anything that copies it, e.g. the GameMod dist target) must carry ClearScript.*.dll,
+             Newtonsoft.Json.dll and the runtimes/<rid>/native/ClearScriptV8.<rid>.* natives. -->
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,6 +24,28 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="KsaScripting.Runtime.V8.Tests" />
+    </ItemGroup>
+
+    <!-- The TypeScript transpiler assets (typescript.js, sucrase.bundle.js, licences) are downloaded into assets/ by
+         tools/fetch-ts.sh (gitignored). They are copied next to the assembly as <output>/assets/ and located at run
+         time through <assembly dir>/assets (override: env KSA_V8_ASSETS_DIR). Flows to referencing projects too. -->
+    <ItemGroup>
+        <None Include="assets/**"
+              Exclude="assets/.gitignore;assets/.typescript-version"
+              CopyToOutputDirectory="PreserveNewest"
+              Link="assets/%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <!-- The ksa prelude: the real one is written by the API/prelude team in Core (src/KsaScripting.Core/Api/Preludes/ksa.js);
+         until it exists a small placeholder over the same __host contract is embedded instead.
+         -p:KsaV8PlaceholderPrelude=true forces the placeholder (to check the runtime against the minimal contract). -->
+    <ItemGroup>
+        <EmbeddedResource Include="..\KsaScripting.Core\Api\Preludes\ksa.js"
+                          LogicalName="KsaScripting.Runtime.V8.ksa.js"
+                          Condition="'$(KsaV8PlaceholderPrelude)' != 'true' AND Exists('..\KsaScripting.Core\Api\Preludes\ksa.js')" />
+        <EmbeddedResource Include="Prelude\ksa.placeholder.js"
+                          LogicalName="KsaScripting.Runtime.V8.ksa.js"
+                          Condition="'$(KsaV8PlaceholderPrelude)' == 'true' OR !Exists('..\KsaScripting.Core\Api\Preludes\ksa.js')" />
     </ItemGroup>
 
 </Project>
