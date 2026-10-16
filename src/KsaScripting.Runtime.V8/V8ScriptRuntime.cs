@@ -14,14 +14,31 @@ namespace KsaScripting.Runtime.V8;
 
 /// <summary>
 ///     The V8 (Microsoft ClearScript) TypeScript/JavaScript script runtime. TypeScript is transpiled in a private compiler
-///     isolate (<see cref="TypeScriptCompiler"/>); every script gets its own <see cref="V8ScriptEngine"/> (and so its own module
-///     graph and globals) inside ONE shared script isolate. Async functions run on the game thread: promise resolutions and
-///     host-wait completions are queued by a per-engine <see cref="GameThreadSynchronizationContext"/> and executed by
-///     <see cref="Advance"/>.
+///     isolate (<see cref="TypeScriptCompiler"/>); every script gets its own <see cref="V8Runtime"/> (one V8 isolate) holding its
+///     own <see cref="V8ScriptEngine"/> (and so its own module graph and globals). Async functions run on the game thread:
+///     promise resolutions and host-wait completions are queued by a per-engine <see cref="GameThreadSynchronizationContext"/>
+///     and executed by <see cref="Advance"/>.
 /// </summary>
 /// <remarks>
-///     Named <c>V8ScriptRuntime</c> to avoid clashing with ClearScript's <c>V8Runtime</c>. All members run on the game thread
-///     except <see cref="Interrupt"/> (any thread) and the properties that only read cached state.
+///     <para>
+///         Named <c>V8ScriptRuntime</c> to avoid clashing with ClearScript's <c>V8Runtime</c>. All members run on the game thread
+///         except <see cref="Interrupt"/> (any thread) and the properties that only read cached state.
+///     </para>
+///     <para>
+///         <b>One isolate per script.</b> ClearScript applies the soft heap limit (<c>V8Runtime.MaxHeapSize</c>) to a whole
+///         isolate, not to an engine, and a violation blocks every script execution in that isolate until the limit is
+///         re-assigned. Sharing one isolate would therefore let a script that hoards memory fail the calls of every other script
+///         (no fault isolation); with an isolate per script <c>v8_heap_limit_mb</c> really is a "per script engine" limit, an
+///         unloaded script gives all its memory back, and values never cross isolates (a script function is only ever
+///         reachable through a <see cref="ScriptCallable"/> owned by its script; values handed between scripts travel as
+///         <see cref="ScriptValue"/>s, where a function becomes <c>null</c>).
+///     </para>
+///     <para>
+///         <b>Debugging exception.</b> When <see cref="RuntimeOptions.DebugPort"/> is positive all scripts share ONE debuggable
+///         isolate (<c>ksa-scripts</c>) so there is a single inspector target on that port: every isolate that enables remote
+///         debugging starts its own inspector endpoint and would need a port of its own. In that mode the soft heap limit is
+///         shared by all scripts again (a developer convenience, not the production configuration).
+///     </para>
 /// </remarks>
 public sealed class V8ScriptRuntime : IScriptRuntime
 {
@@ -41,7 +58,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
     private IHostFacade? _host;
     private RuntimeOptions? _options;
     private TypeScriptCompiler? _compiler;
-    private V8Runtime? _scriptsRuntime;
+    private V8Runtime? _debugRuntime;
     private bool _initialized;
     private volatile string? _initFailure;
     private volatile LoadedScript? _currentEngine;
@@ -68,17 +85,22 @@ public sealed class V8ScriptRuntime : IScriptRuntime
     {
         get
         {
+            // The sum over every live script isolate (the compiler isolate is not a script's and stays out); the shared
+            // debuggable isolate is counted once.
             long heap = 0;
-            var runtime = _scriptsRuntime;
-            if (runtime is not null && Volatile.Read(ref _disposed) == 0)
+            if (Volatile.Read(ref _disposed) == 0)
             {
-                try
+                if (_debugRuntime is { } shared)
                 {
-                    heap = (long)runtime.GetHeapInfo().UsedHeapSize;
+                    heap = UsedHeapBytes(shared);
                 }
-                catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
+                else
                 {
-                    heap = 0;
+                    foreach (var script in _scripts.Values)
+                    {
+                        if (!script.IsDisposed)
+                            heap += UsedHeapBytes(script.Runtime);
+                    }
                 }
             }
 
@@ -106,6 +128,13 @@ public sealed class V8ScriptRuntime : IScriptRuntime
 
     /// <summary>The number of loaded scripts (test aid).</summary>
     internal int LoadedScriptCount => _scripts.Count;
+
+    /// <summary>
+    ///     The distinct V8 isolates the loaded scripts live in (test aid): one per script, or a single shared one when
+    ///     <see cref="RuntimeOptions.DebugPort"/> is positive. The private compiler isolate is not included.
+    /// </summary>
+    internal IReadOnlyList<V8Runtime> ScriptIsolates
+        => _scripts.Values.Where(script => !script.IsDisposed).Select(script => script.Runtime).Distinct().ToArray();
 
     /// <summary>Blocks until work is queued for <see cref="Advance"/> or the timeout passes (test aid; the game never blocks).</summary>
     /// <param name="timeout">The longest time to wait.</param>
@@ -138,14 +167,15 @@ public sealed class V8ScriptRuntime : IScriptRuntime
             {
                 var stubsDir = string.IsNullOrWhiteSpace(options.StubsDir) ? options.ScriptsDir : options.StubsDir;
                 _compiler = TypeScriptCompiler.Create(Path.GetFullPath(stubsDir), host.Log);
-                _scriptsRuntime = CreateScriptsRuntime(options);
+                if (options.DebugPort is > 0)
+                    _debugRuntime = CreateIsolate("ksa-scripts", options, debugging: true);
             }
             catch (Exception ex)
             {
                 _compiler?.Dispose();
                 _compiler = null;
-                _scriptsRuntime?.Dispose();
-                _scriptsRuntime = null;
+                _debugRuntime?.Dispose();
+                _debugRuntime = null;
                 _initFailure = ex is InvalidOperationException { Message: var message } && message.StartsWith("TypeScript transpiler assets missing", StringComparison.Ordinal)
                     ? TranspilerMissingReason
                     : $"V8 runtime failed to initialize: {ex.GetBaseException().Message}";
@@ -153,7 +183,15 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         }
     }
 
-    private static V8Runtime CreateScriptsRuntime(RuntimeOptions options)
+    /// <summary>
+    ///     Creates one script isolate: the memory constraints, the optional remote inspector (debug mode only) and the soft
+    ///     heap limit.
+    /// </summary>
+    /// <param name="name">The isolate's name (<c>ksa-script:&lt;script&gt;</c>, or <c>ksa-scripts</c> for the shared debuggable one).</param>
+    /// <param name="options">The runtime options.</param>
+    /// <param name="debugging">Whether this is the shared debuggable isolate that serves the inspector on <see cref="RuntimeOptions.DebugPort"/>.</param>
+    /// <returns>The isolate; the caller owns it.</returns>
+    private static V8Runtime CreateIsolate(string name, RuntimeOptions options, bool debugging)
     {
         var constraints = new V8RuntimeConstraints
         {
@@ -164,29 +202,48 @@ public sealed class V8ScriptRuntime : IScriptRuntime
 
         var flags = V8RuntimeFlags.EnableDynamicModuleImports;
         V8Runtime runtime;
-        if (options.DebugPort is > 0 and var port)
+        if (debugging && options.DebugPort is > 0 and var port)
         {
             flags |= V8RuntimeFlags.EnableDebugging | V8RuntimeFlags.EnableRemoteDebugging;
-            runtime = new V8Runtime("ksa-scripts", constraints, flags, port);
+            runtime = new V8Runtime(name, constraints, flags, port);
         }
         else
         {
-            runtime = new V8Runtime("ksa-scripts", constraints, flags);
+            runtime = new V8Runtime(name, constraints, flags);
         }
 
-        if (options.HeapLimitBytes > 0)
+        try
         {
-            // All script engines share this one isolate, so this soft limit covers all scripts together (a deliberate
-            // deviation from "per engine": ClearScript applies the limit per V8Runtime, not per V8ScriptEngine).
-            // Interrupt policy (the default) rather than Exception: a violation terminates execution, which a script
-            // cannot catch. With the Exception policy a script that wraps its allocation loop in try/catch keeps
-            // allocating until V8 hits its hard heap limit and aborts the whole game process (verified).
-            runtime.MaxHeapSize = (UIntPtr)(ulong)options.HeapLimitBytes;
-            runtime.HeapSizeSampleInterval = TimeSpan.FromMilliseconds(50);
-            runtime.HeapSizeViolationPolicy = V8RuntimeViolationPolicy.Interrupt;
+            if (options.HeapLimitBytes > 0)
+            {
+                // ClearScript applies this soft limit per V8Runtime (isolate), which is why every script owns one: the limit is
+                // per script engine. Interrupt policy (the default) rather than Exception: a violation terminates execution,
+                // which a script cannot catch. With the Exception policy a script that wraps its allocation loop in try/catch
+                // keeps allocating until V8 hits its hard heap limit and aborts the whole game process (verified).
+                runtime.MaxHeapSize = (UIntPtr)(ulong)options.HeapLimitBytes;
+                runtime.HeapSizeSampleInterval = TimeSpan.FromMilliseconds(50);
+                runtime.HeapSizeViolationPolicy = V8RuntimeViolationPolicy.Interrupt;
+            }
+        }
+        catch
+        {
+            runtime.Dispose();
+            throw;
         }
 
         return runtime;
+    }
+
+    private static long UsedHeapBytes(V8Runtime runtime)
+    {
+        try
+        {
+            return (long)runtime.GetHeapInfo().UsedHeapSize;
+        }
+        catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
+        {
+            return 0;
+        }
     }
 
     private static string? ComputeAvailability()
@@ -207,7 +264,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
 
         if (UnavailableReason is { } reason)
             throw new ScriptLoadException(reason, source.Path);
-        if (_host is null || _options is null || _compiler is null || _scriptsRuntime is null)
+        if (_host is null || _options is null || _compiler is null)
             throw new ScriptLoadException("the V8 runtime has not been initialized", source.Path);
         if (!string.Equals(source.Language, ScriptLanguages.TypeScript, StringComparison.OrdinalIgnoreCase))
             throw new ScriptLoadException($"the V8 runtime cannot load '{source.Language}' scripts", source.Path);
@@ -229,20 +286,23 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         var loader = new TsDocumentLoader(Path.GetFullPath(_options.ScriptsDir), _compiler, PreludeSource.Text);
         loader.AddOverride(fullPath, source.Code, isTypeScript);
 
-        var engine = CreateEngine(source.Name, _options.DebugPort is > 0);
-        var script = new LoadedScript(token, source.Name, fullPath, engine, context, loader);
-        engine.PromiseRejectionCallback = (kind, promise, reason) => OnPromiseRejection(script, kind, promise, reason);
+        var (runtime, ownsRuntime, engine) = CreateIsolateAndEngine(source);
+        var script = new LoadedScript(token, source.Name, fullPath, runtime, ownsRuntime, engine, context, loader);
 
         using (Enter(script))
         {
             try
             {
+                engine.PromiseRejectionCallback = (kind, promise, reason) => OnPromiseRejection(script, kind, promise, reason);
                 EvaluateEntry(script, source, fullPath);
             }
             catch (Exception ex)
             {
+                // Describe the failure first: it reads the script's error object and its isolate's heap, which the disposal
+                // below (engine, then the isolate the script owns) takes away.
+                var failure = ToLoadException(ex, script, source, fullPath);
                 DisposeScript(script);
-                throw ToLoadException(ex, script, source, fullPath);
+                throw failure;
             }
         }
 
@@ -251,17 +311,41 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         return new ScriptModule(Id, source.Name, token);
     }
 
-    private V8ScriptEngine CreateEngine(string name, bool debugging)
+    /// <summary>
+    ///     Gives a loading script its isolate and engine: a new isolate of its own, or (debug mode) the shared debuggable one.
+    ///     Nothing leaks when creation fails: a half-built isolate is disposed.
+    /// </summary>
+    private (V8Runtime Runtime, bool OwnsRuntime, V8ScriptEngine Engine) CreateIsolateAndEngine(ScriptSource source)
     {
-        var flags = V8ScriptEngineFlags.EnableTaskPromiseConversion
-            | V8ScriptEngineFlags.UseSynchronizationContexts
-            | V8ScriptEngineFlags.EnableDynamicModuleImports
-            | V8ScriptEngineFlags.EnableStringifyEnhancements
-            | V8ScriptEngineFlags.HideHostExceptions;
-        if (debugging)
-            flags |= V8ScriptEngineFlags.EnableDebugging | V8ScriptEngineFlags.EnableRemoteDebugging;
+        var options = _options!;
+        var debugging = _debugRuntime is not null;
+        var runtime = _debugRuntime;
+        var ownsRuntime = false;
+        try
+        {
+            if (runtime is null)
+            {
+                runtime = CreateIsolate("ksa-script:" + source.Name, options, debugging: false);
+                ownsRuntime = true;
+            }
 
-        return _scriptsRuntime!.CreateScriptEngine("script:" + name, flags);
+            var flags = V8ScriptEngineFlags.EnableTaskPromiseConversion
+                | V8ScriptEngineFlags.UseSynchronizationContexts
+                | V8ScriptEngineFlags.EnableDynamicModuleImports
+                | V8ScriptEngineFlags.EnableStringifyEnhancements
+                | V8ScriptEngineFlags.HideHostExceptions;
+            if (debugging)
+                flags |= V8ScriptEngineFlags.EnableDebugging | V8ScriptEngineFlags.EnableRemoteDebugging;
+
+            return (runtime, ownsRuntime, runtime.CreateScriptEngine("script:" + source.Name, flags));
+        }
+        catch (Exception ex)
+        {
+            if (ownsRuntime)
+                TryDispose(runtime);
+
+            throw new ScriptLoadException($"the V8 isolate for the script could not be created: {ex.GetBaseException().Message}", source.Path, inner: ex);
+        }
     }
 
     private void EvaluateEntry(LoadedScript script, ScriptSource source, string fullPath)
@@ -362,7 +446,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
             var line = mapped.Line ?? 0;
             var snippet = line > 0 && script.Loader.TryGetFile(file, out var served) ? SourceMap.GetLine(served.Source, line) : "";
             return new ScriptLoadException(
-                IsHeapViolation(engineException) ? HeapMessage() : engineException.Message,
+                IsHeapViolation(engineException) ? HeapMessage(script) : engineException.Message,
                 file,
                 line,
                 mapped.Column ?? 0,
@@ -454,9 +538,9 @@ public sealed class V8ScriptRuntime : IScriptRuntime
             // The scheduler already attributes the call to the script; doing it here too keeps host calls attributed
             // correctly for nested invocations (a sync hook running while another script's host call is in progress).
             using var hostScope = _host!.EnterScript(script.Name);
-            using (Enter(script, out var nested))
+            using (Enter(script, out var reentrant))
             {
-                if (!nested)
+                if (!reentrant)
                     script.Engine.CancelInterrupt();
 
                 var jsArgs = new object?[args.Length];
@@ -537,9 +621,9 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         try
         {
             using var hostScope = host.EnterScript(script.Name);
-            using (Enter(script, out var nested))
+            using (Enter(script, out var reentrant))
             {
-                if (!nested)
+                if (!reentrant)
                     script.Engine.CancelInterrupt();
 
                 item.Callback(item.State);
@@ -696,6 +780,12 @@ public sealed class V8ScriptRuntime : IScriptRuntime
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    ///     Interrupts the engine that is executing right now (the top of the engine stack), whichever isolate it lives in. When
+    ///     a script called into another script (a nested <see cref="Invoke"/>) that is the inner one: its call ends with
+    ///     "interrupted", which the outer script sees as a failed host call; the outer script's own isolate is untouched
+    ///     (the watchdog arms nested calls separately and interrupts the innermost expired deadline).
+    /// </remarks>
     public void Interrupt()
     {
         if (Volatile.Read(ref _disposed) != 0)
@@ -728,7 +818,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         _callables.Clear();
         _queue.Clear();
         _compiler?.Dispose();
-        _scriptsRuntime?.Dispose();
+        _debugRuntime?.Dispose();
     }
 
     private void DisposeScript(LoadedScript script)
@@ -757,6 +847,9 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         TryDispose(script.Namespace);
         TryDispose(script.Values);
         TryDispose(script.Engine);
+        // The engine goes first, then the isolate it lived in (a debug-mode script only borrows the shared one).
+        if (script.OwnsRuntime)
+            TryDispose(script.Runtime);
         _scripts.TryRemove(script.Token, out _);
     }
 
@@ -776,13 +869,29 @@ public sealed class V8ScriptRuntime : IScriptRuntime
 
     private EngineEntry Enter(LoadedScript script) => Enter(script, out _);
 
-    private EngineEntry Enter(LoadedScript script, out bool nested)
+    /// <summary>Makes <paramref name="script"/> the current engine.</summary>
+    /// <param name="script">The script being entered.</param>
+    /// <param name="reentrant">
+    ///     Whether an engine of the SAME isolate is already running further up the stack (a nested call inside a shared
+    ///     isolate): only then is a pending interrupt still meant for that outer call and must be kept. A script in an isolate of
+    ///     its own starts clean even when nested - a stale request that missed its target must not poison the call.
+    /// </param>
+    private EngineEntry Enter(LoadedScript script, out bool reentrant)
     {
         var previous = SynchronizationContext.Current;
         SynchronizationContext.SetSynchronizationContext(script.Context);
         lock (_stackGate)
         {
-            nested = _engineStack.Count > 0;
+            reentrant = false;
+            foreach (var active in _engineStack)
+            {
+                if (ReferenceEquals(active.Runtime, script.Runtime))
+                {
+                    reentrant = true;
+                    break;
+                }
+            }
+
             _engineStack.Push(script);
             _currentEngine = script;
         }
@@ -823,7 +932,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
             case ScriptInterruptedException:
                 return new ScriptRuntimeException("interrupted", "", null, null, ex);
             case ScriptEngineException engineException when IsHeapViolation(engineException):
-                return new ScriptRuntimeException(HeapMessage(), "", null, null, engineException);
+                return new ScriptRuntimeException(HeapMessage(script), "", null, null, engineException);
             case ScriptEngineException engineException:
             {
                 var mapped = MapStack(engineException, script);
@@ -874,17 +983,19 @@ public sealed class V8ScriptRuntime : IScriptRuntime
     private static bool IsHeapViolation(ScriptEngineException exception)
         => exception.Message.Contains(HeapViolationText, StringComparison.Ordinal);
 
-    private string HeapMessage()
+    /// <summary>Builds the heap-violation message and re-arms the limit of the isolate that violated it (only that one).</summary>
+    /// <param name="script">The script whose isolate hit its limit (<c>null</c> falls back to the shared debuggable isolate, if any).</param>
+    private string HeapMessage(LoadedScript? script)
     {
         long limit = _options?.HeapLimitBytes ?? 0;
         long used = limit;
-        var runtime = _scriptsRuntime;
+        var runtime = script?.Runtime ?? _debugRuntime;
         if (runtime is not null)
         {
             try
             {
                 used = (long)runtime.GetHeapInfo().UsedHeapSize;
-                // The violation blocks further script execution until the limit is assigned again.
+                // The violation blocks further script execution in that isolate until the limit is assigned again.
                 if (limit > 0)
                     runtime.MaxHeapSize = (UIntPtr)(ulong)limit;
             }
