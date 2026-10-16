@@ -1,0 +1,1318 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>purrTTY.CustomShellContract</name>
+    </assembly>
+    <members>
+        <member name="T:purrTTY.Core.Terminal.BaseChannelOutputShell">
+            <summary>
+                Base class for custom shells that use a channel-based async output pump pattern.
+                This mimics PTY stdout behavior where output is queued to a channel and
+                a background task pumps it to OutputReceived events.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseChannelOutputShell._outputChannel">
+            <summary>
+                Output channel that mimics PTY stdout/stderr - unbounded like a real pipe buffer.
+                Carries both data and output type (stdout vs stderr).
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseChannelOutputShell._outputPumpTask">
+            <summary>
+                Background task that pumps output from the channel to OutputReceived events.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseChannelOutputShell._outputPumpCancellation">
+            <summary>
+                Cancellation token source for the output pump task.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.OnStartingAsync(purrTTY.Core.Terminal.CustomShellStartOptions,System.Threading.CancellationToken)">
+            <summary>
+                Hook called during StartAsync, before the output pump is started.
+                Derived classes should perform their initialization here.
+            </summary>
+            <param name="options">Start options for the shell</param>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when initialization is done</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.OnStoppingAsync(System.Threading.CancellationToken)">
+            <summary>
+                Hook called during StopAsync, before the output channel is completed.
+                Derived classes should perform their cleanup here.
+            </summary>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when cleanup is done</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.StartAsync(purrTTY.Core.Terminal.CustomShellStartOptions,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.StopAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.OutputPumpAsync(System.Threading.CancellationToken)">
+            <summary>
+                Background task that pumps output from the channel to OutputReceived events.
+                This mimics how ProcessManager's ReadOutputAsync reads from the ConPTY pipe.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.QueueOutput(System.Byte[])">
+            <summary>
+                Queues raw byte data to the output channel for asynchronous delivery.
+                This is like a shell writing to its stdout file descriptor.
+                Defaults to stdout.
+            </summary>
+            <param name="data">The data to queue</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.QueueOutput(System.String)">
+            <summary>
+                Queues text to the output channel for asynchronous delivery.
+                Text is converted to UTF-8 bytes.
+                Defaults to stdout.
+            </summary>
+            <param name="text">The text to queue</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.QueueOutput(System.Byte[],purrTTY.Core.Terminal.ShellOutputType)">
+            <summary>
+                Queues raw byte data to the output channel for asynchronous delivery with specified output type.
+                This is like a shell writing to its stdout or stderr file descriptor.
+            </summary>
+            <param name="data">The data to queue</param>
+            <param name="type">The output type (stdout or stderr)</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.QueueOutput(System.String,purrTTY.Core.Terminal.ShellOutputType)">
+            <summary>
+                Queues text to the output channel for asynchronous delivery with specified output type.
+                Text is converted to UTF-8 bytes.
+            </summary>
+            <param name="text">The text to queue</param>
+            <param name="type">The output type (stdout or stderr)</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseChannelOutputShell.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:purrTTY.Core.Terminal.BaseCustomShell">
+            <summary>
+                Base class for custom shell implementations providing foundational lifecycle and state management.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseCustomShell._lock">
+            <summary>
+                Lock object for thread-safe access to shell state.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.BaseCustomShell.Metadata">
+            <summary>
+                Gets the shell metadata including name, description, and version.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.BaseCustomShell.IsRunning">
+            <summary>
+                Gets whether the shell is currently running.
+                This property is thread-safe.
+            </summary>
+        </member>
+        <member name="E:purrTTY.Core.Terminal.BaseCustomShell.OutputReceived">
+            <summary>
+                Event raised when the shell produces output data.
+            </summary>
+        </member>
+        <member name="E:purrTTY.Core.Terminal.BaseCustomShell.Terminated">
+            <summary>
+                Event raised when the shell terminates.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.RaiseOutputReceived(System.ReadOnlyMemory{System.Byte},purrTTY.Core.Terminal.ShellOutputType)">
+            <summary>
+                Raises the OutputReceived event with the specified data.
+            </summary>
+            <param name="data">The output data to send</param>
+            <param name="outputType">The type of output (stdout or stderr)</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.RaiseTerminated(System.Int32,System.String)">
+            <summary>
+                Raises the Terminated event with the specified exit code and reason.
+            </summary>
+            <param name="exitCode">The exit code</param>
+            <param name="reason">Optional reason for termination</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.StartAsync(purrTTY.Core.Terminal.CustomShellStartOptions,System.Threading.CancellationToken)">
+            <summary>
+                Starts the custom shell with the specified options.
+            </summary>
+            <param name="options">Start options for the custom shell</param>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when the shell has started</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown if the shell is already running</exception>
+            <exception cref="T:purrTTY.Core.Terminal.CustomShellStartException">Thrown if the shell fails to start</exception>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.StopAsync(System.Threading.CancellationToken)">
+            <summary>
+                Stops the custom shell gracefully.
+            </summary>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when the shell has stopped</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.WriteInputAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+                Sends input data to the shell.
+            </summary>
+            <param name="data">The input data to send</param>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when the input has been processed</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown if the shell is not running</exception>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.NotifyTerminalResize(System.Int32,System.Int32)">
+            <summary>
+                Notifies the shell of terminal size changes.
+                Default implementation does nothing - override to handle resize events.
+            </summary>
+            <param name="width">New terminal width in columns</param>
+            <param name="height">New terminal height in rows</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.RequestCancellation">
+            <summary>
+                Requests graceful cancellation of long-running operations.
+                Default implementation does nothing - override to handle cancellation.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.SendInitialOutput">
+            <summary>
+                Sends initial output (banner, prompt, etc.) to the shell.
+                This is called AFTER the shell is fully initialized and wired up to the terminal,
+                ensuring the terminal is ready to process output before any data is sent.
+                Default implementation does nothing - override to send initial output.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseCustomShell.Dispose">
+            <summary>
+                Disposes resources used by the custom shell.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.BaseLineBufferedShell">
+            <summary>
+                Base class for custom shells that implement line buffering with command history
+                and escape sequence handling. Extends BaseChannelOutputShell with input processing
+                features like backspace, enter, arrow key navigation, and Ctrl+L clear screen.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell._lineBuffer">
+            <summary>
+                Current line being edited by the user.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell._commandHistory">
+            <summary>
+                Command history storage.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell._historyIndex">
+            <summary>
+                Current position in command history (-1 means not navigating).
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell._savedCurrentLine">
+            <summary>
+                Saved current line when navigating history.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell._cursorPosition">
+            <summary>
+                Current cursor position in the line buffer (0-indexed).
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.BaseLineBufferedShell.EscapeState">
+            <summary>
+                Escape sequence state machine states.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.EscapeState.None">
+            <summary>Normal character processing</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.EscapeState.Escape">
+            <summary>ESC received, waiting for next byte</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.EscapeState.Csi">
+            <summary>CSI sequence in progress (ESC [ received)</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell._escapeState">
+            <summary>
+                Current escape sequence processing state.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell._escapeBuffer">
+            <summary>
+                Buffer for collecting CSI sequence parameters.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.CtrlC">
+            <summary>Ctrl+C (cancel line)</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.CtrlH">
+            <summary>Ctrl+H (Ctrl+Backspace - delete previous word)</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.CtrlL">
+            <summary>Ctrl+L (clear screen)</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.CtrlW">
+            <summary>Ctrl+W (delete previous word)</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.CarriageReturn">
+            <summary>Carriage return (Enter key)</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.LineFeed">
+            <summary>Line feed</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.BaseLineBufferedShell.Backspace">
+            <summary>Backspace (DEL)</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.BaseLineBufferedShell.CommandHistory">
+            <summary>
+                Gets the command history for testing/inspection purposes.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.BaseLineBufferedShell.CurrentLine">
+            <summary>
+                Gets the current line buffer content for testing/inspection purposes.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.BaseLineBufferedShell.CursorPosition">
+            <summary>
+                Gets the current cursor position for testing/inspection purposes.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.ExecuteCommandLine(System.String)">
+            <summary>
+                Abstract method called when user presses Enter to execute a command.
+            </summary>
+            <param name="commandLine">The command line to execute (trimmed)</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.HandleClearScreen">
+            <summary>
+                Abstract method called when user presses Ctrl+L to clear the screen.
+                Default behavior should send ESC[2J ESC[H.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.GetPrompt">
+            <summary>
+                Abstract method to get the current prompt string.
+            </summary>
+            <returns>The prompt string to display</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.WriteInputAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.HandleCsiSequence(System.Char)">
+            <summary>
+                Handles a CSI sequence final byte.
+            </summary>
+            <param name="finalByte">The final byte of the CSI sequence</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.HandleNormalByte(System.Byte)">
+            <summary>
+                Handles a normal (non-escape) byte.
+            </summary>
+            <param name="b">The byte to handle</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.NavigateHistoryUp">
+            <summary>
+                Navigates to the previous command in history.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.NavigateHistoryDown">
+            <summary>
+                Navigates to the next command in history.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.MoveCursorRight">
+            <summary>
+                Moves the cursor one position to the right within the line buffer.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.MoveCursorLeft">
+            <summary>
+                Moves the cursor one position to the left within the line buffer.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.MoveCursorToStart">
+            <summary>
+                Moves the cursor to the start of the line buffer.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.MoveCursorToEnd">
+            <summary>
+                Moves the cursor to the end of the line buffer.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.MoveCursorToNextWord">
+            <summary>
+                Moves the cursor to the start of the next word (Ctrl+Right).
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.MoveCursorToPreviousWord">
+            <summary>
+                Moves the cursor to the start of the previous word (Ctrl+Left).
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.DeleteCharacterAtCursor">
+            <summary>
+                Deletes the character at the current cursor position (forward deletion).
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.ReplaceLineBuffer(System.String)">
+            <summary>
+                Replaces the current line buffer with new text and redraws the line.
+            </summary>
+            <param name="newText">The new text for the line buffer</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.CancelCurrentLine">
+            <summary>
+                Discards the current line buffer and resets history navigation.
+                Shared by the Ctrl+C handler and shells implementing
+                <see cref="M:purrTTY.Core.Terminal.ICustomShell.RequestCancellation"/> — a cancellation that
+                only prints <c>^C</c> without this would leave the dismissed text to
+                execute on the next Enter.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.HandleCancelLine">
+            <summary>
+                Handles Ctrl+C to cancel the current line and start fresh.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.HandleDeleteWord">
+            <summary>
+                Handles Ctrl+W to delete the previous word.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.FindPreviousWordBoundary">
+            <summary>
+                Finds the start position of the previous word for Ctrl+W deletion.
+            </summary>
+            <returns>The position where the previous word starts</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.SendPrompt">
+            <summary>
+                Sends the command prompt to the terminal.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.SendOutput(System.String)">
+            <summary>
+                Sends text output to the terminal via the channel-based output pump.
+                Output is sent as stdout.
+            </summary>
+            <param name="text">The text to send</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.SendOutput(System.Byte[])">
+            <summary>
+                Sends raw byte data to the terminal via the channel-based output pump.
+                Output is sent as stdout.
+            </summary>
+            <param name="data">The data to send</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.SendError(System.String)">
+            <summary>
+                Sends text error output to the terminal via the channel-based output pump.
+                Output is sent as stderr.
+            </summary>
+            <param name="text">The error text to send</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.BaseLineBufferedShell.SendError(System.Byte[])">
+            <summary>
+                Sends raw byte error data to the terminal via the channel-based output pump.
+                Output is sent as stderr.
+            </summary>
+            <param name="data">The error data to send</param>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.CustomShellStartException">
+            <summary>
+                Exception thrown when a custom shell fails to start.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellStartException.#ctor(System.String,System.String)">
+            <summary>
+                Creates a new CustomShellStartException.
+            </summary>
+            <param name="message">The error message</param>
+            <param name="shellId">The custom shell ID that failed</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellStartException.#ctor(System.String,System.Exception,System.String)">
+            <summary>
+                Creates a new CustomShellStartException with an inner exception.
+            </summary>
+            <param name="message">The error message</param>
+            <param name="innerException">The inner exception</param>
+            <param name="shellId">The custom shell ID that failed</param>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellStartException.ShellId">
+            <summary>
+                Gets the custom shell ID that failed to start.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.CustomShellMetadata">
+            <summary>
+                Metadata for a custom shell implementation.
+            </summary>
+            <param name="Name">The display name of the shell</param>
+            <param name="Description">A description of what the shell does</param>
+            <param name="Version">The version of the shell implementation</param>
+            <param name="Author">The author or organization that created the shell</param>
+            <param name="SupportedFeatures">Array of features supported by this shell (e.g., "colors", "history", "completion")</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellMetadata.#ctor(System.String,System.String,System.Version,System.String,System.String[])">
+            <summary>
+                Metadata for a custom shell implementation.
+            </summary>
+            <param name="Name">The display name of the shell</param>
+            <param name="Description">A description of what the shell does</param>
+            <param name="Version">The version of the shell implementation</param>
+            <param name="Author">The author or organization that created the shell</param>
+            <param name="SupportedFeatures">Array of features supported by this shell (e.g., "colors", "history", "completion")</param>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellMetadata.Name">
+            <summary>The display name of the shell</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellMetadata.Description">
+            <summary>A description of what the shell does</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellMetadata.Version">
+            <summary>The version of the shell implementation</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellMetadata.Author">
+            <summary>The author or organization that created the shell</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellMetadata.SupportedFeatures">
+            <summary>Array of features supported by this shell (e.g., "colors", "history", "completion")</summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellMetadata.Create(System.String,System.String)">
+            <summary>
+                Creates a new CustomShellMetadata with default values.
+            </summary>
+            <param name="name">The shell name</param>
+            <param name="description">The shell description</param>
+            <returns>A new CustomShellMetadata instance</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellMetadata.Create(System.String,System.String,System.Version,System.String)">
+            <summary>
+                Creates a new CustomShellMetadata with version information.
+            </summary>
+            <param name="name">The shell name</param>
+            <param name="description">The shell description</param>
+            <param name="version">The shell version</param>
+            <param name="author">The shell author</param>
+            <returns>A new CustomShellMetadata instance</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellMetadata.Create(System.String,System.String,System.Version,System.String,System.String[])">
+            <summary>
+                Creates a new CustomShellMetadata with full information.
+            </summary>
+            <param name="name">The shell name</param>
+            <param name="description">The shell description</param>
+            <param name="version">The shell version</param>
+            <param name="author">The shell author</param>
+            <param name="supportedFeatures">Array of supported features</param>
+            <returns>A new CustomShellMetadata instance</returns>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.CustomShellRegistry">
+            <summary>
+                Registry for managing custom shell implementations.
+                Handles shell discovery, registration, validation, and instantiation.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellRegistry.Instance">
+            <summary>
+                Gets the singleton instance of the CustomShellRegistry.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.#ctor">
+            <summary>
+                Initializes a new instance of the CustomShellRegistry.
+                This constructor is public to allow testing with fresh instances.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.RegisterShell``1(System.String,System.Func{``0})">
+            <summary>
+                Registers a custom shell with the registry.
+            </summary>
+            <typeparam name="T">The custom shell type that implements ICustomShell</typeparam>
+            <param name="shellId">Unique identifier for the shell</param>
+            <param name="factory">Factory function to create shell instances</param>
+            <exception cref="T:System.ArgumentException">Thrown when shellId is null, empty, or already registered</exception>
+            <exception cref="T:System.ArgumentNullException">Thrown when factory is null</exception>
+            <exception cref="T:purrTTY.Core.Terminal.CustomShellRegistrationException">Thrown when shell validation fails</exception>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.GetAvailableShells">
+            <summary>
+                Gets all available custom shells with their metadata.
+            </summary>
+            <returns>Enumerable of shell ID and metadata pairs</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.GetShellMetadata(System.String)">
+            <summary>
+                Gets the metadata for a specific shell.
+            </summary>
+            <param name="shellId">The shell ID to look up</param>
+            <returns>The shell metadata, or null if not found</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.CreateShell(System.String)">
+            <summary>
+                Creates a new instance of the specified custom shell.
+            </summary>
+            <param name="shellId">The shell ID to instantiate</param>
+            <returns>A new instance of the custom shell</returns>
+            <exception cref="T:System.ArgumentException">Thrown when shellId is null, empty, or not found</exception>
+            <exception cref="T:purrTTY.Core.Terminal.CustomShellInstantiationException">Thrown when shell creation fails</exception>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.IsShellRegistered(System.String)">
+            <summary>
+                Checks if a shell with the specified ID is registered.
+            </summary>
+            <param name="shellId">The shell ID to check</param>
+            <returns>True if the shell is registered, false otherwise</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.DiscoverShells">
+            <summary>
+                Performs automatic discovery of custom shell implementations in the current application domain.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.DiscoverShellsInAssembly(System.Reflection.Assembly)">
+            <summary>
+                Discovers custom shell implementations in a specific assembly.
+            </summary>
+            <param name="assembly">The assembly to search</param>
+            <returns>The number of shells discovered in the assembly</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.ValidateShellImplementation(purrTTY.Core.Terminal.ICustomShell,System.String)">
+            <summary>
+                Validates that a custom shell implementation meets the requirements.
+            </summary>
+            <param name="shell">The shell instance to validate</param>
+            <param name="shellId">The shell ID for error reporting</param>
+            <exception cref="T:purrTTY.Core.Terminal.CustomShellRegistrationException">Thrown when validation fails</exception>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistry.EnsureDiscoveryCompleted">
+            <summary>
+                Ensures that shell discovery has been completed.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.CustomShellRegistrationException">
+            <summary>
+                Exception thrown when custom shell registration fails.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistrationException.#ctor(System.String)">
+            <summary>
+                Initializes a new instance of the CustomShellRegistrationException class.
+            </summary>
+            <param name="message">The error message</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellRegistrationException.#ctor(System.String,System.Exception)">
+            <summary>
+                Initializes a new instance of the CustomShellRegistrationException class.
+            </summary>
+            <param name="message">The error message</param>
+            <param name="innerException">The inner exception</param>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.CustomShellInstantiationException">
+            <summary>
+                Exception thrown when custom shell instantiation fails.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellInstantiationException.#ctor(System.String)">
+            <summary>
+                Initializes a new instance of the CustomShellInstantiationException class.
+            </summary>
+            <param name="message">The error message</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellInstantiationException.#ctor(System.String,System.Exception)">
+            <summary>
+                Initializes a new instance of the CustomShellInstantiationException class.
+            </summary>
+            <param name="message">The error message</param>
+            <param name="innerException">The inner exception</param>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.CustomShellStartOptions">
+            <summary>
+                Options for starting a custom shell.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellStartOptions.InitialWidth">
+            <summary>
+                Gets or sets the initial terminal width in columns.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellStartOptions.InitialHeight">
+            <summary>
+                Gets or sets the initial terminal height in rows.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellStartOptions.WorkingDirectory">
+            <summary>
+                Gets or sets the working directory for the shell.
+                If null, uses the current process working directory.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellStartOptions.EnvironmentVariables">
+            <summary>
+                Gets or sets environment variables for the shell.
+                These will be available to the custom shell implementation.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.CustomShellStartOptions.Configuration">
+            <summary>
+                Gets or sets additional configuration data for the shell.
+                This can be used to pass shell-specific configuration.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellStartOptions.CreateDefault">
+            <summary>
+                Creates default start options for a custom shell.
+            </summary>
+            <returns>Default start options</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellStartOptions.CreateWithDimensions(System.Int32,System.Int32)">
+            <summary>
+                Creates start options with specific terminal dimensions.
+            </summary>
+            <param name="width">Terminal width in columns</param>
+            <param name="height">Terminal height in rows</param>
+            <returns>Start options with specified dimensions</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.CustomShellStartOptions.CreateWithWorkingDirectory(System.String)">
+            <summary>
+                Creates start options with a specific working directory.
+            </summary>
+            <param name="workingDirectory">The working directory</param>
+            <returns>Start options with specified working directory</returns>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.ICustomShell">
+            <summary>
+                Interface for custom shell implementations that integrate with the PTY infrastructure.
+                Custom shells provide shell-like behavior through C# code rather than external processes.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ICustomShell.Metadata">
+            <summary>
+                Gets the shell metadata including name, description, and version.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ICustomShell.IsRunning">
+            <summary>
+                Gets whether the shell is currently running.
+            </summary>
+        </member>
+        <member name="E:purrTTY.Core.Terminal.ICustomShell.OutputReceived">
+            <summary>
+                Event raised when the shell produces output data.
+            </summary>
+        </member>
+        <member name="E:purrTTY.Core.Terminal.ICustomShell.Terminated">
+            <summary>
+                Event raised when the shell terminates.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ICustomShell.StartAsync(purrTTY.Core.Terminal.CustomShellStartOptions,System.Threading.CancellationToken)">
+            <summary>
+                Starts the custom shell with the specified options.
+            </summary>
+            <param name="options">Start options for the custom shell</param>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when the shell has started</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown if the shell is already running</exception>
+            <exception cref="T:purrTTY.Core.Terminal.CustomShellStartException">Thrown if the shell fails to start</exception>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ICustomShell.StopAsync(System.Threading.CancellationToken)">
+            <summary>
+                Stops the custom shell gracefully.
+            </summary>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when the shell has stopped</returns>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ICustomShell.WriteInputAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+                Sends input data to the shell.
+            </summary>
+            <param name="data">The input data to send</param>
+            <param name="cancellationToken">Cancellation token for the operation</param>
+            <returns>A task that completes when the input has been processed</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown if the shell is not running</exception>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ICustomShell.NotifyTerminalResize(System.Int32,System.Int32)">
+            <summary>
+                Notifies the shell of terminal size changes.
+            </summary>
+            <param name="width">New terminal width in columns</param>
+            <param name="height">New terminal height in rows</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ICustomShell.RequestCancellation">
+            <summary>
+                Requests graceful cancellation of long-running operations.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ICustomShell.SendInitialOutput">
+            <summary>
+                Emits the shell's startup output (banner, prompt, etc.) — the custom-shell
+                equivalent of a real shell printing its prompt after spawn. The host
+                (<c>CustomShellPtyBridge</c>) calls this once per successful
+                <see cref="M:purrTTY.Core.Terminal.ICustomShell.StartAsync(purrTTY.Core.Terminal.CustomShellStartOptions,System.Threading.CancellationToken)"/>, after output events are wired, so implementations
+                should not call it themselves.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.ITerminalHandle">
+            <summary>
+                A handle to one terminal opened through <see cref="T:purrTTY.Core.Terminal.ITerminalLauncher"/>. Properties are
+                cheap snapshots safe to read from any thread. The <c>...Async</c> methods are marshalled
+                onto the game's main thread and may be called from any thread; their tasks complete after
+                the work ran there (or fault with the reason). On a closed handle they complete immediately:
+                <see cref="M:purrTTY.Core.Terminal.ITerminalHandle.CloseAsync"/> and <see cref="M:purrTTY.Core.Terminal.ITerminalHandle.FocusAsync"/> succeed as no-ops, the others fault
+                with <see cref="T:System.ObjectDisposedException"/>.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.Id">
+            <summary>Launcher-assigned unique id of this terminal; stable for the handle's lifetime.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.Name">
+            <summary>
+                The terminal's registry name. May differ from the name requested (made unique) and
+                changes after <see cref="M:purrTTY.Core.Terminal.ITerminalHandle.RenameAsync(System.String)"/>. A tab is not a registry entry: its name is the
+                requested name, or <c>"&lt;window name&gt;#&lt;8 hex digits of Id&gt;"</c> when none was given.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.Placement">
+            <summary>
+                Where the terminal is placed. A <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Tab"/> request that
+                finds no open window opens a window instead and reports
+                <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Window"/>.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.IsOpen">
+            <summary>True from creation until the terminal is closed.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.IsRunning">
+            <summary>True while the program inside the terminal is running.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.ExitCode">
+            <summary>The program's exit code once it exited; null while running or when it never started.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.Cols">
+            <summary>Current grid width in columns; 0 until the first measurement.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalHandle.Rows">
+            <summary>Current grid height in rows; 0 until the first measurement.</summary>
+        </member>
+        <member name="E:purrTTY.Core.Terminal.ITerminalHandle.Lifecycle">
+            <summary>
+                Raised on the game's main (ImGui) thread for every lifecycle transition of this terminal.
+                Handlers that need another thread must marshal themselves; a throwing handler is
+                logged and does not affect other handlers.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalHandle.FocusAsync">
+            <summary>
+                Gives the terminal input focus. Does not show a hidden terminal UI. A no-op on a closed handle.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalHandle.CloseAsync">
+            <summary>Closes the terminal. Completes immediately when it is already closed.</summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalHandle.RenameAsync(System.String)">
+            <summary>
+                Renames the terminal. Faults with <see cref="T:System.InvalidOperationException"/> when the name is
+                blank or already used by another terminal.
+            </summary>
+            <param name="name">The new registry name.</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalHandle.ResizeAsync(System.Int32,System.Int32)">
+            <summary>
+                Resizes the terminal to the requested grid. In-world terminals resize live to exactly the
+                requested grid (clamped); a window is resized to the approximate pixel size for it; a tab
+                cannot be resized separately from its window. Resolves to false when the resize could
+                not be applied.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalHandle.SetPlacementAsync(purrTTY.Core.Terminal.TerminalInWorldOptions)">
+            <summary>
+                Updates an in-world terminal's anchor and transform live: the vehicle/part/sub-part ids,
+                offset, rotation and size (and, for a billboard, distance, always-on-top and click-to-focus)
+                are all replaced by the given options (unset members take their defaults), and any
+                opacity that is set is applied. The anchor mode (part or billboard) is fixed at launch, and
+                <c>Name</c>, <c>ThemeName</c>, <c>Cols</c>/<c>Rows</c> and <c>Focus</c> are ignored here (use
+                the dedicated methods). Window and tab handles complete with
+                <see cref="T:System.InvalidOperationException"/>.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalHandle.ApplyThemeAsync(System.String)">
+            <summary>
+                Applies a colour theme by name. Faults with <see cref="T:System.Collections.Generic.KeyNotFoundException"/> when no
+                such theme exists, and with <see cref="T:System.InvalidOperationException"/> for a tab (it uses
+                its window's theme).
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalHandle.WriteInput(System.ReadOnlyMemory{System.Byte})">
+            <summary>
+                Injects bytes into the program's input as if typed. Thread-safe and non-blocking: the bytes
+                are copied and delivered on the main thread, in call order. A no-op on a closed handle.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.ITerminalLauncher">
+            <summary>
+                Lets another mod open and manage purrTTY terminals from code. Obtain the live instance
+                from <see cref="P:purrTTY.Core.Terminal.TerminalLauncherRegistry.Current"/> (null when purrTTY is not loaded or not
+                initialised yet; watch <see cref="E:purrTTY.Core.Terminal.TerminalLauncherRegistry.Changed"/> to attach late).
+                <para>
+                    All real work runs on the game's main thread inside the frame loop, so
+                    <see cref="M:purrTTY.Core.Terminal.ITerminalLauncher.LaunchAsync(purrTTY.Core.Terminal.TerminalLaunchRequest,System.Threading.CancellationToken)"/> only completes while the game is rendering frames and purrTTY
+                    is running.
+                </para>
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalLauncher.IsAvailable">
+            <summary>True while purrTTY is initialised and able to open terminals.</summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalLauncher.LaunchAsync(purrTTY.Core.Terminal.TerminalLaunchRequest,System.Threading.CancellationToken)">
+            <summary>
+                Opens a terminal. Callable from any thread; the work runs at the start of the next frame
+                on the main thread. Faults with <see cref="T:System.ArgumentNullException"/> for a null request,
+                <see cref="T:System.InvalidOperationException"/> when the placement is unavailable or creation
+                failed, and is cancelled when <paramref name="ct"/> is cancelled before the work runs.
+            </summary>
+            <param name="request">What to open and where.</param>
+            <param name="ct">Cancels the request while it is still queued.</param>
+            <returns>A handle to the new terminal.</returns>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ITerminalLauncher.Terminals">
+            <summary>Snapshot of the open terminals this launcher created. Safe from any thread.</summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ITerminalLauncher.Find(System.String)">
+            <summary>Finds an open terminal created through this launcher by name (case-insensitive); null when none.</summary>
+        </member>
+        <member name="E:purrTTY.Core.Terminal.ITerminalLauncher.Lifecycle">
+            <summary>
+                Raised on the main thread for every lifecycle transition of every terminal created through
+                this launcher, after the handle's own <see cref="E:purrTTY.Core.Terminal.ITerminalHandle.Lifecycle"/> event.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.TerminalInWorldOptions">
+            <summary>
+                Options for an in-world terminal (<see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.InWorldPart"/> /
+                <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.InWorldBillboard"/>): a render-to-texture quad drawn in
+                the 3D scene, anchored to a vehicle part or pinned in the camera's view.
+                <para>
+                    The offset/rotation/size members describe the quad in the anchor's frame. For a part
+                    anchor they are metres/degrees in the part's local frame; for a billboard
+                    <see cref="P:purrTTY.Core.Terminal.TerminalInWorldOptions.OffsetX"/>/<see cref="P:purrTTY.Core.Terminal.TerminalInWorldOptions.OffsetY"/> are screen offsets in metres at
+                    <see cref="P:purrTTY.Core.Terminal.TerminalInWorldOptions.BillboardDistance"/> (and <see cref="P:purrTTY.Core.Terminal.TerminalInWorldOptions.OffsetZ"/> is unused).
+                </para>
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.Name">
+            <summary>Registry name; null picks an automatic one. A name in use is made unique with a numeric suffix.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.ThemeName">
+            <summary>Name of the colour theme to apply; null (or an unknown name) uses the user's default.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.Cols">
+            <summary>
+                Grid width in columns (clamped to 8..400). The texture is sized from this and the theme's
+                font cell, so the shell sees about this many columns (a small font on a small grid can
+                yield a few more rows because of a minimum texture size). Default 40.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.Rows">
+            <summary>Grid height in rows (clamped to 4..200). Default 12.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.VehicleId">
+            <summary>Id of the anchor vehicle; empty (default) means the controlled vehicle.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.PartId">
+            <summary>
+                Id of the anchor top-level part within the vehicle (the part's instance name, or its
+                template id). Several parts can share one id; the first match wins. Empty means the
+                vehicle's first part. Prefer <see cref="P:purrTTY.Core.Terminal.TerminalInWorldOptions.PartInstanceId"/> when it is known.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.PartInstanceId">
+            <summary>
+                The game's per-session unique id of the anchor part (<c>Part.InstanceId</c>). When set it
+                is preferred over <see cref="P:purrTTY.Core.Terminal.TerminalInWorldOptions.PartId"/> and is looked up across all vehicles, so it keeps
+                working after the part moves to another vehicle. Not stable across game sessions.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.SubPartId">
+            <summary>Id of a sub-part of the anchor part to anchor to instead; empty means the part itself.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.OffsetX">
+            <summary>Quad offset along X (part-local metres, or screen metres for a billboard). Default 0.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.OffsetY">
+            <summary>Quad offset along Y (part-local metres, or screen metres for a billboard). Default 0.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.OffsetZ">
+            <summary>
+                Quad offset along Z in the part's local frame, in metres (positive faces out of the
+                part's +Z side). Part anchors only. Default 0.05.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.RotationX">
+            <summary>Rotation about X in degrees (applied X, then Y, then Z). Default 0.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.RotationY">
+            <summary>Rotation about Y in degrees. Default 0.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.RotationZ">
+            <summary>Rotation about Z in degrees. Default 0.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.WidthMeters">
+            <summary>Quad width in metres (clamped to 0.05..100). Default 0.6.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.HeightMeters">
+            <summary>Quad height in metres (clamped to 0.05..100). Default 0.2.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.BackgroundOpacity">
+            <summary>Background opacity 0..1 (the see-through level of the whole panel); null keeps the theme's value.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.ForegroundOpacity">
+            <summary>Text opacity 0..1; null keeps the theme's value.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.CellBackgroundOpacity">
+            <summary>Per-cell background opacity 0..1; null keeps the theme's value.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.Billboard">
+            <summary>
+                Pin the quad in the camera's view instead of anchoring it to a part. Equivalent to
+                using <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.InWorldBillboard"/>; either selects billboard mode.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.BillboardDistance">
+            <summary>Billboard distance from the camera in metres (clamped to 0.2..200). Default 5.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.BillboardAlwaysOnTop">
+            <summary>Billboard ignores scene depth (always drawn on top). Default true.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.BillboardClickToFocus">
+            <summary>
+                A billboard can be focused (and forwards mouse input to the program) by clicking it.
+                Part-anchored terminals are always clickable. Default true.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalInWorldOptions.Focus">
+            <summary>Give the new terminal input focus after creation. Default false.</summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.TerminalLauncherRegistry">
+            <summary>
+                Process-wide rendezvous between purrTTY (which publishes its <see cref="T:purrTTY.Core.Terminal.ITerminalLauncher"/>
+                once initialised and clears it on unload) and other mods (which read it). Because the
+                contract assembly is loaded once and shared, both sides see the same static.
+                <para>
+                    A consumer should treat <see cref="P:purrTTY.Core.Terminal.TerminalLauncherRegistry.Current"/> being null as "terminals unavailable" and
+                    subscribe to <see cref="E:purrTTY.Core.Terminal.TerminalLauncherRegistry.Changed"/> to attach when purrTTY finishes loading after it, and
+                    to detach when purrTTY unloads.
+                </para>
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalLauncherRegistry.Current">
+            <summary>
+                The live launcher, or null while purrTTY is absent or not initialised. Setting a value
+                different from the current one (reference comparison) raises <see cref="E:purrTTY.Core.Terminal.TerminalLauncherRegistry.Changed"/>;
+                setting the same value again does nothing. Thread-safe.
+            </summary>
+        </member>
+        <member name="E:purrTTY.Core.Terminal.TerminalLauncherRegistry.Changed">
+            <summary>
+                Raised after <see cref="P:purrTTY.Core.Terminal.TerminalLauncherRegistry.Current"/> changed, with the new value (null when cleared), on the
+                thread that set it. Handlers run outside any lock; a handler that throws is logged and
+                does not stop the remaining handlers.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.TerminalLaunchRequest">
+            <summary>
+                A request to open a terminal, passed to <see cref="M:purrTTY.Core.Terminal.ITerminalLauncher.LaunchAsync(purrTTY.Core.Terminal.TerminalLaunchRequest,System.Threading.CancellationToken)"/>.
+                Pick a <see cref="P:purrTTY.Core.Terminal.TerminalLaunchRequest.Placement"/>, describe what runs in <see cref="P:purrTTY.Core.Terminal.TerminalLaunchRequest.Program"/>, and fill the
+                options object that matches the placement.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalLaunchRequest.Placement">
+            <summary>Where the terminal appears. Default <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Window"/>.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalLaunchRequest.Program">
+            <summary>What runs inside the terminal.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalLaunchRequest.Window">
+            <summary>
+                Options for <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Window"/> and
+                <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Tab"/> placements; null uses defaults.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalLaunchRequest.InWorld">
+            <summary>
+                Options for <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.InWorldPart"/> and
+                <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.InWorldBillboard"/> placements; null uses the
+                <see cref="T:purrTTY.Core.Terminal.TerminalInWorldOptions"/> defaults.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.TerminalLifecycleEvent">
+            <summary>
+                Lifecycle transitions reported through <see cref="E:purrTTY.Core.Terminal.ITerminalHandle.Lifecycle"/> and
+                <see cref="E:purrTTY.Core.Terminal.ITerminalLauncher.Lifecycle"/>. Values are append-only.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Created">
+            <summary>The terminal exists (raised once, before the first <see cref="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Started"/>).</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Started">
+            <summary>The program inside the terminal started running (raised at most once).</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Focused">
+            <summary>The terminal gained input focus.</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Unfocused">
+            <summary>The terminal lost input focus.</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Resized">
+            <summary>The terminal grid changed size (not raised for the first measurement).</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Exited">
+            <summary>The program inside the terminal exited (raised at most once; see <see cref="P:purrTTY.Core.Terminal.ITerminalHandle.ExitCode"/>).</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalLifecycleEvent.Closed">
+            <summary>The terminal was closed, by the user or through <see cref="M:purrTTY.Core.Terminal.ITerminalHandle.CloseAsync"/> (raised once, last).</summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.TerminalPlacementKind">
+            <summary>
+                Where a launched terminal is shown. Part of the cross-mod launcher ABI
+                (<see cref="T:purrTTY.Core.Terminal.ITerminalLauncher"/>); values are append-only.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalPlacementKind.Window">
+            <summary>A new standalone 2D terminal window.</summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalPlacementKind.Tab">
+            <summary>
+                A new tab in the currently focused 2D terminal window. Falls back to
+                <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Window"/> when no 2D window is open.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalPlacementKind.InWorldPart">
+            <summary>
+                An in-world (render-to-texture) terminal anchored to a vehicle part
+                (see <see cref="T:purrTTY.Core.Terminal.TerminalInWorldOptions"/>).
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.TerminalPlacementKind.InWorldBillboard">
+            <summary>
+                An in-world terminal pinned in the camera's view (a HUD panel; see
+                <see cref="T:purrTTY.Core.Terminal.TerminalInWorldOptions"/>).
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.TerminalProgramSpec">
+            <summary>
+                What runs inside a launched terminal: a registered <see cref="T:purrTTY.Core.Terminal.ICustomShell"/>, a real
+                process, or (when both are unset) the user's configured default shell. A POCO so the
+                contract assembly stays free of purrTTY's launch-option types.
+                <para>
+                    Selection order: <see cref="P:purrTTY.Core.Terminal.TerminalProgramSpec.CustomShellId"/> (non-blank) wins, then
+                    <see cref="P:purrTTY.Core.Terminal.TerminalProgramSpec.Program"/>, otherwise the configured default shell.
+                </para>
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalProgramSpec.CustomShellId">
+            <summary>
+                Id of a shell registered with <see cref="T:purrTTY.Core.Terminal.CustomShellRegistry"/>. When non-blank the
+                terminal hosts that custom shell instead of a real process.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalProgramSpec.Program">
+            <summary>
+                Path (or bare executable name, resolved through <c>PATH</c>) of a real process to run.
+                Prefer an absolute path: a game launched from a desktop environment often has a
+                minimal <c>PATH</c>. Both this and <see cref="P:purrTTY.Core.Terminal.TerminalProgramSpec.CustomShellId"/> unset selects the
+                configured default shell.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalProgramSpec.Arguments">
+            <summary>
+                Command-line arguments for <see cref="P:purrTTY.Core.Terminal.TerminalProgramSpec.Program"/>. Custom shells receive no argument
+                vector (the shell start options carry none); pass shell input through
+                <see cref="P:purrTTY.Core.Terminal.TerminalProgramSpec.Environment"/> or <see cref="P:purrTTY.Core.Terminal.TerminalProgramSpec.Configuration"/> instead.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalProgramSpec.WorkingDirectory">
+            <summary>Working directory for the process or shell; null keeps purrTTY's default (the user's home).</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalProgramSpec.Environment">
+            <summary>
+                Extra environment variables, merged over purrTTY's defaults (entries here win). This is
+                how a mod passes an identity to a registered custom shell, whose factory takes no
+                arguments: the values arrive in <see cref="P:purrTTY.Core.Terminal.CustomShellStartOptions.EnvironmentVariables"/>.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalProgramSpec.StartupCommand">
+            <summary>Optional command typed into the shell (newline-terminated) once it has started.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalProgramSpec.Configuration">
+            <summary>
+                Opaque shell-specific configuration, forwarded to
+                <see cref="P:purrTTY.Core.Terminal.CustomShellStartOptions.Configuration"/> for custom shells. Ignored for real processes.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.TerminalWindowOptions">
+            <summary>
+                Options for a 2D terminal window or tab (<see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Window"/> /
+                <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Tab"/>). Every member is optional.
+                <para>
+                    A tab lives inside an existing window, so for <see cref="F:purrTTY.Core.Terminal.TerminalPlacementKind.Tab"/> only
+                    <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Title"/>, <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Focus"/> and <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.ShowTerminal"/> apply (and
+                    <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Name"/>, which labels the handle); the theme, geometry and window-behaviour
+                    options belong to the host window and are ignored.
+                </para>
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.Name">
+            <summary>
+                Registry name shown in the theme picker; null picks an automatic one. A name already in
+                use is made unique with a numeric suffix, so read the actual name from
+                <see cref="P:purrTTY.Core.Terminal.ITerminalHandle.Name"/>.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.Title">
+            <summary>Initial session (tab) title; a program may replace it later with an OSC 0/2 sequence.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.ThemeName">
+            <summary>Name of the colour theme to apply; null (or an unknown name) uses the user's default.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.PosX">
+            <summary>Window X position in pixels; used only together with <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.PosY"/>. Null cascades.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.PosY">
+            <summary>Window Y position in pixels; used only together with <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.PosX"/>.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.Width">
+            <summary>Window width in pixels; used only together with <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Height"/>. Null uses the default size.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.Height">
+            <summary>Window height in pixels; used only together with <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Width"/>.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.Cols">
+            <summary>
+                Requested grid width in columns, converted to a window size from the theme's font cell.
+                Ignored when <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Width"/>/<see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Height"/> are both set; needs
+                <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Rows"/> as well. The conversion is approximate (the user can still resize).
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.Rows">
+            <summary>Requested grid height in rows; see <see cref="P:purrTTY.Core.Terminal.TerminalWindowOptions.Cols"/>.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.LockMode">
+            <summary>Lock mode: while unfocused the window passes mouse input through to the game. Null keeps the default.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.HideChrome">
+            <summary>
+                True hides the window chrome (title strip, tabs, border) while the mouse is not over the
+                window; false keeps it always visible. Null follows the user's global setting.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.NoResize">
+            <summary>True prevents the user from resizing the window. Null keeps the default (resizable).</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.Focus">
+            <summary>Give the new terminal input focus. Default true.</summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.TerminalWindowOptions.ShowTerminal">
+            <summary>
+                Make the terminal UI visible after the window exists (equivalent to the user toggling it
+                on). Default true. Set false to open the window while the terminal UI stays hidden.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.ShellOutputType">
+            <summary>
+                Output type enumeration for shell output events.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.ShellOutputType.Stdout">
+            <summary>
+                Standard output stream.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.ShellOutputType.Stderr">
+            <summary>
+                Standard error stream.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.ShellOutputEventArgs">
+            <summary>
+                Event arguments for custom shell output notifications.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ShellOutputEventArgs.#ctor(System.ReadOnlyMemory{System.Byte},purrTTY.Core.Terminal.ShellOutputType)">
+            <summary>
+                Creates new shell output event arguments.
+            </summary>
+            <param name="data">The output data</param>
+            <param name="outputType">The type of output (stdout or stderr)</param>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ShellOutputEventArgs.#ctor(System.String,purrTTY.Core.Terminal.ShellOutputType)">
+            <summary>
+                Creates new shell output event arguments from string data.
+            </summary>
+            <param name="text">The output text (will be converted to UTF-8)</param>
+            <param name="outputType">The type of output (stdout or stderr)</param>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ShellOutputEventArgs.Data">
+            <summary>
+                Gets the output data from the shell.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ShellOutputEventArgs.OutputType">
+            <summary>
+                Gets the type of output (stdout or stderr).
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ShellOutputEventArgs.Timestamp">
+            <summary>
+                Gets the time when the output was generated.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.ShellTerminatedEventArgs">
+            <summary>
+                Event arguments for custom shell termination notifications.
+            </summary>
+        </member>
+        <member name="M:purrTTY.Core.Terminal.ShellTerminatedEventArgs.#ctor(System.Int32,System.String)">
+            <summary>
+                Creates new shell terminated event arguments.
+            </summary>
+            <param name="exitCode">The exit code</param>
+            <param name="reason">Optional reason for termination</param>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ShellTerminatedEventArgs.ExitCode">
+            <summary>
+                Gets the exit code of the shell.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ShellTerminatedEventArgs.Reason">
+            <summary>
+                Gets the reason for termination, if provided.
+            </summary>
+        </member>
+        <member name="P:purrTTY.Core.Terminal.ShellTerminatedEventArgs.Timestamp">
+            <summary>
+                Gets the time when the shell terminated.
+            </summary>
+        </member>
+        <member name="T:purrTTY.Core.Terminal.WellKnownShellEnvironment">
+            <summary>
+                Well-known environment-variable names used to pass purrTTY configuration
+                into custom shells. Environment variables are the one configuration
+                channel that flows untouched from launch options through the PTY bridge
+                into <see cref="P:purrTTY.Core.Terminal.CustomShellStartOptions.EnvironmentVariables"/>, so a
+                shell implementation never needs a reference to the display layer's
+                configuration types.
+            </summary>
+        </member>
+        <member name="F:purrTTY.Core.Terminal.WellKnownShellEnvironment.GameShellPrompt">
+            <summary>
+                The prompt string for the Game Console shell. Stamped by the launcher
+                (game menu / configured default) from the user's configuration.
+            </summary>
+        </member>
+    </members>
+</doc>
