@@ -36,3 +36,18 @@ Owner paths: `ksa-scripting.slnx`, `Directory.Build.props`, `.gitignore`, `src/K
 - Landed (`88e619e`): HookRegistry, BindingStore (`[[binding]]` TOML), EventBus (sync dispatch, deferral while an Invoke/Advance is running — deferred sync subscribers get the event in the next slot with `sync = false`; `$script` targeting hidden from payloads), Scheduler (StepSlot order per guide §3.4, all §3.7 wait kinds, budgets, fault limit, watchdog disable), Watchdog (nestable), ScriptCatalog (+ ScriptHeader, ScriptWatcher), ScriptTerminal/TerminalRegistry (`CopyRingBuffer()`), ScriptStateStore, HostFacade (+ `HostFacadeOptions.FromConfig`, per-script output ring, `RecordError`), NullRuntime.
 - GameMod must wire the Scheduler's `onScriptError` to `facade.RecordError`.
 - Tests: Core.Tests 626 total at this point (3 consecutive green runs).
+
+## WP8 — GameMod
+
+- Landed: `f00c8e1` (Core.Editor: MsgPackRpc codec, NvimRpcClient, LoopbackPorts; 190 tests incl. a real headless-nvim smoke test that self-skips without nvim), `2b44a04` (dist: V8 `assets/` shipped, game DLLs denied in the glob, Version 0.1.0), `0229d11` (Mod lifecycle, ScriptingHost composition root, ModLogSink, RuntimeLoader (reflection: `LuaRuntime`, `V8ScriptRuntime`/`V8Runtime`), console `script run|start|stop|reload|list|edit|stubs|events|call`, ScriptTerminalShell `ksa-script`, REPL shells `ksa-lua-repl`/`ksa-ts-repl`, StateSidecar `<save>/ksa-scripting-state.toml`, TerminalPlacer + `terminals.toml` over the purrTTY launcher, EditorLauncher, Script Manager window with all tabs/pickers/templates, hotkey guard, menu fallback).
+- Verified off-game: builds Debug/Release/game-free with zero warnings; scratch harnesses ran the real ScriptingHost + Lua/V8 runtimes against PE-patched KSA DLLs with a fake launcher, the window on native Dear ImGui (23 scenarios), templates type-checked (tsc 5.9.3) and luajit-checked, EditorLauncher end-to-end against the real nvim.
+- Dist check (`python3 tools/check-dist.py ~/repos/meow-sci/mods/ksa-scripting --rids linux-x64,osx-arm64`): 1 error — no `LICENSE` file in the repo (project licence is the user's decision); WARNs for ModMenu.Attributes / purrTTY contract DLLs are by design (fallback when those mods are absent). The win-x64 `lua51.dll` is built on Windows only.
+- For Manager B: the V8 runtime writes its compiler cache under `scripts/cache`; `ModPaths.CacheDir` (`<data>/cache`) is the intended place (RuntimeOptions has no cache dir field — derive it from `ScriptsDir`'s parent or add a field).
+
+## Docs / CI
+
+- `34650cd`: README, docs/VALIDATION.md (in-game checklist), .github/workflows/build.yml (ubuntu/windows/macos-14 matrix).
+
+## Totals (2026-10-16, end of Manager A's WPs)
+
+- `dotnet build ksa-scripting.slnx`: 0 warnings, 0 errors. `dotnet test`: Core.Tests 816, Runtime.Lua.Tests 613, Runtime.V8.Tests 498 — all green.
