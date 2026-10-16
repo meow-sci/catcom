@@ -41,7 +41,7 @@
             <StaleDistFile Include="$(DistDir)*" Exclude="$(DistDir)ksa-scripting.toml;$(DistDir)bindings.toml;$(DistDir)terminals.toml"/>
         </ItemGroup>
         <Delete Files="@(StaleDistFile)"/>
-        <RemoveDir Directories="$(DistDir)third-party-licenses;$(DistDir)runtimes;$(DistDir)scripts-lib"/>
+        <RemoveDir Directories="$(DistDir)third-party-licenses;$(DistDir)runtimes;$(DistDir)scripts-lib;$(DistDir)assets"/>
         <MakeDir Directories="$(DistDir)"/>
 
         <!-- mod.toml + deps.json (StarMap's ModAssemblyLoadContext resolves the mod's own
@@ -57,10 +57,13 @@
              runtime in-game. Includes the vendored purrTTY contract DLLs: with purrTTY
              installed they are shadowed by mod.toml ImportedAssemblies (dependency ALCs are
              consulted first); without purrTTY they are the fallback that lets ksa-scripting
-             load without terminal surfaces. -->
+             load without terminal surfaces. Game assemblies that MSBuild copy-locals as
+             transitive dependencies of the Private=false KSA references (Brutal.Core.Collections,
+             Brutal.Core.Memory, CommunityToolkit.HighPerformance, …) are game-provided and must
+             never ship (a second copy splits type identity), so they are denied here too. -->
         <ItemGroup>
             <ModManagedDll Include="$(TargetDir)*.dll"
-                           Exclude="$(TargetDir)0Harmony.dll;$(TargetDir)StarMap.API.dll"/>
+                           Exclude="$(TargetDir)0Harmony.dll;$(TargetDir)StarMap.API.dll;$(TargetDir)KSA.dll;$(TargetDir)Brutal.*.dll;$(TargetDir)Planet.*.dll;$(TargetDir)Bepu*.dll;$(TargetDir)CommunityToolkit.HighPerformance.dll;$(TargetDir)imgui.dll"/>
         </ItemGroup>
         <Copy SourceFiles="@(ModManagedDll)" DestinationFolder="$(DistDir)" Condition="'@(ModManagedDll)' != ''"/>
 
@@ -72,6 +75,13 @@
             <NativeFile Include="$(TargetDir)runtimes/**/*" Exclude="$(TargetDir)runtimes/**/.gitignore"/>
         </ItemGroup>
         <Copy SourceFiles="@(NativeFile)" DestinationFolder="$(DistDir)runtimes/%(RecursiveDir)" Condition="'@(NativeFile)' != ''"/>
+
+        <!-- V8 runtime assets (typescript.js, sucrase bundle + licences; fetched by tools/fetch-ts.*
+             into src/KsaScripting.Runtime.V8/assets/ and copied to $(TargetDir)assets/). -->
+        <ItemGroup>
+            <V8AssetFile Include="$(TargetDir)assets/**/*" Exclude="$(TargetDir)assets/**/.gitignore"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(V8AssetFile)" DestinationFolder="$(DistDir)assets/%(RecursiveDir)" Condition="'@(V8AssetFile)' != ''"/>
 
         <!-- Shipped script libraries (scripts-lib/): copied to <user>/scripts/lib on every start. -->
         <ItemGroup>
