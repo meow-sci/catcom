@@ -19,6 +19,9 @@ public abstract class V8TestBase
     /// <summary>The stubs folder (shared by all tests so the compiler code cache is reused).</summary>
     protected string StubsDir => SharedStubsDir;
 
+    /// <summary>The stubs folder shared by all tests, for fixtures that are not derived from this class.</summary>
+    internal static string SharedStubsFolder => SharedStubsDir;
+
     /// <summary>The fake host facade.</summary>
     protected FakeHostFacade Host { get; private set; } = null!;
 

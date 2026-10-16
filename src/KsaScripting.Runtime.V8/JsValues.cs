@@ -69,6 +69,31 @@ internal sealed class JsValues : IDisposable
             return value;
           }
 
+          // Where the rejection of a promise returned by an invoked function is reported (set by the runtime).
+          let rejectionSink = null;
+
+          function observedRejection(reason) {
+            const sink = rejectionSink;
+            if (sink === null) return;
+            try { sink(reason); } catch (_ignored) { /* reporting must never raise another rejection */ }
+          }
+
+          function describeReason(reason) {
+            try {
+              if (reason instanceof Error) return String(reason);
+              if (typeof reason === "string") return reason;
+              if (reason !== null && typeof reason === "object") {
+                try {
+                  const json = JSON.stringify(reason);
+                  if (json !== undefined) return json;
+                } catch (_ignored) { /* fall through to String() */ }
+              }
+              return String(reason);
+            } catch (_ignored) {
+              return "[unprintable]";
+            }
+          }
+
           // Promises handed to scripts for host waits. The host settles them by id from its own game-thread queue, so an
           // exception raised while the promise jobs run (an interrupt, a heap violation) surfaces in the caller.
           const pending = new Map();
@@ -79,6 +104,25 @@ internal sealed class JsValues : IDisposable
 
           return {
             parse: function (json) { return jsonParse(json, reviver); },
+            // Calls an exported function / hook. When it returns a Promise (an async function) the Promise is observed HERE,
+            // by attaching a rejection handler, so its failure is reported exactly once and never counts as unhandled;
+            // the host gets undefined (an async function "returns immediately").
+            invoke: function (fn, ...args) {
+              const result = fn(...args);
+              if (result !== null && typeof result === "object" && typeof result.then === "function") {
+                Promise.resolve(result).then(undefined, observedRejection);
+                return undefined;
+              }
+              return result;
+            },
+            setRejectionSink: function (sink) { rejectionSink = sink; },
+            describe: function (reason) {
+              let stack = null;
+              try {
+                if (reason !== null && typeof reason === "object" && typeof reason.stack === "string") stack = reason.stack;
+              } catch (_ignored) { /* a hostile stack getter */ }
+              return { text: describeReason(reason), stack: stack };
+            },
             // The script-visible __host: a frozen JS facade over the native bridge. Promises are created HERE, in
             // JavaScript, so no Promise ever crosses the interop boundary (where ClearScript would convert it to a
             // Task and back, routing the resolution through its own continuations).
@@ -143,6 +187,9 @@ internal sealed class JsValues : IDisposable
 
     private readonly ScriptObject _helper;
     private readonly ScriptObject _parse;
+    private readonly ScriptObject _invoke;
+    private readonly ScriptObject _setRejectionSink;
+    private readonly ScriptObject _describe;
     private readonly ScriptObject _exports;
     private readonly ScriptObject _makeContext;
     private readonly ScriptObject _installConsole;
@@ -154,6 +201,9 @@ internal sealed class JsValues : IDisposable
     {
         _helper = helper;
         _parse = (ScriptObject)helper.GetProperty("parse");
+        _invoke = (ScriptObject)helper.GetProperty("invoke");
+        _setRejectionSink = (ScriptObject)helper.GetProperty("setRejectionSink");
+        _describe = (ScriptObject)helper.GetProperty("describe");
         _exports = (ScriptObject)helper.GetProperty("exports");
         _makeContext = (ScriptObject)helper.GetProperty("makeContext");
         _installConsole = (ScriptObject)helper.GetProperty("installConsole");
@@ -168,7 +218,8 @@ internal sealed class JsValues : IDisposable
     /// <returns>The converter.</returns>
     public static JsValues Create(V8ScriptEngine engine, Func<ScriptObject, string?, ScriptCallable> registerCallable)
     {
-        var helper = (ScriptObject)engine.Evaluate(new DocumentInfo("ksa-runtime-helper.js"), HelperSource);
+        // "[internal]" in the name keeps the helper's own stack frames out of script tracebacks (see StackTraceMapper).
+        var helper = (ScriptObject)engine.Evaluate(new DocumentInfo("[internal] ksa-runtime-helper.js"), HelperSource);
         return new JsValues(helper, registerCallable);
     }
 
@@ -189,6 +240,39 @@ internal sealed class JsValues : IDisposable
             ScriptValueKind.Handle => value.AsHandle(),
             _ => _parse.InvokeAsFunction(value.ToJson()),
         };
+    }
+
+    /// <summary>Calls a script function. If it returns a Promise the Promise is observed (see the helper) and <c>undefined</c> is returned.</summary>
+    /// <param name="function">The JS function.</param>
+    /// <param name="args">The converted arguments.</param>
+    /// <returns>The function's result as ClearScript marshals it.</returns>
+    public object? Invoke(ScriptObject function, object?[] args)
+    {
+        var all = new object?[args.Length + 1];
+        all[0] = function;
+        Array.Copy(args, 0, all, 1, args.Length);
+        return _invoke.InvokeAsFunction(all);
+    }
+
+    /// <summary>Sets where rejections of promises returned by invoked functions are delivered (called by the script's JS, on the game thread).</summary>
+    /// <param name="sink">The receiver of the rejection reason.</param>
+    public void InstallRejectionSink(Action<object?> sink) => _setRejectionSink.InvokeAsFunction(sink);
+
+    /// <summary>Describes a rejection reason: the text <c>String(reason)</c>-like and, for an Error, its JS stack.</summary>
+    /// <param name="reason">The reason as marshalled by ClearScript.</param>
+    /// <returns>The text and the stack (or <c>null</c>).</returns>
+    public (string Text, string? Stack) Describe(object? reason)
+    {
+        try
+        {
+            using var described = (ScriptObject)_describe.InvokeAsFunction(reason);
+            return (described.GetProperty("text") as string ?? "", described.GetProperty("stack") as string);
+        }
+        catch (Exception ex) when (ex is ScriptEngineException or ObjectDisposedException or InvalidOperationException or InvalidCastException)
+        {
+            // Describing may not run (an interrupt is pending, the engine is going away): fall back to what the host can see.
+            return (reason switch { null => "null", Undefined => "undefined", _ => reason.ToString() ?? "" }, null);
+        }
     }
 
     /// <summary>Runs a context map through the prelude's <c>ksa.makeContext</c> (when the prelude defines it).</summary>
@@ -441,6 +525,9 @@ internal sealed class JsValues : IDisposable
     public void Dispose()
     {
         _parse.Dispose();
+        _invoke.Dispose();
+        _setRejectionSink.Dispose();
+        _describe.Dispose();
         _exports.Dispose();
         _makeContext.Dispose();
         _installConsole.Dispose();

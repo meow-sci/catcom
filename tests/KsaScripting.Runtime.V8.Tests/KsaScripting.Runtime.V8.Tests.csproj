@@ -29,4 +29,10 @@
         <Using Include="NUnit.Framework" />
     </ItemGroup>
 
+    <!-- Parser test vectors shared with the Lua and bun implementations, and the terminal UI toolkit under test (linked, not copied in the repository). -->
+    <ItemGroup>
+        <Content Include="TestData\tui-vectors.json" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\scripts-lib\tui.ts" Link="TestData/scripts-lib/tui.ts" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>

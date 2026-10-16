@@ -34,6 +34,8 @@ public sealed class V8ScriptRuntime : IScriptRuntime
     private readonly ConcurrentDictionary<long, LoadedScript> _scripts = new();
     private readonly ConcurrentDictionary<long, CallableEntry> _callables = new();
     private readonly Stack<LoadedScript> _engineStack = new();
+    private readonly object _rejectionGate = new();
+    private readonly HashSet<LoadedScript> _rejectionOwners = [];
     private readonly Lazy<string?> _baseAvailability = new(ComputeAvailability, LazyThreadSafetyMode.ExecutionAndPublication);
 
     private IHostFacade? _host;
@@ -229,6 +231,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
 
         var engine = CreateEngine(source.Name, _options.DebugPort is > 0);
         var script = new LoadedScript(token, source.Name, fullPath, engine, context, loader);
+        engine.PromiseRejectionCallback = (kind, promise, reason) => OnPromiseRejection(script, kind, promise, reason);
 
         using (Enter(script))
         {
@@ -244,6 +247,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         }
 
         _scripts[token] = script;
+        ScheduleRejectionReports();
         return new ScriptModule(Id, source.Name, token);
     }
 
@@ -252,7 +256,8 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         var flags = V8ScriptEngineFlags.EnableTaskPromiseConversion
             | V8ScriptEngineFlags.UseSynchronizationContexts
             | V8ScriptEngineFlags.EnableDynamicModuleImports
-            | V8ScriptEngineFlags.EnableStringifyEnhancements;
+            | V8ScriptEngineFlags.EnableStringifyEnhancements
+            | V8ScriptEngineFlags.HideHostExceptions;
         if (debugging)
             flags |= V8ScriptEngineFlags.EnableDebugging | V8ScriptEngineFlags.EnableRemoteDebugging;
 
@@ -273,6 +278,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
 
         var values = JsValues.Create(engine, (fn, name) => RegisterCallable(script, fn, name));
         script.Values = values;
+        values.InstallRejectionSink(reason => OnInvokedRejection(script, reason));
         var bridge = new HostBridge(
             _host!,
             values,
@@ -296,9 +302,24 @@ public sealed class V8ScriptRuntime : IScriptRuntime
 
         loader.LastError = null;
         var entrySpecifier = JsonSerializer.Serialize(new Uri(fullPath).AbsoluteUri);
-        var evaluation = engine.Evaluate(
-            new DocumentInfo("ksa-entry.mjs") { Category = ModuleCategory.Standard },
-            $"import * as m from {entrySpecifier}; globalThis.__ksaModule = m;");
+        object? evaluation;
+        // A module with top-level await is evaluated as a promise, which ClearScript hands back as a Task. With the engine's
+        // synchronization context current, that Task would be completed through the game-thread queue - i.e. only on a later
+        // Advance - so a top-level await that fails would look "still pending" here and its error would be lost. Without a
+        // context the Task is completed inline: a failed evaluation is a faulted Task by the time Evaluate returns, and what
+        // is still pending is waiting for a host wait (which is rejected below).
+        var previousContext = SynchronizationContext.Current;
+        SynchronizationContext.SetSynchronizationContext(null);
+        try
+        {
+            evaluation = engine.Evaluate(
+                new DocumentInfo("ksa-entry.mjs") { Category = ModuleCategory.Standard },
+                $"import * as m from {entrySpecifier}; globalThis.__ksaModule = m;");
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previousContext);
+        }
 
         if (evaluation is Task { IsFaulted: true } faulted)
             throw faulted.Exception!.GetBaseException();
@@ -442,14 +463,10 @@ public sealed class V8ScriptRuntime : IScriptRuntime
                 for (var i = 0; i < jsArgs.Length; i++)
                     jsArgs[i] = ToJsArgument(script, args[i]);
 
-                var result = entry.Function.InvokeAsFunction(jsArgs);
-                if (result is Task task)
-                {
-                    ObserveAsync(script, task);
-                    return ScriptValue.Null;
-                }
-
-                return script.Values!.ToScriptValue(result);
+                // A function that returns a Promise (an async function) comes back as undefined: its settlement is observed
+                // in JavaScript and a rejection reaches ReportError later (see ScheduleRejectionReports).
+                var result = script.Values!.Invoke(entry.Function, jsArgs);
+                return script.Values.ToScriptValue(result);
             }
         }
         catch (Exception ex)
@@ -460,6 +477,7 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         {
             Volatile.Write(ref _lastCallMs, stopwatch.Elapsed.TotalMilliseconds);
             Interlocked.Increment(ref _callsTotal);
+            ScheduleRejectionReports();
         }
     }
 
@@ -473,22 +491,6 @@ public sealed class V8ScriptRuntime : IScriptRuntime
             return values.MakeContext(js);
 
         return js;
-    }
-
-    private void ObserveAsync(LoadedScript script, Task task)
-    {
-        // A script that returned a Promise (an async function): its settlement is observed on the game thread; a rejection is
-        // reported through the host like a failed Invoke.
-        task.ContinueWith(
-            static (finished, state) =>
-            {
-                var (runtime, owner) = ((V8ScriptRuntime, LoadedScript))state!;
-                runtime.ReportAsyncFailure(owner, finished.Exception!);
-            },
-            (this, script),
-            CancellationToken.None,
-            TaskContinuationOptions.OnlyOnFaulted,
-            script.Context.Scheduler);
     }
 
     private void ReportAsyncFailure(LoadedScript script, Exception exception)
@@ -547,6 +549,138 @@ public sealed class V8ScriptRuntime : IScriptRuntime
         {
             ReportAsyncFailure(script, ex);
         }
+        finally
+        {
+            ScheduleRejectionReports();
+        }
+    }
+
+    // ------------------------------------------------------------------ promise rejections
+
+    /// <summary>
+    ///     V8's promise-rejection notification (the game thread, inside script execution): remember a rejection that has no
+    ///     handler yet, forget it when a handler is attached later. Nothing is reported from here - the host must never be
+    ///     entered (and an engine never unloaded) in the middle of a script call.
+    /// </summary>
+    private void OnPromiseRejection(LoadedScript script, V8PromiseRejectionEventKind kind, ScriptObject promise, object? reason)
+    {
+        var keep = false;
+        try
+        {
+            if (script.IsDisposed)
+                return;
+
+            switch (kind)
+            {
+                case V8PromiseRejectionEventKind.RejectedWithoutHandler:
+                    script.Rejections.Add(new PendingRejection(promise, reason, FromInvoke: false));
+                    MarkRejectionOwner(script);
+                    keep = true;
+                    break;
+                case V8PromiseRejectionEventKind.HandlerAddedAfterRejection:
+                    script.Rejections.Handled(promise);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            // An exception here would unwind into V8; losing one notification is the lesser evil.
+            _host?.Log(1, $"v8: promise rejection tracking failed for script '{script.Name}': {ex.Message}");
+        }
+        finally
+        {
+            if (!keep)
+            {
+                PendingRejection.DisposeQuietly(promise);
+                PendingRejection.DisposeQuietly(reason);
+            }
+        }
+    }
+
+    /// <summary>The Promise an invoked function returned was rejected (reported by the JS helper that observes it).</summary>
+    private void OnInvokedRejection(LoadedScript script, object? reason)
+    {
+        if (script.IsDisposed)
+        {
+            PendingRejection.DisposeQuietly(reason);
+            return;
+        }
+
+        script.Rejections.Add(new PendingRejection(null, reason, FromInvoke: true));
+        MarkRejectionOwner(script);
+    }
+
+    private void MarkRejectionOwner(LoadedScript script)
+    {
+        lock (_rejectionGate)
+            _rejectionOwners.Add(script);
+    }
+
+    /// <summary>
+    ///     Called when an engine entry ends. If it was the outermost one every microtask has run, so the rejections still
+    ///     without a handler are final: they are queued as work items and reported by <see cref="Advance"/>, like any other
+    ///     asynchronous script error (attributed to the script, outside the call that caused them).
+    /// </summary>
+    private void ScheduleRejectionReports()
+    {
+        lock (_stackGate)
+        {
+            if (_engineStack.Count > 0)
+                return;
+        }
+
+        LoadedScript[] owners;
+        lock (_rejectionGate)
+        {
+            if (_rejectionOwners.Count == 0)
+                return;
+
+            owners = [.. _rejectionOwners];
+            _rejectionOwners.Clear();
+        }
+
+        foreach (var owner in owners)
+        {
+            var batch = owner.Rejections.Take();
+            if (batch.Length == 0)
+                continue;
+
+            if (owner.IsDisposed)
+            {
+                foreach (var rejection in batch)
+                    rejection.Release();
+                continue;
+            }
+
+            owner.Context.Post(static state => ((RejectionReport)state!).Run(), new RejectionReport(this, owner, batch));
+        }
+    }
+
+    /// <summary>The state of a queued report: runs <see cref="ReportRejections"/> on the game thread.</summary>
+    private sealed record RejectionReport(V8ScriptRuntime Runtime, LoadedScript Script, PendingRejection[] Batch)
+    {
+        public void Run() => Runtime.ReportRejections(Script, Batch);
+    }
+
+    private void ReportRejections(LoadedScript script, PendingRejection[] batch)
+    {
+        foreach (var rejection in batch)
+        {
+            try
+            {
+                if (script.IsDisposed || script.Values is not { } values)
+                    continue;
+
+                var (text, stack) = values.Describe(rejection.Reason);
+                var mapped = StackTraceMapper.Map(stack, script.Loader);
+                var message = rejection.FromInvoke ? text : "Unhandled promise rejection: " + text;
+                ReportAsyncFailure(script, new ScriptRuntimeException(message, mapped.Traceback, mapped.File, mapped.Line));
+            }
+            finally
+            {
+                rejection.Release();
+            }
+        }
     }
 
     // ------------------------------------------------------------------ Unload / Interrupt / Dispose
@@ -603,6 +737,9 @@ public sealed class V8ScriptRuntime : IScriptRuntime
             return;
 
         script.Context.Dispose();
+        script.Rejections.Clear();
+        lock (_rejectionGate)
+            _rejectionOwners.Remove(script);
         foreach (var callable in script.Callables.Values.ToArray())
         {
             try

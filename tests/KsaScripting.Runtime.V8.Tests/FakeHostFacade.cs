@@ -26,6 +26,7 @@ public sealed class FakeHostFacade : IHostFacade
     private readonly ConcurrentQueue<SubscriptionCall> _subscriptions = new();
     private readonly ConcurrentQueue<LogCall> _logs = new();
     private readonly ConcurrentQueue<ScriptRuntimeException> _errors = new();
+    private readonly ConcurrentQueue<string> _errorScripts = new();
     private readonly ConcurrentQueue<string> _entered = new();
     private readonly ConcurrentDictionary<string, ScriptValue> _state = new(StringComparer.Ordinal);
     private readonly List<(int TermId, byte[] Bytes)> _termWrites = [];
@@ -41,6 +42,9 @@ public sealed class FakeHostFacade : IHostFacade
 
     /// <summary>Decides what <see cref="Snapshot"/> returns.</summary>
     public Func<string, ScriptValue> SnapshotHandler { get; set; } = _ => ScriptValue.Null;
+
+    /// <summary>Decides what <see cref="List"/> returns (default: an empty list).</summary>
+    public Func<string, ScriptValue> ListHandler { get; set; } = _ => ScriptValue.List([]);
 
     /// <summary>Invoked on every log call (for tests that wait on a message).</summary>
     public Action<LogCall>? OnLog { get; set; }
@@ -59,6 +63,9 @@ public sealed class FakeHostFacade : IHostFacade
 
     /// <summary>The errors reported through <see cref="ReportError"/>.</summary>
     public IReadOnlyList<ScriptRuntimeException> ReportedErrors => _errors.ToArray();
+
+    /// <summary>The script each reported error was attributed to (the current script when <see cref="ReportError"/> was called), parallel to <see cref="ReportedErrors"/>.</summary>
+    public IReadOnlyList<string> ReportedErrorScripts => _errorScripts.ToArray();
 
     /// <summary>Every script name passed to <see cref="EnterScript"/>, in order.</summary>
     public IReadOnlyList<string> EnteredScripts => _entered.ToArray();
@@ -96,7 +103,7 @@ public sealed class FakeHostFacade : IHostFacade
     public ScriptValue Snapshot(string handle) => SnapshotHandler(handle);
 
     /// <inheritdoc />
-    public ScriptValue List(string kind) => ScriptValue.List([]);
+    public ScriptValue List(string kind) => ListHandler(kind);
 
     /// <inheritdoc />
     public ActResult Act(string action, string? vesselId, int ordinal, double value, double[]? values, string? token, string? aux)
@@ -185,7 +192,11 @@ public sealed class FakeHostFacade : IHostFacade
     }
 
     /// <inheritdoc />
-    public void ReportError(ScriptRuntimeException error) => _errors.Enqueue(error);
+    public void ReportError(ScriptRuntimeException error)
+    {
+        _errorScripts.Enqueue(CurrentScript);
+        _errors.Enqueue(error);
+    }
 
     private sealed class Scope(FakeHostFacade owner) : IDisposable
     {

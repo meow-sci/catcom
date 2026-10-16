@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using KsaScripting.Core.Runtime;
 using Microsoft.ClearScript;
 using Microsoft.ClearScript.JavaScript;
@@ -11,15 +10,19 @@ namespace KsaScripting.Runtime.V8;
 ///     scripts folder is ever read, whatever ClearScript's <c>AccessFlags</c> say. One instance per engine; it caches one
 ///     <see cref="Document"/> per file so every importer shares ONE module instance.
 /// </summary>
+/// <remarks>
+///     Paths are compared as spelled ON DISK (see <see cref="PathCanonicalizer"/>), never by an OS-wide case rule: on a
+///     case-folding volume <c>../SCRIPTS/x.ts</c> is the scripts folder and shares its module instance with <c>./x.ts</c>; on
+///     a case-sensitive volume (Linux, or an APFS volume formatted that way) <c>../Scripts/x.ts</c> is a different folder
+///     and is refused.
+/// </remarks>
 internal sealed class TsDocumentLoader : DocumentLoader
 {
     /// <summary>The specifier of the prelude module.</summary>
     public const string PreludeSpecifier = "ksa";
 
-    private static readonly StringComparison PathComparison =
-        RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-
     private readonly object _gate = new();
+    private readonly PathCanonicalizer _paths = new();
     private readonly string _scriptsDir;
     private readonly string _realScriptsDir;
     private readonly TypeScriptCompiler _compiler;
@@ -35,8 +38,10 @@ internal sealed class TsDocumentLoader : DocumentLoader
     /// <param name="preludeCode">The source of the <c>ksa</c> prelude module.</param>
     public TsDocumentLoader(string scriptsDir, TypeScriptCompiler compiler, string preludeCode)
     {
-        _scriptsDir = TrimSeparator(Path.GetFullPath(scriptsDir));
-        _realScriptsDir = TrimSeparator(RealPath(_scriptsDir));
+        var configured = TrimSeparator(Path.GetFullPath(scriptsDir));
+        _paths.Pin(configured);
+        _scriptsDir = TrimSeparator(_paths.CaseExact(configured));
+        _realScriptsDir = TrimSeparator(_paths.Real(_scriptsDir));
         _compiler = compiler;
         _preludeCode = preludeCode;
     }
@@ -53,8 +58,9 @@ internal sealed class TsDocumentLoader : DocumentLoader
     /// <param name="isTypeScript">Whether the code is TypeScript (otherwise plain JavaScript).</param>
     public void AddOverride(string fullPath, string code, bool isTypeScript)
     {
+        var key = _paths.CaseExact(Path.GetFullPath(fullPath));
         lock (_gate)
-            _overrides[Path.GetFullPath(fullPath)] = (code, isTypeScript);
+            _overrides[key] = (code, isTypeScript);
     }
 
     /// <summary>Looks up a served file by the file name V8 reports in stack frames (absolute path or file URI).</summary>
@@ -199,16 +205,18 @@ internal sealed class TsDocumentLoader : DocumentLoader
         var requested = ToRequestedPath(sourceInfo, specifier);
         foreach (var candidate in Candidates(requested))
         {
-            if (!Exists(candidate, out var overridden))
+            // The spelling the file system lists: one module per file however an import writes the path.
+            var canonical = _paths.CaseExact(candidate);
+            if (!Exists(canonical, out var overridden))
                 continue;
 
             if (!overridden)
-                EnsureInsideScripts(candidate, specifier);
-            return candidate;
+                EnsureInsideScripts(canonical, specifier);
+            return canonical;
         }
 
         // Nothing exists: still refuse paths outside the folder with the containment error rather than a probe result.
-        EnsureInsideScripts(requested, specifier);
+        EnsureInsideScripts(_paths.CaseExact(requested), specifier);
         throw new FileNotFoundException($"cannot find module '{specifier}' (looked for {requested}, {requested}.ts, {Path.Combine(requested, "index.ts")})", requested);
     }
 
@@ -257,63 +265,18 @@ internal sealed class TsDocumentLoader : DocumentLoader
 
     private void EnsureInsideScripts(string fullPath, string specifier)
     {
-        // Lexical check first (cheap, covers ../), then the real path (covers symlinked files and directories).
-        if (!IsInside(_scriptsDir, fullPath) && !IsInside(_realScriptsDir, fullPath))
+        // Real path (links followed, on-disk spelling) against the real scripts folder: covers ../, symlinked files and
+        // directories, and differently-cased spellings alike, whatever the file system's case rule.
+        if (!IsInside(_realScriptsDir, _paths.Real(fullPath)))
             throw new UnauthorizedAccessException($"module path escapes the scripts folder: {specifier}");
-
-        if (File.Exists(fullPath) || Directory.Exists(fullPath))
-        {
-            var real = RealPath(fullPath);
-            if (!IsInside(_realScriptsDir, real) && !IsInside(_scriptsDir, real))
-                throw new UnauthorizedAccessException($"module path escapes the scripts folder: {specifier}");
-        }
     }
 
     private static bool IsInside(string directory, string path)
-        => path.StartsWith(directory + Path.DirectorySeparatorChar, PathComparison);
+        => path.StartsWith(directory + Path.DirectorySeparatorChar, StringComparison.Ordinal);
 
     private static string TrimSeparator(string path)
     {
         var root = Path.GetPathRoot(path) ?? "";
         return path.Length > root.Length ? path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) : path;
-    }
-
-    /// <summary>Resolves every symbolic link in an existing absolute path (a "realpath").</summary>
-    /// <param name="fullPath">An absolute, normalised path.</param>
-    /// <returns>The path with all links followed; unchanged parts that do not exist are kept as is.</returns>
-    internal static string RealPath(string fullPath) => RealPath(fullPath, 0);
-
-    private static string RealPath(string fullPath, int depth)
-    {
-        if (depth > 32)
-            return fullPath;
-
-        var root = Path.GetPathRoot(fullPath) ?? "";
-        var parts = fullPath[root.Length..].Split(
-            [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
-            StringSplitOptions.RemoveEmptyEntries);
-        var current = root;
-        foreach (var part in parts)
-        {
-            var next = Path.Combine(current, part);
-            try
-            {
-                FileSystemInfo info = Directory.Exists(next) ? new DirectoryInfo(next) : new FileInfo(next);
-                if (info.LinkTarget is not null)
-                {
-                    var target = info.ResolveLinkTarget(returnFinalTarget: true);
-                    if (target is not null)
-                        next = RealPath(Path.GetFullPath(target.FullName), depth + 1);
-                }
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                // An unreadable component cannot be proven safe by following it; keep the lexical path.
-            }
-
-            current = next;
-        }
-
-        return current;
     }
 }

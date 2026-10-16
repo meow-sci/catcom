@@ -61,6 +61,9 @@ internal sealed class LoadedScript
     /// <summary>Every callable created for functions of this script (exports, hooks, predicates), by token.</summary>
     public ConcurrentDictionary<long, ScriptCallable> Callables { get; } = new();
 
+    /// <summary>Promise rejections of this engine that nobody handled (yet).</summary>
+    public RejectionTracker Rejections { get; } = new();
+
     /// <summary>Whether the script was unloaded.</summary>
     public bool IsDisposed => Volatile.Read(ref _disposed) != 0;
 
