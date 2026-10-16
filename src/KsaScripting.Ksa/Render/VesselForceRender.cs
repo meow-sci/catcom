@@ -150,7 +150,7 @@ internal static class VesselForceRender
         }
         catch
         {
-            harmony.UnpatchAll("gatos.always_render"); // don't leak a half-installed pair
+            harmony.UnpatchAll(harmony.Id); // don't leak a half-installed pair
             throw;
         }
 
@@ -164,7 +164,7 @@ internal static class VesselForceRender
             return;
         try
         {
-            _harmony.UnpatchAll("gatos.always_render");
+            _harmony.UnpatchAll(_harmony.Id);
         }
         catch (Exception ex)
         {
