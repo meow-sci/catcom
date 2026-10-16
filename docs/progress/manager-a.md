@@ -30,3 +30,9 @@ Owner paths: `ksa-scripting.slnx`, `Directory.Build.props`, `.gitignore`, `src/K
 - Landed: `9c085f5` (verbatim gatOS port: readers, actuators, anchors, VesselForceRender), `16e4790` (ActionExecutor, VesselCache, KsaBridge, SlotHost, 24 event patch classes, differ aliasing, KsaSaveHooks, IEventSink/IStepSink + EventBusSink/SchedulerStepSink, CompileCheck stubs).
 - Every patch target verified against decomp 5554; patches applied in a scratch harness against the real KSA.dll on macOS (PE machine field patched); no Ksa unit tests (game-coupled, compile-removed in CI).
 - Wiring for GameMod: `ActionExecutor(new KsaHealth(), controlAllVessels, debugNamespace)` → `VesselCache()` → `KsaBridge(cache, executor, queue)` → `SlotHost(new SchedulerStepSink(scheduler), new EventBusSink(bus), queue, executor, cache, bridge).Install()`; `EventPatches.Install(new EventBusSink(bus))` on the game thread; `[StarMapAfterOnFrame]` → `slots.OnAfterFrame(dtPlayer)`; `KsaSaveHooks.SaveWritten(dir)` / `GameLoaded(dir?)` for the state sidecar; unload: `EventPatches.Uninstall(); slots.Uninstall(); ActionExecutor.Teardown()`.
+
+## WP2 — Core hooks / scheduler / catalog / terminals / persistence / facade
+
+- Landed (`88e619e`): HookRegistry, BindingStore (`[[binding]]` TOML), EventBus (sync dispatch, deferral while an Invoke/Advance is running — deferred sync subscribers get the event in the next slot with `sync = false`; `$script` targeting hidden from payloads), Scheduler (StepSlot order per guide §3.4, all §3.7 wait kinds, budgets, fault limit, watchdog disable), Watchdog (nestable), ScriptCatalog (+ ScriptHeader, ScriptWatcher), ScriptTerminal/TerminalRegistry (`CopyRingBuffer()`), ScriptStateStore, HostFacade (+ `HostFacadeOptions.FromConfig`, per-script output ring, `RecordError`), NullRuntime.
+- GameMod must wire the Scheduler's `onScriptError` to `facade.RecordError`.
+- Tests: Core.Tests 626 total at this point (3 consecutive green runs).
