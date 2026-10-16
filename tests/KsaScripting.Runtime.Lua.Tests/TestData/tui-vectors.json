@@ -1,0 +1,8794 @@
+[
+ {
+  "name": "typed text hi in one chunk",
+  "chunks": [
+   "hi"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "h",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "h"
+   },
+   {
+    "kind": "key",
+    "name": "i",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "i"
+   }
+  ]
+ },
+ {
+  "name": "uppercase keeps case, no shift inferred",
+  "chunks": [
+   "A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "A",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "A"
+   }
+  ]
+ },
+ {
+  "name": "space",
+  "chunks": [
+   " "
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "space",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": " "
+   }
+  ]
+ },
+ {
+  "name": "digits and punctuation",
+  "chunks": [
+   "1;[]~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": ";",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ";"
+   },
+   {
+    "kind": "key",
+    "name": "[",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "["
+   },
+   {
+    "kind": "key",
+    "name": "]",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "]"
+   },
+   {
+    "kind": "key",
+    "name": "~",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "~"
+   }
+  ]
+ },
+ {
+  "name": "text then flush no extra events",
+  "chunks": [
+   "ab"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "key",
+    "name": "b",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "b"
+   }
+  ]
+ },
+ {
+  "name": "mixed text and arrow",
+  "chunks": [
+   "ab\u001b[Acd"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "key",
+    "name": "b",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "b"
+   },
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "c"
+   },
+   {
+    "kind": "key",
+    "name": "d",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "d"
+   }
+  ]
+ },
+ {
+  "name": "C0 0x00",
+  "chunks": [
+   "\u0000"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "space",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x01",
+  "chunks": [
+   "\u0001"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x02",
+  "chunks": [
+   "\u0002"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "b",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x03",
+  "chunks": [
+   "\u0003"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x04",
+  "chunks": [
+   "\u0004"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "d",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x05",
+  "chunks": [
+   "\u0005"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "e",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x06",
+  "chunks": [
+   "\u0006"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x07",
+  "chunks": [
+   "\u0007"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "g",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x08",
+  "chunks": [
+   "\b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "backspace",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x09",
+  "chunks": [
+   "\t"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "tab",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x0a",
+  "chunks": [
+   "\n"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x0b",
+  "chunks": [
+   "\u000b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "k",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x0c",
+  "chunks": [
+   "\f"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "l",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x0d",
+  "chunks": [
+   "\r"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x0e",
+  "chunks": [
+   "\u000e"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "n",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x0f",
+  "chunks": [
+   "\u000f"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "o",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x10",
+  "chunks": [
+   "\u0010"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "p",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x11",
+  "chunks": [
+   "\u0011"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "q",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x12",
+  "chunks": [
+   "\u0012"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "r",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x13",
+  "chunks": [
+   "\u0013"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "s",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x14",
+  "chunks": [
+   "\u0014"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "t",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x15",
+  "chunks": [
+   "\u0015"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "u",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x16",
+  "chunks": [
+   "\u0016"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "v",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x17",
+  "chunks": [
+   "\u0017"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "w",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x18",
+  "chunks": [
+   "\u0018"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x19",
+  "chunks": [
+   "\u0019"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "y",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x1a",
+  "chunks": [
+   "\u001a"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "z",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x1c",
+  "chunks": [
+   "\u001c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\\",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x1d",
+  "chunks": [
+   "\u001d"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "]",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x1e",
+  "chunks": [
+   "\u001e"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "^",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "C0 0x1f",
+  "chunks": [
+   "\u001f"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "_",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "DEL is backspace",
+  "chunks": [
+   "\u007f"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "backspace",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+c is 0x03",
+  "chunks": [
+   "\u0003"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CRLF is two enters",
+  "chunks": [
+   "\r\n"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI A",
+  "chunks": [
+   "\u001b[A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 A (DECCKM)",
+  "chunks": [
+   "\u001bOA"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI B",
+  "chunks": [
+   "\u001b[B"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "down",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 B (DECCKM)",
+  "chunks": [
+   "\u001bOB"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "down",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI C",
+  "chunks": [
+   "\u001b[C"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "right",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 C (DECCKM)",
+  "chunks": [
+   "\u001bOC"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "right",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI D",
+  "chunks": [
+   "\u001b[D"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "left",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 D (DECCKM)",
+  "chunks": [
+   "\u001bOD"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "left",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI H",
+  "chunks": [
+   "\u001b[H"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "home",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 H (DECCKM)",
+  "chunks": [
+   "\u001bOH"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "home",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI F",
+  "chunks": [
+   "\u001b[F"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "end",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 F (DECCKM)",
+  "chunks": [
+   "\u001bOF"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "end",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 P",
+  "chunks": [
+   "\u001bOP"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI P (F-key, no params)",
+  "chunks": [
+   "\u001b[P"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 Q",
+  "chunks": [
+   "\u001bOQ"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f2",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI Q (F-key, no params)",
+  "chunks": [
+   "\u001b[Q"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f2",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 R",
+  "chunks": [
+   "\u001bOR"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI R (F-key, no params)",
+  "chunks": [
+   "\u001b[R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 S",
+  "chunks": [
+   "\u001bOS"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f4",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI S (F-key, no params)",
+  "chunks": [
+   "\u001b[S"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f4",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 1~ is home",
+  "chunks": [
+   "\u001b[1~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "home",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 2~ is insert",
+  "chunks": [
+   "\u001b[2~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "insert",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 3~ is delete",
+  "chunks": [
+   "\u001b[3~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "delete",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 4~ is end",
+  "chunks": [
+   "\u001b[4~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "end",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 5~ is pageUp",
+  "chunks": [
+   "\u001b[5~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "pageUp",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 6~ is pageDown",
+  "chunks": [
+   "\u001b[6~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "pageDown",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 7~ is home",
+  "chunks": [
+   "\u001b[7~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "home",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 8~ is end",
+  "chunks": [
+   "\u001b[8~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "end",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 11~ is f1",
+  "chunks": [
+   "\u001b[11~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 12~ is f2",
+  "chunks": [
+   "\u001b[12~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f2",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 13~ is f3",
+  "chunks": [
+   "\u001b[13~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 14~ is f4",
+  "chunks": [
+   "\u001b[14~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f4",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 15~ is f5",
+  "chunks": [
+   "\u001b[15~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f5",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 17~ is f6",
+  "chunks": [
+   "\u001b[17~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f6",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 18~ is f7",
+  "chunks": [
+   "\u001b[18~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f7",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 19~ is f8",
+  "chunks": [
+   "\u001b[19~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f8",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 20~ is f9",
+  "chunks": [
+   "\u001b[20~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 21~ is f10",
+  "chunks": [
+   "\u001b[21~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f10",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 23~ is f11",
+  "chunks": [
+   "\u001b[23~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f11",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI 24~ is f12",
+  "chunks": [
+   "\u001b[24~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f12",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 M keypad enter",
+  "chunks": [
+   "\u001bOM"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "SS3 unknown is reply",
+  "chunks": [
+   "\u001bOj"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bOj"
+   }
+  ]
+ },
+ {
+  "name": "SS3 then text",
+  "chunks": [
+   "\u001bOAx"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "x"
+   }
+  ]
+ },
+ {
+  "name": "back-tab",
+  "chunks": [
+   "\u001b[Z"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "tab",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "back-tab with explicit shift param",
+  "chunks": [
+   "\u001b[1;2Z"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "tab",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "unmapped ~ params are replies",
+  "chunks": [
+   "\u001b[25~",
+   "\u001b[9~",
+   "\u001b[0~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[25~"
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[9~"
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[0~"
+   }
+  ]
+ },
+ {
+  "name": "ctrl+up",
+  "chunks": [
+   "\u001b[1;5A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "shift+up",
+  "chunks": [
+   "\u001b[1;2A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+up",
+  "chunks": [
+   "\u001b[1;3A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "shift+alt+up",
+  "chunks": [
+   "\u001b[1;4A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": true,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+shift+up",
+  "chunks": [
+   "\u001b[1;6A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+alt+up",
+  "chunks": [
+   "\u001b[1;7A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+alt+shift+up",
+  "chunks": [
+   "\u001b[1;8A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": true,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "super+up",
+  "chunks": [
+   "\u001b[1;9A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": true
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "m=1 means no modifiers",
+  "chunks": [
+   "\u001b[1;1A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "high modifier bits (caps/num) ignored",
+  "chunks": [
+   "\u001b[1;65A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+home",
+  "chunks": [
+   "\u001b[1;5H"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "home",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+end",
+  "chunks": [
+   "\u001b[1;5F"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "end",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "shift+F1",
+  "chunks": [
+   "\u001b[1;2P"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f1",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "shift+F2",
+  "chunks": [
+   "\u001b[1;2Q"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f2",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "shift+F4",
+  "chunks": [
+   "\u001b[1;2S"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f4",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "shift+delete",
+  "chunks": [
+   "\u001b[3;2~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "delete",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+pageUp",
+  "chunks": [
+   "\u001b[5;5~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "pageUp",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+F5",
+  "chunks": [
+   "\u001b[15;3~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f5",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+F12",
+  "chunks": [
+   "\u001b[24;5~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f12",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+shift+tab (back-tab with 1;6)",
+  "chunks": [
+   "\u001b[1;6Z"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "tab",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "F3 bare R",
+  "chunks": [
+   "\u001b[R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ctrl+F3 without CPR expectation",
+  "chunks": [
+   "\u001b[1;5R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "1;1R is plain F3 without expectation",
+  "chunks": [
+   "\u001b[1;1R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "nav key with 3 fields is reply",
+  "chunks": [
+   "\u001b[1;5;3A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;5;3A"
+   }
+  ]
+ },
+ {
+  "name": "nav key with 1 field is reply",
+  "chunks": [
+   "\u001b[5A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[5A"
+   }
+  ]
+ },
+ {
+  "name": "empty first field",
+  "chunks": [
+   "\u001b[;5A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "key release (event 3) on legacy form dropped",
+  "chunks": [
+   "\u001b[1;5:3A"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "key repeat (event 2) on legacy form kept",
+  "chunks": [
+   "\u001b[1;5:2A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "tilde release dropped",
+  "chunks": [
+   "\u001b[3;5:3~"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "tilde with event 1",
+  "chunks": [
+   "\u001b[3;5:1~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "delete",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+x",
+  "chunks": [
+   "\u001bx"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+uppercase",
+  "chunks": [
+   "\u001bY"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "Y",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+digit",
+  "chunks": [
+   "\u001b1"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+space",
+  "chunks": [
+   "\u001b "
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "space",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+enter",
+  "chunks": [
+   "\u001b\r"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+tab",
+  "chunks": [
+   "\u001b\t"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "tab",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+backspace",
+  "chunks": [
+   "\u001b\u007f"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "backspace",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+ctrl+a",
+  "chunks": [
+   "\u001b\u0001"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+ctrl+h (0x08)",
+  "chunks": [
+   "\u001b\b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "backspace",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+ctrl+space (NUL)",
+  "chunks": [
+   "\u001b\u0000"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "space",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+ctrl+backslash",
+  "chunks": [
+   "\u001b\u001c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\\",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+e-acute",
+  "chunks": [
+   "\u001b\u00c3\u00a9"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+e-acute split across chunks",
+  "chunks": [
+   "\u001b\u00c3",
+   "\u00a9"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+euro",
+  "chunks": [
+   "\u001b\u00e2\u0082\u00ac"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u20ac",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt + invalid lead byte",
+  "chunks": [
+   "\u001b\u00ff"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt + stray continuation",
+  "chunks": [
+   "\u001b\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+x then text",
+  "chunks": [
+   "\u001bxy"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "y",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "y"
+   }
+  ]
+ },
+ {
+  "name": "lone ESC chunk is escape",
+  "chunks": [
+   "\u001b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "text then lone ESC at chunk end",
+  "chunks": [
+   "a\u001b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ESC ESC",
+  "chunks": [
+   "\u001b\u001b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ESC ESC x",
+  "chunks": [
+   "\u001b\u001bx"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ESC ESC [ A",
+  "chunks": [
+   "\u001b\u001b[A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ESC then separate chunk [A is not joined",
+  "chunks": [
+   "\u001b",
+   "[A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "[",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "["
+   },
+   {
+    "kind": "key",
+    "name": "A",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "A"
+   }
+  ]
+ },
+ {
+  "name": "ESC [ at chunk end is alt+[",
+  "chunks": [
+   "\u001b["
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "[",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ESC O at chunk end is alt+O",
+  "chunks": [
+   "\u001bO"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "O",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "alt+[ then rest in next chunk is plain text",
+  "chunks": [
+   "\u001b[",
+   "1;5A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "[",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": ";",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ";"
+   },
+   {
+    "kind": "key",
+    "name": "5",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "5"
+   },
+   {
+    "kind": "key",
+    "name": "A",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "A"
+   }
+  ]
+ },
+ {
+  "name": "text then ESC [ at chunk end",
+  "chunks": [
+   "q\u001b["
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "q",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "q"
+   },
+   {
+    "kind": "key",
+    "name": "[",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "ESC O then P in next chunk",
+  "chunks": [
+   "\u001bO",
+   "P"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "O",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "P",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "P"
+   }
+  ]
+ },
+ {
+  "name": "alt+] (ESC ]) at chunk end stays pending until flush",
+  "chunks": [
+   "\u001b]"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]"
+   }
+  ]
+ },
+ {
+  "name": "ESC ] at chunk end, no flush: nothing yet",
+  "chunks": [
+   "\u001b]"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "CSI split 1;|5A",
+  "chunks": [
+   "\u001b[1;",
+   "5A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI split after 1",
+  "chunks": [
+   "\u001b[1",
+   ";5A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI byte by byte after introducer",
+  "chunks": [
+   "\u001b[1",
+   ";",
+   "5",
+   "A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI split before final",
+  "chunks": [
+   "\u001b[15",
+   "~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f5",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI marker-only chunk end stays pending",
+  "chunks": [
+   "\u001b[<",
+   "0;1;1M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "CSI split then more keys",
+  "chunks": [
+   "\u001b[1;",
+   "5Ax"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "x"
+   }
+  ]
+ },
+ {
+  "name": "CSI aborted by ESC: reply then re-parse",
+  "chunks": [
+   "\u001b[1;\u001b[A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;"
+   },
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI aborted by control byte",
+  "chunks": [
+   "\u001b[1;\u0003"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;"
+   },
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CSI aborted by 8-bit byte",
+  "chunks": [
+   "\u001b[1;\u00c3\u00a9"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;"
+   },
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e9"
+   }
+  ]
+ },
+ {
+  "name": "CSI aborted by trailing ESC",
+  "chunks": [
+   "\u001b[1;\u001b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;"
+   },
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "over-long CSI guard (300 digits)",
+  "chunks": [
+   "\u001b[111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   }
+  ]
+ },
+ {
+  "name": "over-long CSI guard split over chunks",
+  "chunks": [
+   "\u001b[11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+   "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   },
+   {
+    "kind": "key",
+    "name": "1",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "1"
+   }
+  ]
+ },
+ {
+  "name": "e-acute",
+  "chunks": [
+   "\u00c3\u00a9"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e9"
+   }
+  ]
+ },
+ {
+  "name": "e-acute split 1+1",
+  "chunks": [
+   "\u00c3",
+   "\u00a9"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e9"
+   }
+  ]
+ },
+ {
+  "name": "euro",
+  "chunks": [
+   "\u00e2\u0082\u00ac"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u20ac",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u20ac"
+   }
+  ]
+ },
+ {
+  "name": "euro split 1+2",
+  "chunks": [
+   "\u00e2",
+   "\u0082\u00ac"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u20ac",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u20ac"
+   }
+  ]
+ },
+ {
+  "name": "euro split 2+1",
+  "chunks": [
+   "\u00e2\u0082",
+   "\u00ac"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u20ac",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u20ac"
+   }
+  ]
+ },
+ {
+  "name": "euro split 1+1+1",
+  "chunks": [
+   "\u00e2",
+   "\u0082",
+   "\u00ac"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u20ac",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u20ac"
+   }
+  ]
+ },
+ {
+  "name": "emoji",
+  "chunks": [
+   "\u00f0\u009f\u0098\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ud83d\ude00",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ud83d\ude00"
+   }
+  ]
+ },
+ {
+  "name": "emoji split 1+3",
+  "chunks": [
+   "\u00f0",
+   "\u009f\u0098\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ud83d\ude00",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ud83d\ude00"
+   }
+  ]
+ },
+ {
+  "name": "emoji split 2+2",
+  "chunks": [
+   "\u00f0\u009f",
+   "\u0098\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ud83d\ude00",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ud83d\ude00"
+   }
+  ]
+ },
+ {
+  "name": "emoji split 3+1",
+  "chunks": [
+   "\u00f0\u009f\u0098",
+   "\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ud83d\ude00",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ud83d\ude00"
+   }
+  ]
+ },
+ {
+  "name": "emoji split 1+1+1+1",
+  "chunks": [
+   "\u00f0",
+   "\u009f",
+   "\u0098",
+   "\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ud83d\ude00",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ud83d\ude00"
+   }
+  ]
+ },
+ {
+  "name": "text around multibyte",
+  "chunks": [
+   "a\u00c3\u00a9b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e9"
+   },
+   {
+    "kind": "key",
+    "name": "b",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "b"
+   }
+  ]
+ },
+ {
+  "name": "text around multibyte split",
+  "chunks": [
+   "a\u00c3",
+   "\u00a9b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e9"
+   },
+   {
+    "kind": "key",
+    "name": "b",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "b"
+   }
+  ]
+ },
+ {
+  "name": "U+FFFD literal",
+  "chunks": [
+   "\u00ef\u00bf\u00bd"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "lone 0xff",
+  "chunks": [
+   "\u00ff"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "stray continuation 0x80",
+  "chunks": [
+   "\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "overlong lead 0xc0 0x80",
+  "chunks": [
+   "\u00c0\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "lead followed by ASCII",
+  "chunks": [
+   "\u00c3("
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "(",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "("
+   }
+  ]
+ },
+ {
+  "name": "truncated 3-byte then ASCII",
+  "chunks": [
+   "\u00e2\u0082a"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   }
+  ]
+ },
+ {
+  "name": "surrogate ED A0 80 (3 replacements)",
+  "chunks": [
+   "\u00ed\u00a0\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "above max F4 90 80 80 (4 replacements)",
+  "chunks": [
+   "\u00f4\u0090\u0080\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "overlong E0 80 80 (3 replacements)",
+  "chunks": [
+   "\u00e0\u0080\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "F5 lead invalid",
+  "chunks": [
+   "\u00f5\u0080"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "max valid code point F4 8F BF BF",
+  "chunks": [
+   "\u00f4\u008f\u00bf\u00bf"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\udbff\udfff",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\udbff\udfff"
+   }
+  ]
+ },
+ {
+  "name": "partial UTF-8 interrupted by ESC key",
+  "chunks": [
+   "\u00c3\u001bx"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "partial UTF-8 interrupted across chunks",
+  "chunks": [
+   "\u00e2",
+   "\u0082",
+   "a"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   },
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   }
+  ]
+ },
+ {
+  "name": "partial UTF-8 flush",
+  "chunks": [
+   "\u00c3"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "partial 3-byte UTF-8 flush",
+  "chunks": [
+   "\u00e2\u0082"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ufffd"
+   }
+  ]
+ },
+ {
+  "name": "partial alt UTF-8 flush",
+  "chunks": [
+   "\u001b\u00c3"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ufffd",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "partial UTF-8 no flush emits nothing",
+  "chunks": [
+   "\u00c3"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "mouse left press 1,1",
+  "chunks": [
+   "\u001b[<0;1;1M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse middle press 1,1",
+  "chunks": [
+   "\u001b[<1;1;1M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "middle",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse right press 1,1",
+  "chunks": [
+   "\u001b[<2;1;1M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "right",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse left release 1,1",
+  "chunks": [
+   "\u001b[<0;1;1m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "release",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse middle release 1,1",
+  "chunks": [
+   "\u001b[<1;1;1m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "middle",
+    "action": "release",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse right release 1,1",
+  "chunks": [
+   "\u001b[<2;1;1m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "right",
+    "action": "release",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse middle release",
+  "chunks": [
+   "\u001b[<1;7;3m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "middle",
+    "action": "release",
+    "col": 7,
+    "row": 3,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse right release",
+  "chunks": [
+   "\u001b[<2;7;3m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "right",
+    "action": "release",
+    "col": 7,
+    "row": 3,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse left drag",
+  "chunks": [
+   "\u001b[<32;4;4M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "motion",
+    "col": 4,
+    "row": 4,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse middle drag",
+  "chunks": [
+   "\u001b[<33;4;4M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "middle",
+    "action": "motion",
+    "col": 4,
+    "row": 4,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse right drag",
+  "chunks": [
+   "\u001b[<34;4;4M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "right",
+    "action": "motion",
+    "col": 4,
+    "row": 4,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse hover",
+  "chunks": [
+   "\u001b[<35;10;5M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "none",
+    "action": "motion",
+    "col": 10,
+    "row": 5,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse wheel up",
+  "chunks": [
+   "\u001b[<64;3;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "wheelUp",
+    "action": "wheel",
+    "col": 3,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse wheel down",
+  "chunks": [
+   "\u001b[<65;3;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "wheelDown",
+    "action": "wheel",
+    "col": 3,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse wheel left",
+  "chunks": [
+   "\u001b[<66;3;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "wheelLeft",
+    "action": "wheel",
+    "col": 3,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse wheel right",
+  "chunks": [
+   "\u001b[<67;3;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "wheelRight",
+    "action": "wheel",
+    "col": 3,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse ctrl+left press",
+  "chunks": [
+   "\u001b[<16;2;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 2,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse shift+left press",
+  "chunks": [
+   "\u001b[<4;2;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 2,
+    "row": 2,
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse alt+left press",
+  "chunks": [
+   "\u001b[<8;2;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 2,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse shift+alt+left press",
+  "chunks": [
+   "\u001b[<12;2;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 2,
+    "row": 2,
+    "mods": {
+     "shift": true,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse ctrl+shift+alt+right release",
+  "chunks": [
+   "\u001b[<30;9;9m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "right",
+    "action": "release",
+    "col": 9,
+    "row": 9,
+    "mods": {
+     "shift": true,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse ctrl+wheel up",
+  "chunks": [
+   "\u001b[<80;3;2M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "wheelUp",
+    "action": "wheel",
+    "col": 3,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse shift+hover",
+  "chunks": [
+   "\u001b[<39;10;5M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "none",
+    "action": "motion",
+    "col": 10,
+    "row": 5,
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse large coordinates",
+  "chunks": [
+   "\u001b[<0;300;100M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 300,
+    "row": 100,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "two mouse reports in one chunk",
+  "chunks": [
+   "\u001b[<0;5;5M\u001b[<0;5;5m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 5,
+    "row": 5,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   },
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "release",
+    "col": 5,
+    "row": 5,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse then text in one chunk",
+  "chunks": [
+   "\u001b[<0;5;5Mq"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 5,
+    "row": 5,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   },
+   {
+    "kind": "key",
+    "name": "q",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "q"
+   }
+  ]
+ },
+ {
+  "name": "mouse split mid-parameter",
+  "chunks": [
+   "\u001b[<0;1",
+   "2;5M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 12,
+    "row": 5,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse split before final",
+  "chunks": [
+   "\u001b[<0;1;1",
+   "m"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "release",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "mouse split byte by byte after introducer",
+  "chunks": [
+   "\u001b[<",
+   "0",
+   ";",
+   "1",
+   ";",
+   "1",
+   "M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "SGR mouse with 2 params is reply",
+  "chunks": [
+   "\u001b[<0;1M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[<0;1M"
+   }
+  ]
+ },
+ {
+  "name": "SGR mouse with 4 params is reply",
+  "chunks": [
+   "\u001b[<0;1;1;1M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[<0;1;1;1M"
+   }
+  ]
+ },
+ {
+  "name": "SGR mouse with empty param is reply",
+  "chunks": [
+   "\u001b[<;1;1M"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[<;1;1M"
+   }
+  ]
+ },
+ {
+  "name": "SGR-marker with other final is reply",
+  "chunks": [
+   "\u001b[<0;1;1X"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[<0;1;1X"
+   }
+  ]
+ },
+ {
+  "name": "X10 left press 1,1",
+  "chunks": [
+   "\u001b[M !!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 right press",
+  "chunks": [
+   "\u001b[M\"!!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "right",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 middle press 1,1",
+  "chunks": [
+   "\u001b[M!!!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "middle",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 release (low==3)",
+  "chunks": [
+   "\u001b[M#!!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "none",
+    "action": "release",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 middle press 10,5",
+  "chunks": [
+   "\u001b[M!*%"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "middle",
+    "action": "press",
+    "col": 10,
+    "row": 5,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 wheel up",
+  "chunks": [
+   "\u001b[M`#\""
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "wheelUp",
+    "action": "wheel",
+    "col": 3,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 wheel down",
+  "chunks": [
+   "\u001b[Ma#\""
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "wheelDown",
+    "action": "wheel",
+    "col": 3,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 left drag",
+  "chunks": [
+   "\u001b[M@\"\""
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "motion",
+    "col": 2,
+    "row": 2,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 ctrl+left press",
+  "chunks": [
+   "\u001b[M0!!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 coordinate bytes >= 0x80 are raw",
+  "chunks": [
+   "\u001b[M \u00e8\u00ff"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 200,
+    "row": 223,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 split after introducer",
+  "chunks": [
+   "\u001b[M",
+   " !!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 split byte by byte",
+  "chunks": [
+   "\u001b[M",
+   " ",
+   "!",
+   "!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 then text",
+  "chunks": [
+   "\u001b[M !!z"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   },
+   {
+    "kind": "key",
+    "name": "z",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "z"
+   }
+  ]
+ },
+ {
+  "name": "two X10 reports",
+  "chunks": [
+   "\u001b[M !!\u001b[M#!!"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   },
+   {
+    "kind": "mouse",
+    "button": "none",
+    "action": "release",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "X10 aborted by control byte",
+  "chunks": [
+   "\u001b[M\u0003"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[M"
+   },
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "X10 partial flush",
+  "chunks": [
+   "\u001b[M !"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[M !"
+   }
+  ]
+ },
+ {
+  "name": "X10 partial no flush",
+  "chunks": [
+   "\u001b[M !"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "kitty ctrl+c",
+  "chunks": [
+   "\u001b[99;5u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty escape",
+  "chunks": [
+   "\u001b[27u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty enter",
+  "chunks": [
+   "\u001b[13u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty tab",
+  "chunks": [
+   "\u001b[9u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "tab",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty backspace",
+  "chunks": [
+   "\u001b[127u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "backspace",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty ctrl+r",
+  "chunks": [
+   "\u001b[114;5u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "r",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty alt+x",
+  "chunks": [
+   "\u001b[120;3u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty release dropped",
+  "chunks": [
+   "\u001b[97;1:3u"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "kitty release dropped, then key",
+  "chunks": [
+   "\u001b[97;1:3u\u001b[98;1:1u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "b",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "b"
+   }
+  ]
+ },
+ {
+  "name": "kitty repeat kept",
+  "chunks": [
+   "\u001b[97;1:2u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   }
+  ]
+ },
+ {
+  "name": "kitty plain a",
+  "chunks": [
+   "\u001b[97u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   }
+  ]
+ },
+ {
+  "name": "kitty shift+a without shifted code",
+  "chunks": [
+   "\u001b[97;2u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   }
+  ]
+ },
+ {
+  "name": "kitty shift+a with shifted code",
+  "chunks": [
+   "\u001b[97:65;2u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "A"
+   }
+  ]
+ },
+ {
+  "name": "kitty shifted with empty alt field",
+  "chunks": [
+   "\u001b[97:65:97;2u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "A"
+   }
+  ]
+ },
+ {
+  "name": "kitty space",
+  "chunks": [
+   "\u001b[32u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "space",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": " "
+   }
+  ]
+ },
+ {
+  "name": "kitty ctrl+space",
+  "chunks": [
+   "\u001b[32;5u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "space",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty shift+space",
+  "chunks": [
+   "\u001b[32;2u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "space",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": " "
+   }
+  ]
+ },
+ {
+  "name": "kitty shift+enter",
+  "chunks": [
+   "\u001b[13;2u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty ctrl+escape",
+  "chunks": [
+   "\u001b[27;5u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty super+a",
+  "chunks": [
+   "\u001b[97;9u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": true
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty e-acute",
+  "chunks": [
+   "\u001b[233u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e9"
+   }
+  ]
+ },
+ {
+  "name": "kitty emoji",
+  "chunks": [
+   "\u001b[128512u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\ud83d\ude00",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\ud83d\ude00"
+   }
+  ]
+ },
+ {
+  "name": "kitty alt+e-acute no text",
+  "chunks": [
+   "\u001b[233;3u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty functional key 57399",
+  "chunks": [
+   "\u001b[57399u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "kitty:57399",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty functional key lower bound 57344",
+  "chunks": [
+   "\u001b[57344u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "kitty:57344",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty functional key upper bound 63743",
+  "chunks": [
+   "\u001b[63743u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "kitty:63743",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty just above private range 63744",
+  "chunks": [
+   "\u001b[63744u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "\uf900",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\uf900"
+   }
+  ]
+ },
+ {
+  "name": "kitty functional with ctrl",
+  "chunks": [
+   "\u001b[57399;5u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "kitty:57399",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty associated text field",
+  "chunks": [
+   "\u001b[97;;228u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e4"
+   }
+  ]
+ },
+ {
+  "name": "kitty associated text with shift",
+  "chunks": [
+   "\u001b[97;2;65u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": true,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "A"
+   }
+  ]
+ },
+ {
+  "name": "kitty associated text ignored with ctrl",
+  "chunks": [
+   "\u001b[97;5;1u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty no params is reply",
+  "chunks": [
+   "\u001b[u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[u"
+   }
+  ]
+ },
+ {
+  "name": "kitty code 0 is reply",
+  "chunks": [
+   "\u001b[0u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[0u"
+   }
+  ]
+ },
+ {
+  "name": "kitty surrogate code is reply",
+  "chunks": [
+   "\u001b[55296u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[55296u"
+   }
+  ]
+ },
+ {
+  "name": "kitty beyond Unicode is reply",
+  "chunks": [
+   "\u001b[1114112u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1114112u"
+   }
+  ]
+ },
+ {
+  "name": "kitty four fields is reply",
+  "chunks": [
+   "\u001b[1;2;3;4u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;2;3;4u"
+   }
+  ]
+ },
+ {
+  "name": "kitty with private marker is reply",
+  "chunks": [
+   "\u001b[>1u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[>1u"
+   }
+  ]
+ },
+ {
+  "name": "kitty split across chunks",
+  "chunks": [
+   "\u001b[99;",
+   "5u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "kitty then text",
+  "chunks": [
+   "\u001b[99;5uq"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "q",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "q"
+   }
+  ]
+ },
+ {
+  "name": "kitty and legacy arrow together",
+  "chunks": [
+   "\u001b[13u\u001b[A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "DA1 reply",
+  "chunks": [
+   "\u001b[?62;22;52c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?62;22;52c"
+   }
+  ]
+ },
+ {
+  "name": "DA2 reply",
+  "chunks": [
+   "\u001b[>1;10;0c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[>1;10;0c"
+   }
+  ]
+ },
+ {
+  "name": "kitty flags reply",
+  "chunks": [
+   "\u001b[?1u"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?1u"
+   }
+  ]
+ },
+ {
+  "name": "DSR ok reply",
+  "chunks": [
+   "\u001b[0n"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[0n"
+   }
+  ]
+ },
+ {
+  "name": "CPR reply (row 12)",
+  "chunks": [
+   "\u001b[12;40R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[12;40R"
+   }
+  ]
+ },
+ {
+  "name": "CPR-looking 1;40R is ctrl+alt+shift F3 without expectation (meta bit ignored)",
+  "chunks": [
+   "\u001b[1;40R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": true,
+     "alt": true,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CPR expected: 1;5R is a reply",
+  "chunks": [
+   "\u001b[1;5R"
+  ],
+  "flushAtEnd": false,
+  "expectCpr": 1,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;5R"
+   }
+  ]
+ },
+ {
+  "name": "CPR expected: 12;40R is a reply",
+  "chunks": [
+   "\u001b[12;40R"
+  ],
+  "flushAtEnd": false,
+  "expectCpr": 1,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[12;40R"
+   }
+  ]
+ },
+ {
+  "name": "CPR expectation consumed once",
+  "chunks": [
+   "\u001b[1;5R",
+   "\u001b[1;5R"
+  ],
+  "flushAtEnd": false,
+  "expectCpr": 1,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;5R"
+   },
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CPR expectation of 2",
+  "chunks": [
+   "\u001b[3;3R",
+   "\u001b[1;1R",
+   "\u001b[1;1R"
+  ],
+  "flushAtEnd": false,
+  "expectCpr": 2,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[3;3R"
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;1R"
+   },
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "CPR expectation not consumed by other CSI",
+  "chunks": [
+   "\u001b[A\u001b[1;5R"
+  ],
+  "flushAtEnd": false,
+  "expectCpr": 1,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;5R"
+   }
+  ]
+ },
+ {
+  "name": "CPR expectation not consumed by bare R (F3)",
+  "chunks": [
+   "\u001b[R\u001b[2;2R"
+  ],
+  "flushAtEnd": false,
+  "expectCpr": 1,
+  "events": [
+   {
+    "kind": "key",
+    "name": "f3",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[2;2R"
+   }
+  ]
+ },
+ {
+  "name": "CPR with 3 params is reply",
+  "chunks": [
+   "\u001b[1;2;3R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;2;3R"
+   }
+  ]
+ },
+ {
+  "name": "R with 1 param is reply",
+  "chunks": [
+   "\u001b[1R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1R"
+   }
+  ]
+ },
+ {
+  "name": "CPR split across chunks",
+  "chunks": [
+   "\u001b[12;",
+   "40R"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[12;40R"
+   }
+  ]
+ },
+ {
+  "name": "DECRQM reply",
+  "chunks": [
+   "\u001b[?2026;2$y"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?2026;2$y"
+   }
+  ]
+ },
+ {
+  "name": "DA1 plain reply",
+  "chunks": [
+   "\u001b[?1;2c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?1;2c"
+   }
+  ]
+ },
+ {
+  "name": "DA3 style = marker",
+  "chunks": [
+   "\u001b[=0;1c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[=0;1c"
+   }
+  ]
+ },
+ {
+  "name": "focus in",
+  "chunks": [
+   "\u001b[I"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[I"
+   }
+  ]
+ },
+ {
+  "name": "focus out",
+  "chunks": [
+   "\u001b[O"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[O"
+   }
+  ]
+ },
+ {
+  "name": "unknown CSI z",
+  "chunks": [
+   "\u001b[5z"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[5z"
+   }
+  ]
+ },
+ {
+  "name": "unknown CSI t (window ops)",
+  "chunks": [
+   "\u001b[8;24;80t"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[8;24;80t"
+   }
+  ]
+ },
+ {
+  "name": "CSI with intermediate (cursor style)",
+  "chunks": [
+   "\u001b[2 q"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[2 q"
+   }
+  ]
+ },
+ {
+  "name": "key letter with intermediate is reply",
+  "chunks": [
+   "\u001b[1 A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1 A"
+   }
+  ]
+ },
+ {
+  "name": "private marker mode report",
+  "chunks": [
+   "\u001b[?25h"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?25h"
+   }
+  ]
+ },
+ {
+  "name": "param with too many digits is reply",
+  "chunks": [
+   "\u001b[99999999999~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[99999999999~"
+   }
+  ]
+ },
+ {
+  "name": "marker in the middle of params is reply",
+  "chunks": [
+   "\u001b[1?2A"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1?2A"
+   }
+  ]
+ },
+ {
+  "name": "stray paste end is reply",
+  "chunks": [
+   "\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[201~"
+   }
+  ]
+ },
+ {
+  "name": "reply then key in same chunk",
+  "chunks": [
+   "\u001b[?1ua"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?1u"
+   },
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   }
+  ]
+ },
+ {
+  "name": "key, reply, key",
+  "chunks": [
+   "x\u001b[0ny"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "x"
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[0n"
+   },
+   {
+    "kind": "key",
+    "name": "y",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "y"
+   }
+  ]
+ },
+ {
+  "name": "two replies in one chunk",
+  "chunks": [
+   "\u001b[?62;22;52c\u001b[>1;10;0c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?62;22;52c"
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[>1;10;0c"
+   }
+  ]
+ },
+ {
+  "name": "reply split across chunks",
+  "chunks": [
+   "\u001b[?62;22",
+   ";52c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?62;22;52c"
+   }
+  ]
+ },
+ {
+  "name": "reply split right after marker",
+  "chunks": [
+   "\u001b[?",
+   "62;22;52c"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?62;22;52c"
+   }
+  ]
+ },
+ {
+  "name": "CSI 200 with extra params is reply",
+  "chunks": [
+   "\u001b[200;1~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[200;1~"
+   }
+  ]
+ },
+ {
+  "name": "APC kitty graphics reply",
+  "chunks": [
+   "\u001b_Gi=1;OK\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1;OK\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "APC split after payload start",
+  "chunks": [
+   "\u001b_Gi=1;",
+   "OK\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1;OK\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "APC split between ESC and backslash",
+  "chunks": [
+   "\u001b_Gi=1;OK\u001b",
+   "\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1;OK\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "APC split right after introducer",
+  "chunks": [
+   "\u001b_",
+   "Gi=1;OK\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1;OK\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "APC split byte by byte after introducer",
+  "chunks": [
+   "\u001b_",
+   "G",
+   "i",
+   "=",
+   "1",
+   ";",
+   "O",
+   "K",
+   "\u001b",
+   "\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1;OK\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "APC followed by text",
+  "chunks": [
+   "\u001b_Gi=1;OK\u001b\\a"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1;OK\u001b\\"
+   },
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   }
+  ]
+ },
+ {
+  "name": "APC not ended by BEL",
+  "chunks": [
+   "\u001b_Gx\u0007y\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gx\u0007y\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "APC unterminated, no flush: nothing",
+  "chunks": [
+   "\u001b_Gi=1;OK"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "APC unterminated, flush: reply",
+  "chunks": [
+   "\u001b_Gi=1;OK"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1;OK"
+   }
+  ]
+ },
+ {
+  "name": "APC partial ST, flush: reply with ESC",
+  "chunks": [
+   "\u001b_Gi=1\u001b"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_Gi=1\u001b"
+   }
+  ]
+ },
+ {
+  "name": "OSC ended by BEL",
+  "chunks": [
+   "\u001b]0;title\u0007"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]0;title\u0007"
+   }
+  ]
+ },
+ {
+  "name": "OSC ended by ST",
+  "chunks": [
+   "\u001b]52;c;abc\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]52;c;abc\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "OSC BEL split",
+  "chunks": [
+   "\u001b]0;ti",
+   "tle",
+   "\u0007"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]0;title\u0007"
+   }
+  ]
+ },
+ {
+  "name": "OSC with ESC not followed by backslash stays in string",
+  "chunks": [
+   "\u001b]0;a\u001bb\u0007"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]0;a\u001bb\u0007"
+   }
+  ]
+ },
+ {
+  "name": "OSC ESC then BEL: BEL terminates",
+  "chunks": [
+   "\u001b]0;a\u001b\u0007"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]0;a\u001b\u0007"
+   }
+  ]
+ },
+ {
+  "name": "string: ESC ESC backslash terminates",
+  "chunks": [
+   "\u001b_a\u001b\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_a\u001b\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "OSC then keys",
+  "chunks": [
+   "\u001b]0;t\u0007xy"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]0;t\u0007"
+   },
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "x"
+   },
+   {
+    "kind": "key",
+    "name": "y",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "y"
+   }
+  ]
+ },
+ {
+  "name": "OSC partial flush",
+  "chunks": [
+   "\u001b]0;ti"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]0;ti"
+   }
+  ]
+ },
+ {
+  "name": "DCS terminated by ST",
+  "chunks": [
+   "\u001bP1$r0m\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bP1$r0m\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "DCS split",
+  "chunks": [
+   "\u001bP1$",
+   "r0m\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bP1$r0m\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "DCS not ended by BEL",
+  "chunks": [
+   "\u001bP1\u0007\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bP1\u0007\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "XTVERSION-style DCS",
+  "chunks": [
+   "\u001bP>|foo 1.0\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bP>|foo 1.0\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "PM terminated by ST",
+  "chunks": [
+   "\u001b^priv\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b^priv\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "SOS terminated by ST",
+  "chunks": [
+   "\u001bXabc\u001b\\"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bXabc\u001b\\"
+   }
+  ]
+ },
+ {
+  "name": "string containing UTF-8 is raw bytes",
+  "chunks": [
+   "\u001b]0;\u00c3\u00a9\u0007"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b]0;\u00c3\u00a9\u0007"
+   }
+  ]
+ },
+ {
+  "name": "paste single chunk",
+  "chunks": [
+   "\u001b[200~hello\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "hello",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste with embedded escape sequences and newlines",
+  "chunks": [
+   "\u001b[200~a\u001b[Ab\r\nc\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "a\u001b[Ab\r\nc",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste over three chunks with ESC inside",
+  "chunks": [
+   "\u001b[200~ab\u001b",
+   "[31mcd",
+   "\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "ab\u001b[31mcd",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste start split",
+  "chunks": [
+   "\u001b[20",
+   "0~hi\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "hi",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste start split after marker digit",
+  "chunks": [
+   "\u001b[200",
+   "~hi\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "hi",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste end marker split",
+  "chunks": [
+   "\u001b[200~hi\u001b[2",
+   "01~x"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "hi",
+    "paste": true
+   },
+   {
+    "kind": "key",
+    "name": "x",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "x"
+   }
+  ]
+ },
+ {
+  "name": "paste end marker split before tilde",
+  "chunks": [
+   "\u001b[200~hi\u001b[201",
+   "~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "hi",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste end marker split after ESC",
+  "chunks": [
+   "\u001b[200~hi\u001b",
+   "[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "hi",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste byte by byte",
+  "chunks": [
+   "\u001b[200",
+   "~",
+   "a",
+   "b",
+   "\u001b",
+   "[",
+   "2",
+   "0",
+   "1",
+   "~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "ab",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "empty paste",
+  "chunks": [
+   "\u001b[200~\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste UTF-8",
+  "chunks": [
+   "\u001b[200~h\u00c3\u00a9llo \u00e2\u0082\u00ac\u00f0\u009f\u0098\u0080\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "h\u00e9llo \u20ac\ud83d\ude00",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste UTF-8 split mid-character",
+  "chunks": [
+   "\u001b[200~h\u00c3",
+   "\u00a9i\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "h\u00e9i",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste UTF-8 emoji split in 4",
+  "chunks": [
+   "\u001b[200~",
+   "\u00f0",
+   "\u009f",
+   "\u0098",
+   "\u0080",
+   "\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "\ud83d\ude00",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste invalid UTF-8",
+  "chunks": [
+   "\u001b[200~a\u00ffb\u00c3\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "a\ufffdb\ufffd",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste truncated UTF-8 at end",
+  "chunks": [
+   "\u001b[200~a\u00e2\u0082\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "a\ufffd",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste then keys",
+  "chunks": [
+   "\u001b[200~x\u001b[201~yz"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "x",
+    "paste": true
+   },
+   {
+    "kind": "key",
+    "name": "y",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "y"
+   },
+   {
+    "kind": "key",
+    "name": "z",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "z"
+   }
+  ]
+ },
+ {
+  "name": "keys then paste",
+  "chunks": [
+   "a\u001b[200~x\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "text",
+    "text": "x",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "two pastes in one chunk",
+  "chunks": [
+   "\u001b[200~1\u001b[201~\u001b[200~2\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "1",
+    "paste": true
+   },
+   {
+    "kind": "text",
+    "text": "2",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste containing a literal start marker",
+  "chunks": [
+   "\u001b[200~a\u001b[200~b\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "a\u001b[200~b",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste containing near-miss end marker",
+  "chunks": [
+   "\u001b[200~a\u001b[201x\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "a\u001b[201x",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste with lone ESC at chunk end is content",
+  "chunks": [
+   "\u001b[200~a\u001b",
+   "[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "a",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste in progress, no flush: nothing",
+  "chunks": [
+   "\u001b[200~abc"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "paste in progress, flush: text so far",
+  "chunks": [
+   "\u001b[200~abc"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "text",
+    "text": "abc",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste in progress with partial end marker, flush",
+  "chunks": [
+   "\u001b[200~ab\u001b[2"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "text",
+    "text": "ab\u001b[2",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste started, flush immediately",
+  "chunks": [
+   "\u001b[200~"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "text",
+    "text": "",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "paste with NUL and control bytes",
+  "chunks": [
+   "\u001b[200~\u0000\u0001\u007f\u001b[201~"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "text",
+    "text": "\u0000\u0001\u007f",
+    "paste": true
+   }
+  ]
+ },
+ {
+  "name": "flush with nothing pending",
+  "chunks": [
+   ""
+  ],
+  "flushAtEnd": true,
+  "events": []
+ },
+ {
+  "name": "flush after complete sequence",
+  "chunks": [
+   "\u001b[A"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "flush: partial CSI params",
+  "chunks": [
+   "\u001b[1;"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;"
+   }
+  ]
+ },
+ {
+  "name": "flush: partial CSI after marker",
+  "chunks": [
+   "\u001b[<0;1"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b[<0;1"
+   }
+  ]
+ },
+ {
+  "name": "flush: no flush leaves partial CSI pending",
+  "chunks": [
+   "\u001b[1;"
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "flush: partial CSI after complete key",
+  "chunks": [
+   "a\u001b[1;"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[1;"
+   }
+  ]
+ },
+ {
+  "name": "flush: SS3 never pending",
+  "chunks": [
+   "\u001bO"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "O",
+    "mods": {
+     "shift": false,
+     "alt": true,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "flush: lone ESC already emitted",
+  "chunks": [
+   "\u001b"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "key",
+    "name": "escape",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "flush: partial DCS",
+  "chunks": [
+   "\u001bP1$"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bP1$"
+   }
+  ]
+ },
+ {
+  "name": "flush: partial ESC ^",
+  "chunks": [
+   "\u001b^"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b^"
+   }
+  ]
+ },
+ {
+  "name": "flush: ESC _ then flush",
+  "chunks": [
+   "\u001b_"
+  ],
+  "flushAtEnd": true,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b_"
+   }
+  ]
+ },
+ {
+  "name": "full door-panel session",
+  "chunks": [
+   "\u001b[<0;5;3M",
+   "\u001b[<0;5;3m",
+   "q"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 5,
+    "row": 3,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   },
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "release",
+    "col": 5,
+    "row": 3,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   },
+   {
+    "kind": "key",
+    "name": "q",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "q"
+   }
+  ]
+ },
+ {
+  "name": "many events in one chunk",
+  "chunks": [
+   "a\u001b[A\u001bOB\r\u001b[<0;1;1M\u001b[?1u\u00c3\u00a9"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "key",
+    "name": "up",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "down",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "key",
+    "name": "enter",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": ""
+   },
+   {
+    "kind": "mouse",
+    "button": "left",
+    "action": "press",
+    "col": 1,
+    "row": 1,
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    }
+   },
+   {
+    "kind": "reply",
+    "bytes": "\u001b[?1u"
+   },
+   {
+    "kind": "key",
+    "name": "\u00e9",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "\u00e9"
+   }
+  ]
+ },
+ {
+  "name": "alt+O followed by more text in same chunk is SS3",
+  "chunks": [
+   "\u001bOx"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001bOx"
+   }
+  ]
+ },
+ {
+  "name": "ESC [ then control byte in same chunk aborts CSI",
+  "chunks": [
+   "\u001b[\u0003"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "reply",
+    "bytes": "\u001b["
+   },
+   {
+    "kind": "key",
+    "name": "c",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": true,
+     "super": false
+    },
+    "text": ""
+   }
+  ]
+ },
+ {
+  "name": "empty chunk",
+  "chunks": [
+   ""
+  ],
+  "flushAtEnd": false,
+  "events": []
+ },
+ {
+  "name": "empty chunks between",
+  "chunks": [
+   "",
+   "a",
+   "",
+   "b"
+  ],
+  "flushAtEnd": false,
+  "events": [
+   {
+    "kind": "key",
+    "name": "a",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "a"
+   },
+   {
+    "kind": "key",
+    "name": "b",
+    "mods": {
+     "shift": false,
+     "alt": false,
+     "ctrl": false,
+     "super": false
+    },
+    "text": "b"
+   }
+  ]
+ }
+]

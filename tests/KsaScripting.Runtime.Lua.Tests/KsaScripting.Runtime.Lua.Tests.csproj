@@ -30,4 +30,10 @@
         <Using Include="NUnit.Framework" />
     </ItemGroup>
 
+    <!-- Parser test vectors shared with the TypeScript implementation, and the terminal UI toolkit under test (linked, not copied in the repo). -->
+    <ItemGroup>
+        <Content Include="TestData\tui-vectors.json" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\..\scripts-lib\tui.lua" Link="TestData/scripts-lib/tui.lua" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>

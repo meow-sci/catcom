@@ -24,8 +24,14 @@ internal sealed unsafe class LuaValues
     /// <summary>Nesting depth beyond which tables convert to <see cref="ScriptValue.Null"/>.</summary>
     public const int MaxDepth = 32;
 
-    /// <summary>Upper bound on the number of values converted in one call (guards shared sub-tables).</summary>
+    /// <summary>
+    ///     Upper bound on the number of values converted in one call, in either direction (guards shared sub-tables), and on
+    ///     the number of elements of any single table pushed to Lua. Far below LuaJIT's own table limits, which raise.
+    /// </summary>
     public const int MaxNodes = 1_000_000;
+
+    /// <summary>Longest string pushed to Lua; longer ones are truncated (LuaJIT raises "string length overflow" at about 2 GiB).</summary>
+    public const int MaxStringBytes = 0x7fff0000;
 
     private readonly LuaRuntime _runtime;
 
@@ -162,11 +168,16 @@ internal sealed unsafe class LuaValues
     /// <summary>Pushes <paramref name="value"/> onto the stack of <paramref name="L"/> (exactly one new slot).</summary>
     /// <param name="L">The Lua state (any coroutine).</param>
     /// <param name="value">The value to push.</param>
-    public void Push(nint L, ScriptValue value) => Push(L, value, 0);
-
-    private void Push(nint L, ScriptValue value, int depth)
+    public void Push(nint L, ScriptValue value)
     {
-        if (lua_checkstack(L, 6) == 0 || depth > MaxDepth)
+        var budget = MaxNodes;
+        Push(L, value, 0, ref budget);
+    }
+
+    // Values beyond the depth, node or table-size limits become nil (as in the other direction); nothing here raises.
+    private void Push(nint L, ScriptValue value, int depth, ref int budget)
+    {
+        if (--budget < 0 || depth > MaxDepth || lua_checkstack(L, 6) == 0)
         {
             lua_pushnil(L);
             return;
@@ -192,10 +203,16 @@ internal sealed unsafe class LuaValues
             case ScriptValueKind.List:
             {
                 var items = value.AsList();
+                if (items.Count > MaxNodes)
+                {
+                    lua_pushnil(L);
+                    break;
+                }
+
                 lua_createtable(L, items.Count, 0);
                 for (var i = 0; i < items.Count; i++)
                 {
-                    Push(L, items[i], depth + 1);
+                    Push(L, items[i], depth + 1, ref budget);
                     lua_rawseti(L, -2, i + 1);
                 }
 
@@ -204,11 +221,17 @@ internal sealed unsafe class LuaValues
             case ScriptValueKind.Map:
             {
                 var map = value.AsMap();
+                if (map.Count > MaxNodes)
+                {
+                    lua_pushnil(L);
+                    break;
+                }
+
                 lua_createtable(L, 0, map.Count);
                 foreach (var (key, item) in map)
                 {
                     PushUtf8(L, key);
-                    Push(L, item, depth + 1);
+                    Push(L, item, depth + 1, ref budget);
                     lua_rawset(L, -3);
                 }
 
@@ -232,6 +255,12 @@ internal sealed unsafe class LuaValues
     public static void PushUtf8(nint L, string s)
     {
         var byteCount = Encoding.UTF8.GetByteCount(s);
+        if (byteCount > MaxStringBytes)
+        {
+            PushUtf8(L, s[..(s.Length / 2)]); // pathological size: keep halving until it fits (never raise)
+            return;
+        }
+
         if (byteCount <= 512)
         {
             Span<byte> buffer = stackalloc byte[512];
@@ -259,6 +288,9 @@ internal sealed unsafe class LuaValues
     /// <param name="bytes">The bytes.</param>
     public static void PushBytes(nint L, ReadOnlySpan<byte> bytes)
     {
+        if (bytes.Length > MaxStringBytes)
+            bytes = bytes[..MaxStringBytes];
+
         fixed (byte* p = bytes)
             lua_pushlstring(L, p, (nuint)bytes.Length);
     }

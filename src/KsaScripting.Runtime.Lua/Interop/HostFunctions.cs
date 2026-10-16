@@ -20,6 +20,8 @@ namespace KsaScripting.Runtime.Lua.Interop;
 //       (strings and numbers only, argument slots only), lua_objlen (raw), lua_topointer, lua_next,
 //       lua_rawget, lua_rawgeti, lua_rawset, lua_rawseti, lua_createtable, lua_push*, lua_touserdata
 //       (on our own light-userdata upvalue), luaL_ref / luaL_unref on the registry.
+//   * lua_createtable / lua_pushlstring are only reached with sizes below LuaJIT's table and string limits
+//     (LuaValues bounds them), because exceeding those limits raises.
 //   * never lua_getfield / lua_setfield / lua_gettable / lua_settable / lua_call / luaL_check* /
 //     luaL_error / lua_error on script values.
 // Raising happens in the Lua prelude (error(msg, 2) after a false result) or via the host_raise shim.
@@ -71,11 +73,13 @@ internal static unsafe class HostFunctions
         Add(L, t, "interrupted", &Interrupted, runtimeHandle);
     }
 
+    // Raw set into a fresh table (no metatable, so nothing can run); `table` is an absolute index.
     private static void Add(nint L, int table, string name, delegate* unmanaged[Cdecl]<nint, int> fn, nint runtimeHandle)
     {
+        LuaValues.PushUtf8(L, name);
         lua_pushlightuserdata(L, (void*)runtimeHandle);
         lua_pushcclosure(L, fn, 1);
-        lua_setfield(L, table, name);
+        lua_rawset(L, table);
     }
 
     // ================================================================== ksa_host functions

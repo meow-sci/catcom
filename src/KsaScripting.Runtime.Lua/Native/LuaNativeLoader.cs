@@ -158,6 +158,8 @@ internal static class LuaNativeLoader
 
             if (ShimExports.Any(e => !NativeLibrary.TryGetExport(handle, e, out _)))
             {
+                // A rejected library is never used, so its handle is released (only an accepted handle is cached for good).
+                NativeLibrary.Free(handle);
                 return new ProbeResult(0, candidate, "LuaJIT native library is missing the ksa host shim (rebuild with tools/build-luajit.*)");
             }
 

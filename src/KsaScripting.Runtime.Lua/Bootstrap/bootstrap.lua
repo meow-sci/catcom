@@ -89,8 +89,67 @@ local function guarded_xpcall(f, h, ...)
 end
 
 local real_resume = real_coroutine.resume
+local real_create = real_coroutine.create
+local real_status = real_coroutine.status
+local real_yield  = real_coroutine.yield
+
+-- ---------------------------------------------------------------------------------------------
+-- Waits inside script-created coroutines.
+-- A ksa wait (ksa.sleep ...) yields the table {["$wait"] = id} from the coroutine that is running. Inside a
+-- coroutine the script made itself (coroutine.wrap / coroutine.create) that yield would land in the script's
+-- own resume call instead of the runtime. The resume/wrap wrappers below therefore recognise a coroutine that
+-- yielded exactly one such table, yield the same table from THEIR coroutine (so the runtime parks the outermost
+-- invocation), and resume the inner coroutine with the wait's outcome -- (result) or (nil, "message") -- when
+-- they are resumed. Any other yield is returned to the caller as usual. When the wrapper cannot yield itself
+-- (main thread, across a C boundary such as a table.sort comparator) the table is returned as before.
+-- ---------------------------------------------------------------------------------------------
+local pump -- forward declaration (mutual tail recursion with continue_after_wait)
+
+local function is_wait_table(v)
+  return real_type(v) == "table" and real_type(real_rawget(v, "$wait")) == "number"
+end
+
+-- yielded/... are the results of real_pcall(real_yield, w): (true, resume args...) or (false, message).
+local function continue_after_wait(co, w, yielded, ...)
+  if not yielded then
+    return true, w
+  end
+  return pump(co, reraise_if_interrupted(real_resume(co, ...)))
+end
+
+-- ok/... are the results of resuming co.
+function pump(co, ok, ...)
+  if ok and real_select("#", ...) == 1 and real_status(co) == "suspended" then
+    local w = ...
+    if is_wait_table(w) then
+      return continue_after_wait(co, w, real_pcall(real_yield, w))
+    end
+  end
+  return ok, ...
+end
+
 local function guarded_resume(co, ...)
-  return reraise_if_interrupted(real_resume(co, ...))
+  return pump(co, reraise_if_interrupted(real_resume(co, ...)))
+end
+
+-- coroutine.wrap, rebuilt on top of the forwarding resume. Errors propagate like the native wrap: a string error
+-- gets the location of the caller prepended (level 2 from the function returned here).
+local function wrap_finish(ok, ...)
+  if ok then
+    return ...
+  end
+  local e = ...
+  if real_type(e) == "string" then
+    real_error(e, 2)
+  end
+  real_error(e, 0)
+end
+
+local function guarded_wrap(f)
+  local co = real_create(f)
+  return function(...)
+    return wrap_finish(pump(co, reraise_if_interrupted(real_resume(co, ...))))
+  end
 end
 
 -- ---------------------------------------------------------------------------------------------
@@ -150,6 +209,7 @@ local LIB_table = table
 local LIB_bit = bit
 local LIB_coroutine = shallow_copy(real_coroutine)
 LIB_coroutine.resume = guarded_resume
+LIB_coroutine.wrap = guarded_wrap
 local LIB_os = {
   clock = real_os.clock, date = real_os.date, time = real_os.time, difftime = real_os.difftime,
 }

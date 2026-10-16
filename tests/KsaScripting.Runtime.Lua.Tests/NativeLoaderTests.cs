@@ -63,6 +63,68 @@ public sealed class NativeLoaderTests
     }
 
     [Test]
+    public void TryLoadFrom_ListsASingleMissingPath_AndLoadsNothing()
+    {
+        var missing = Path.Combine(Path.GetTempPath(), "ksa-no-such-dir", Guid.NewGuid().ToString("N"), "libluajit-5.1.2.dylib");
+
+        var result = LuaNativeLoader.TryLoadFrom([missing]);
+
+        Assert.That(result.Handle, Is.EqualTo(nint.Zero));
+        Assert.That(result.Path, Is.Null);
+        Assert.That(result.Reason, Is.EqualTo($"LuaJIT native library not found. Probed: {missing}"));
+    }
+
+    [Test]
+    public void TryLoadFrom_WithNoCandidates_ReportsNothingWasProbed()
+    {
+        var result = LuaNativeLoader.TryLoadFrom([]);
+
+        Assert.That(result.Handle, Is.EqualTo(nint.Zero));
+        Assert.That(result.Reason, Is.EqualTo("LuaJIT native library not found. Probed: "));
+    }
+
+    // A genuine LuaJIT that was built without tools/host_shim.c: it loads fine, but it lacks the ksa exports.
+    private const string HomebrewLuaJit = "/opt/homebrew/lib/libluajit-5.1.dylib";
+
+    [Test]
+    public void TryLoadFrom_RejectsARealLuaJit_ThatLacksTheHostShim()
+    {
+        Assume.That(File.Exists(HomebrewLuaJit), $"{HomebrewLuaJit} is not installed (stock LuaJIT without the ksa shim)");
+
+        var result = LuaNativeLoader.TryLoadFrom([HomebrewLuaJit]);
+
+        Assert.That(result.Handle, Is.EqualTo(nint.Zero), "a library without the shim is never handed out");
+        Assert.That(result.Path, Is.EqualTo(HomebrewLuaJit));
+        Assert.That(result.Reason, Does.Contain("missing the ksa host shim").And.Contain("tools/build-luajit"));
+    }
+
+    [Test]
+    public void TryLoadFrom_SkipsMissingCandidates_ThenRejectsTheFirstExistingOneWithoutTheShim()
+    {
+        Assume.That(File.Exists(HomebrewLuaJit), $"{HomebrewLuaJit} is not installed (stock LuaJIT without the ksa shim)");
+        LuaNativeLoader.TryEnsureLoaded(out _);
+        var missing = Path.Combine(Path.GetTempPath(), "ksa-no-such-dir", "lua51.dll");
+
+        // First existing candidate wins: the shipped library behind it is not consulted.
+        var result = LuaNativeLoader.TryLoadFrom([missing, HomebrewLuaJit, LuaNativeLoader.LoadedPath!]);
+
+        Assert.That(result.Handle, Is.EqualTo(nint.Zero));
+        Assert.That(result.Path, Is.EqualTo(HomebrewLuaJit));
+        Assert.That(result.Reason, Does.Contain("missing the ksa host shim"));
+    }
+
+    [Test]
+    public void TheRuntime_ReportsTheProbeFailure_WhenNoLibraryIsUsable()
+    {
+        var missing = Path.Combine(Path.GetTempPath(), "ksa-no-such-dir", "lua51.dll");
+        var reason = LuaNativeLoader.TryLoadFrom([missing]).Reason;
+        using var runtime = new LuaRuntime(() => reason);
+
+        Assert.That(runtime.IsAvailable, Is.False);
+        Assert.That(runtime.UnavailableReason, Does.Contain(missing));
+    }
+
+    [Test]
     public void TryLoadFrom_ReportsFilesThatCannotBeLoaded()
     {
         var notNative = typeof(LuaRuntime).Assembly.Location; // a managed assembly is not a native library

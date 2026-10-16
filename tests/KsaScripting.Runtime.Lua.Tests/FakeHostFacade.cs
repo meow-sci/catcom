@@ -59,6 +59,9 @@ public sealed class FakeHostFacade : IHostFacade
     /// <summary>Called for every <c>Act</c>.</summary>
     public Action<ActCall>? OnAct { get; set; }
 
+    /// <summary>Called for every <c>ConsoleExec</c> (may throw to simulate a failing console).</summary>
+    public Action<string>? OnConsoleExec { get; set; }
+
     /// <inheritdoc />
     public string CurrentScript => _scripts.Count == 0 ? string.Empty : _scripts.Peek();
 
@@ -114,7 +117,11 @@ public sealed class FakeHostFacade : IHostFacade
     }
 
     /// <inheritdoc />
-    public void ConsoleExec(string command) => ConsoleCommands.Add(command);
+    public void ConsoleExec(string command)
+    {
+        ConsoleCommands.Add(command);
+        OnConsoleExec?.Invoke(command);
+    }
 
     /// <inheritdoc />
     public ScriptValue StateGet(string key) => State.TryGetValue(key, out var value) ? value : ScriptValue.Null;
