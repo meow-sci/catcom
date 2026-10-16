@@ -1,0 +1,136 @@
+name: Build and test
+
+# One matrix job per OS (Linux x64, Windows x64, macOS arm64) builds the whole solution,
+# builds the native LuaJIT and fetches the TypeScript/sucrase assets for the runtimes, and
+# runs the full test suite. The tests are game-free: they never start the game.
+#
+# The KSA reference assemblies are licensed game files in the private repo
+# meow-sci/ksa-game-assemblies (DLLs under current/dll/). Only KsaScripting.Ksa,
+# KsaScripting.GameMod and the Ksa.CompileCheck project reference them; their sources are
+# compile-removed when KSA.dll is absent (see Directory.Build.props). Access uses the
+# KSA_GAME_ASSEMBLIES_PAT repo secret (a fine-grained read-only PAT, same pattern as gatOS).
+# If the secret is not configured on this repo, the checkout is skipped, the game-coupled
+# projects drop out, and the build and tests stay green. When the secret is configured,
+# GameMod also deploys the mod folder to .tmp/dist/ksa-scripting, which the Linux job
+# validates with tools/check-dist.py.
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
+      - 'release/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write    # test-reporter publishes results as a check run
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-14]
+    env:
+      # Directory.Build.props resolves this before any per-OS default. When the
+      # PAT is missing the dir simply doesn't exist and the guarded references drop out.
+      KSA_DLL_DIR: ${{ github.workspace }}/.tmp/ksa-game-assemblies/current/dll
+      # GameMod deploys the mod folder here, inside the workspace, instead of the per-user default.
+      KSA_SCRIPTING_DIST_DIR: ${{ github.workspace }}/.tmp/dist/ksa-scripting
+      # secrets.* is not allowed directly in step `if:`; surface it via env.
+      KSA_PAT: ${{ secrets.KSA_GAME_ASSEMBLIES_PAT }}
+    steps:
+      - name: Checkout ksa-scripting
+        uses: actions/checkout@v6
+
+      - name: Checkout private KSA assemblies
+        if: env.KSA_PAT != ''
+        uses: actions/checkout@v6
+        with:
+          repository: meow-sci/ksa-game-assemblies
+          path: .tmp/ksa-game-assemblies
+          token: ${{ env.KSA_PAT }}
+          persist-credentials: false
+          ref: main
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      # Not needed by the current scripts (the TypeScript fetch uses npm registry tarballs
+      # via curl), kept so a future script that needs node has it.
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      # Puts the MSVC x64 toolchain on PATH for the steps that follow; tools/build-luajit.ps1
+      # also locates and runs vcvars64.bat itself.
+      - name: Enable MSVC developer environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # Native LuaJIT for the Lua runtime tests (src/KsaScripting.Runtime.Lua/runtimes/<rid>/native).
+      # On x86_64 Linux the script builds linux-x64 natively, so no Docker is needed.
+      - name: Build LuaJIT (linux-x64)
+        if: runner.os == 'Linux'
+        run: bash tools/build-luajit.sh linux-x64
+
+      - name: Build LuaJIT (osx-arm64)
+        if: runner.os == 'macOS'
+        run: bash tools/build-luajit.sh osx-arm64
+
+      - name: Build LuaJIT (win-x64)
+        if: runner.os == 'Windows'
+        run: pwsh tools/build-luajit.ps1
+
+      # TypeScript and sucrase assets for the V8 runtime (src/KsaScripting.Runtime.V8/assets).
+      - name: Fetch TypeScript assets (Linux, macOS)
+        if: runner.os != 'Windows'
+        run: bash tools/fetch-ts.sh
+
+      - name: Fetch TypeScript assets (Windows)
+        if: runner.os == 'Windows'
+        run: pwsh tools/fetch-ts.ps1
+
+      - name: Build
+        run: dotnet build ksa-scripting.slnx -c Release --nologo -v quiet
+
+      - name: Test
+        id: test
+        run: dotnet test ksa-scripting.slnx -c Release --nologo -v quiet --logger trx --results-directory .tmp/test-results
+
+      # Only one RID's LuaJIT is built here and nvim is not fetched, so only linux-x64 natives
+      # are required; missing editor blobs are reported as warnings by the script. Skipped
+      # without the KSA assemblies, because GameMod then does not deploy a dist.
+      - name: Check dist (Linux)
+        if: runner.os == 'Linux' && env.KSA_PAT != ''
+        run: python3 tools/check-dist.py .tmp/dist/ksa-scripting --rids linux-x64
+
+      - name: Report test results
+        uses: dorny/test-reporter@v3
+        if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
+        with:
+          name: test results (${{ matrix.os }})
+          path: .tmp/test-results/*.trx
+          reporter: dotnet-trx
+
+      - name: Upload test results artifact
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
+        with:
+          name: test-results-${{ matrix.os }}
+          path: .tmp/test-results
