@@ -1,0 +1,6 @@
+# Fetched editor blobs (tools/fetch-nvim.*, tools/fetch-lsp.*, tools/build-ts-parser.sh) — never committed
+/win-x64/
+/linux-x64/
+/osx-arm64/
+/osx-x64/
+/linux-arm64/
