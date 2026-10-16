@@ -1,0 +1,6 @@
+# nvim-treesitter commit whose TypeScript queries we ship (tools/build-ts-parser.sh --queries).
+# Its lua/nvim-treesitter/parsers.lua pins tree-sitter-typescript 75b3874edb2dc714fb1fd77a32013d0f8699989f,
+# which differs from the v0.23.2 tag (f975a621f4e7f532fe322e13c4f79495e0a7b2e7) only in CI, README, Cargo.toml and FUNDING.yml.
+repo=https://github.com/nvim-treesitter/nvim-treesitter
+commit=ca581c3436fc2b236847f5b739ebc263739e5ca6
+date=2026-10-14T11:47:00Z
