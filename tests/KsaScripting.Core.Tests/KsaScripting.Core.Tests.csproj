@@ -28,4 +28,8 @@
         <Using Include="NUnit.Framework" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="Golden/**" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>
