@@ -1,0 +1,199 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyName>KsaScripting.GameMod</AssemblyName>
+        <RootNamespace>KsaScripting.GameMod</RootNamespace>
+        <Description>The KSA game mod: StarMap entry, script lifecycle, Script Manager window, console commands and terminal shells.</Description>
+        <Product>ksa-scripting</Product>
+        <Company>meow sci</Company>
+        <Copyright>Copyright © meow sci</Copyright>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <DistDir>$(KsaScriptingDistDir)</DistDir>
+    </PropertyGroup>
+
+    <!-- The mod's own sources (StarMap entry, ImGui windows, purrTTY shells) compile only when the
+         KSA reference assemblies are present. CI without the private game DLLs still builds the
+         rest of the solution; this project then compiles to an empty assembly. -->
+    <ItemGroup Condition="'$(KsaAssembliesPresent)' != 'true'">
+        <Compile Remove="**/*.cs" />
+    </ItemGroup>
+
+    <!-- Deploys the complete mod folder to $(DistDir) on every build (mirrors gatOS's / purrTTY's
+         CopyCustomContent). KsaScriptingDistDir resolves in Directory.Build.props:
+         KSA_SCRIPTING_DIST_DIR override (CI zips it; it is the FULL dist folder), else
+         <KSAUserDir>mods/ksa-scripting/. -->
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+
+        <!-- Wipe the managed payload (top-level files) and the folders that are 100% build output
+             (third-party-licenses, runtimes, scripts-lib) so a redeploy never leaves stale DLLs from
+             a previous version in the game's mod ALC. User data is deliberately NOT touched:
+               ksa-scripting.toml, bindings.toml, terminals.toml  (excluded from the top-level wipe)
+               scripts/                                           (the user's scripts; never wiped)
+               editor/                                            (fetched nvim/LSP blobs are large and
+                                                                   content-stable; they are copied with
+                                                                   SkipUnchangedFiles instead of wiped)
+             On Windows the install dir and the runtime data dir are the same folder, so the live
+             config and the user's scripts live here. -->
+        <ItemGroup>
+            <StaleDistFile Include="$(DistDir)*" Exclude="$(DistDir)ksa-scripting.toml;$(DistDir)bindings.toml;$(DistDir)terminals.toml"/>
+        </ItemGroup>
+        <Delete Files="@(StaleDistFile)"/>
+        <RemoveDir Directories="$(DistDir)third-party-licenses;$(DistDir)runtimes;$(DistDir)scripts-lib"/>
+        <MakeDir Directories="$(DistDir)"/>
+
+        <!-- mod.toml + deps.json (StarMap's ModAssemblyLoadContext resolves the mod's own
+             dependencies through an AssemblyDependencyResolver, which reads the deps.json). -->
+        <Copy SourceFiles="$(TargetDir)mod.toml" DestinationFolder="$(DistDir)" Condition="Exists('$(TargetDir)mod.toml')"/>
+        <Copy SourceFiles="$(ProjectDepsFilePath)" DestinationFolder="$(DistDir)" Condition="Exists('$(ProjectDepsFilePath)')"/>
+
+        <!-- Managed payload: everything in the build output EXCEPT the loader-supplied
+             assemblies (StarMap provides 0Harmony + StarMap.API to every mod ALC; shipping a
+             second copy risks type-identity splits). The KSA reference assemblies never reach
+             the output (Private=false). A glob with a deny-list — rather than an allow-list —
+             means a newly added NuGet dependency ships automatically instead of failing at
+             runtime in-game. Includes the vendored purrTTY contract DLLs: with purrTTY
+             installed they are shadowed by mod.toml ImportedAssemblies (dependency ALCs are
+             consulted first); without purrTTY they are the fallback that lets ksa-scripting
+             load without terminal surfaces. -->
+        <ItemGroup>
+            <ModManagedDll Include="$(TargetDir)*.dll"
+                           Exclude="$(TargetDir)0Harmony.dll;$(TargetDir)StarMap.API.dll"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(ModManagedDll)" DestinationFolder="$(DistDir)" Condition="'@(ModManagedDll)' != ''"/>
+
+        <!-- Native libraries: ClearScript V8 natives (NuGet) and the LuaJIT shared library
+             (src/KsaScripting.Runtime.Lua/runtimes/<rid>/native/, built by tools/build-luajit.*)
+             flow into $(TargetDir)runtimes/<rid>/native/ and are resolved by the .NET native
+             probing (deps.json) relative to the mod folder. -->
+        <ItemGroup>
+            <NativeFile Include="$(TargetDir)runtimes/**/*" Exclude="$(TargetDir)runtimes/**/.gitignore"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(NativeFile)" DestinationFolder="$(DistDir)runtimes/%(RecursiveDir)" Condition="'@(NativeFile)' != ''"/>
+
+        <!-- Shipped script libraries (scripts-lib/): copied to <user>/scripts/lib on every start. -->
+        <ItemGroup>
+            <ScriptsLibFile Include="$(RepoRoot)scripts-lib/**/*"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(ScriptsLibFile)" DestinationFolder="$(DistDir)scripts-lib/%(RecursiveDir)" Condition="'@(ScriptsLibFile)' != ''"/>
+
+        <!-- Editor payload (NOT wiped — see the wipe note). Small repo-owned files are always
+             refreshed; the fetched per-RID blobs (tools/fetch-nvim.*, gitignored) use
+             SkipUnchangedFiles to keep the per-build deploy cost near zero. A Message, not a
+             Warning, when a RID's blobs are absent: MSBuildTreatWarningsAsErrors would turn a
+             Warning into a failed build on a fresh clone, and plain builds must never require the
+             editor. -->
+        <ItemGroup>
+            <EditorConfigFile Include="$(RepoRoot)editor/config/**/*"/>
+            <EditorStubFile Include="$(RepoRoot)editor/noshell*"/>
+            <EditorStubFile Include="$(RepoRoot)editor/*.json"/>
+            <EditorWinX64File Include="$(RepoRoot)editor/win-x64/**/*"/>
+            <EditorLinuxX64File Include="$(RepoRoot)editor/linux-x64/**/*"/>
+            <EditorOsxArm64File Include="$(RepoRoot)editor/osx-arm64/**/*"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(EditorConfigFile)" DestinationFolder="$(DistDir)editor/config/%(RecursiveDir)" Condition="'@(EditorConfigFile)' != ''"/>
+        <Copy SourceFiles="@(EditorStubFile)" DestinationFolder="$(DistDir)editor/" Condition="'@(EditorStubFile)' != ''"/>
+        <Copy SourceFiles="@(EditorWinX64File)" DestinationFolder="$(DistDir)editor/win-x64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorWinX64File)' != ''"/>
+        <Copy SourceFiles="@(EditorLinuxX64File)" DestinationFolder="$(DistDir)editor/linux-x64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorLinuxX64File)' != ''"/>
+        <Copy SourceFiles="@(EditorOsxArm64File)" DestinationFolder="$(DistDir)editor/osx-arm64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorOsxArm64File)' != ''"/>
+        <Message Importance="High" Condition="'@(EditorWinX64File)' == ''"
+                 Text="ksa-scripting dist: editor/win-x64/ not fetched; run tools/fetch-nvim.sh (or .ps1) win-x64 to bundle the Neovim editor for that platform."/>
+        <Message Importance="High" Condition="'@(EditorLinuxX64File)' == ''"
+                 Text="ksa-scripting dist: editor/linux-x64/ not fetched; run tools/fetch-nvim.sh (or .ps1) linux-x64 to bundle the Neovim editor for that platform."/>
+        <Message Importance="High" Condition="'@(EditorOsxArm64File)' == ''"
+                 Text="ksa-scripting dist: editor/osx-arm64/ not fetched; run tools/fetch-nvim.sh (or .ps1) osx-arm64 to bundle the Neovim editor for that platform."/>
+
+        <!-- Licenses (THIRD-PARTY-NOTICES.md carries the redistributed-component obligations;
+             third-party-licenses/ holds the full texts). Each is optional so a fresh clone builds. -->
+        <Copy SourceFiles="$(RepoRoot)LICENSE" DestinationFolder="$(DistDir)" Condition="Exists('$(RepoRoot)LICENSE')"/>
+        <Copy SourceFiles="$(RepoRoot)THIRD-PARTY-NOTICES.md" DestinationFolder="$(DistDir)" Condition="Exists('$(RepoRoot)THIRD-PARTY-NOTICES.md')"/>
+        <ItemGroup>
+            <ThirdPartyLicenseFile Include="$(RepoRoot)third-party-licenses/*"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(ThirdPartyLicenseFile)" DestinationFolder="$(DistDir)third-party-licenses/" Condition="'@(ThirdPartyLicenseFile)' != ''"/>
+    </Target>
+
+    <ItemGroup>
+        <ProjectReference Include="..\KsaScripting.Core\KsaScripting.Core.csproj" />
+        <ProjectReference Include="..\KsaScripting.Ksa\KsaScripting.Ksa.csproj" />
+        <ProjectReference Include="..\KsaScripting.Runtime.Lua\KsaScripting.Runtime.Lua.csproj" />
+        <ProjectReference Include="..\KsaScripting.Runtime.V8\KsaScripting.Runtime.V8.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ModMenu.Attributes" Version="1.0.1" />
+        <PackageReference Include="Lib.Harmony" Version="2.4.2">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="StarMap.API" Version="0.3.6">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <!-- Vendored purrTTY contract: with purrTTY installed these resolve from purrTTY's ALC
+         (mod.toml ImportedAssemblies — StarMap's ModAssemblyLoadContext consults dependency mods
+         BEFORE the mod-local AssemblyDependencyResolver, so the local copies below never load and
+         type identity is purrTTY's). Private=true so the copies land in the build output AND in
+         KsaScripting.GameMod.deps.json — without the deps.json entry the resolver cannot find them,
+         and the no-purrTTY fallback would crash instead of idling. -->
+    <ItemGroup>
+        <Reference Include="purrTTY.CustomShellContract">
+            <HintPath>$(RepoRoot)vendor/purrTTY/purrTTY.CustomShellContract.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+        <Reference Include="purrTTY.Logging">
+            <HintPath>$(RepoRoot)vendor/purrTTY/purrTTY.Logging.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
+    </ItemGroup>
+
+    <!-- KSA DLL references (condition-guarded so game-free CI without the assemblies still builds
+         the rest of the solution; this project compiles only when KSAFolder resolves). -->
+    <ItemGroup>
+        <Reference Include="KSA" Condition="Exists('$(KSAFolder)KSA.dll')">
+            <HintPath>$(KSAFolder)KSA.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Common" Condition="Exists('$(KSAFolder)Brutal.Core.Common.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Common.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Logging" Condition="Exists('$(KSAFolder)Brutal.Core.Logging.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Logging.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Numerics" Condition="Exists('$(KSAFolder)Brutal.Core.Numerics.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Numerics.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Strings" Condition="Exists('$(KSAFolder)Brutal.Core.Strings.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Strings.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Concurrency" Condition="Exists('$(KSAFolder)Brutal.Concurrency.dll')">
+            <HintPath>$(KSAFolder)Brutal.Concurrency.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.ImGui" Condition="Exists('$(KSAFolder)Brutal.ImGui.dll')">
+            <HintPath>$(KSAFolder)Brutal.ImGui.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.ImGui.Abstractions" Condition="Exists('$(KSAFolder)Brutal.ImGui.Abstractions.dll')">
+            <HintPath>$(KSAFolder)Brutal.ImGui.Abstractions.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Glfw" Condition="Exists('$(KSAFolder)Brutal.Glfw.dll')">
+            <HintPath>$(KSAFolder)Brutal.Glfw.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="mod.toml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+</Project>

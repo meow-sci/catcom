@@ -1,0 +1,20 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+        <Platform Name="x64" />
+        <Platform Name="x86" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/KsaScripting.Core/KsaScripting.Core.csproj" />
+        <Project Path="src/KsaScripting.Ksa/KsaScripting.Ksa.csproj" />
+        <Project Path="src/KsaScripting.Runtime.Lua/KsaScripting.Runtime.Lua.csproj" />
+        <Project Path="src/KsaScripting.Runtime.V8/KsaScripting.Runtime.V8.csproj" />
+        <Project Path="src/KsaScripting.GameMod/KsaScripting.GameMod.csproj" />
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/KsaScripting.Core.Tests/KsaScripting.Core.Tests.csproj" />
+        <Project Path="tests/KsaScripting.Runtime.Lua.Tests/KsaScripting.Runtime.Lua.Tests.csproj" />
+        <Project Path="tests/KsaScripting.Runtime.V8.Tests/KsaScripting.Runtime.V8.Tests.csproj" />
+        <Project Path="tests/KsaScripting.Ksa.CompileCheck/KsaScripting.Ksa.CompileCheck.csproj" />
+    </Folder>
+</Solution>

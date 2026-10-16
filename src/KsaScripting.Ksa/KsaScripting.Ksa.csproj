@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyName>KsaScripting.Ksa</AssemblyName>
+        <RootNamespace>KsaScripting.Ksa</RootNamespace>
+        <Description>KSA game facade: readers, actuators, command executor, Harmony patches, step slots and the game bridge.</Description>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- Everything here touches KSA types; without the game assemblies there is nothing to compile
+         (game-free CI still builds Core, the runtimes and their tests). -->
+    <ItemGroup Condition="'$(KsaAssembliesPresent)' != 'true'">
+        <Compile Remove="**/*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\KsaScripting.Core\KsaScripting.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Lib.Harmony" Version="2.4.2">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <!-- KSA DLL references (condition-guarded; Private=false: the game provides them). -->
+    <ItemGroup>
+        <Reference Include="KSA" Condition="Exists('$(KSAFolder)KSA.dll')">
+            <HintPath>$(KSAFolder)KSA.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Common" Condition="Exists('$(KSAFolder)Brutal.Core.Common.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Common.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Logging" Condition="Exists('$(KSAFolder)Brutal.Core.Logging.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Logging.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Numerics" Condition="Exists('$(KSAFolder)Brutal.Core.Numerics.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Numerics.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Strings" Condition="Exists('$(KSAFolder)Brutal.Core.Strings.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Strings.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Concurrency" Condition="Exists('$(KSAFolder)Brutal.Concurrency.dll')">
+            <HintPath>$(KSAFolder)Brutal.Concurrency.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.ImGui" Condition="Exists('$(KSAFolder)Brutal.ImGui.dll')">
+            <HintPath>$(KSAFolder)Brutal.ImGui.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.ImGui.Abstractions" Condition="Exists('$(KSAFolder)Brutal.ImGui.Abstractions.dll')">
+            <HintPath>$(KSAFolder)Brutal.ImGui.Abstractions.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Memory" Condition="Exists('$(KSAFolder)Brutal.Core.Memory.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Memory.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Vulkan" Condition="Exists('$(KSAFolder)Brutal.Vulkan.dll')">
+            <HintPath>$(KSAFolder)Brutal.Vulkan.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Vulkan.Abstractions" Condition="Exists('$(KSAFolder)Brutal.Vulkan.Abstractions.dll')">
+            <HintPath>$(KSAFolder)Brutal.Vulkan.Abstractions.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Planet.Render.Core" Condition="Exists('$(KSAFolder)Planet.Render.Core.dll')">
+            <HintPath>$(KSAFolder)Planet.Render.Core.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+</Project>

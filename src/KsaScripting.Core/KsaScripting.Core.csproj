@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyName>KsaScripting.Core</AssemblyName>
+        <RootNamespace>KsaScripting.Core</RootNamespace>
+        <Description>Game-free core of ksa-scripting: script values, runtime/host contracts, command model, snapshots, config, logging.</Description>
+    </PropertyGroup>
+
+    <!-- GAME-FREE: no references to KSA, Brutal, StarMap, Harmony, ImGui or purrTTY, ever. -->
+    <ItemGroup>
+        <PackageReference Include="Tomlyn" Version="2.10.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="KsaScripting.Core.Tests" />
+    </ItemGroup>
+
+</Project>

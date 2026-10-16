@@ -1,5 +1,27 @@
 bin/
 obj/
-node_modules/
 .DS_Store
 *.user
+.idea/
+.vs/
+.vscode/
+*.swp
+*.trx
+.testresults/
+node_modules/
+*.tsbuildinfo
+imgui.ini
+
+# Fetched/built artifacts (produced by tools/build-luajit.*, tools/fetch-ts.*, tools/fetch-nvim.*):
+# never committed. Note that vendor/purrTTY/*.dll ARE committed (pinned contract assemblies).
+
+# Built LuaJIT natives (tools/build-luajit.sh)
+src/KsaScripting.Runtime.Lua/runtimes/
+# Fetched TypeScript compiler/transpiler assets (tools/fetch-ts.sh)
+src/KsaScripting.Runtime.V8/assets/
+# Fetched Neovim/LSP blobs per runtime id (tools/fetch-nvim.sh, tools/fetch-lsp.sh)
+editor/win-x64/
+editor/linux-x64/
+editor/osx-arm64/
+# Download cache for the fetch scripts
+tools/.cache/

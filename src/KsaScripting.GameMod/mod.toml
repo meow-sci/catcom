@@ -1,0 +1,17 @@
+name = "ksa-scripting"
+description = "In-band Lua (LuaJIT) and TypeScript scripting for KSA: game-loop hooks, terminal scripts on purrTTY surfaces, and a shipped Neovim editor."
+version = "0.1.0"
+author = "meow sci"
+
+[StarMap]
+EntryAssembly = "KsaScripting.GameMod"
+
+# With purrTTY installed, StarMap resolves these two assemblies from purrTTY's ALC
+# (it exports them via ExportedAssemblies) — one Assembly, one Type identity, one shared
+# CustomShellRegistry.Instance that purrTTY's menus read. Optional: without purrTTY the
+# vendored copies in this mod folder load instead and ksa-scripting still loads (scripts,
+# hooks and the Script Manager work; there are just no terminal surfaces).
+[[StarMap.ModDependencies]]
+ModId = "purrTTY"
+Optional = true
+ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]

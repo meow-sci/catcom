@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyName>KsaScripting.Runtime.Lua</AssemblyName>
+        <RootNamespace>KsaScripting.Runtime.Lua</RootNamespace>
+        <Description>LuaJIT script runtime adapter (LibraryImport bindings to the shipped lua51 native).</Description>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\KsaScripting.Core\KsaScripting.Core.csproj" />
+    </ItemGroup>
+
+    <!-- Natives built by tools/build-luajit.* land in runtimes/<rid>/native/ (gitignored). -->
+    <ItemGroup>
+        <None Include="runtimes/**" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="KsaScripting.Runtime.Lua.Tests" />
+    </ItemGroup>
+
+</Project>
