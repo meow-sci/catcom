@@ -14,7 +14,15 @@
 
     <!-- Natives built by tools/build-luajit.* land in runtimes/<rid>/native/ (gitignored). -->
     <ItemGroup>
-        <None Include="runtimes/**" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="runtimes/**" Exclude="runtimes/.gitignore;runtimes/**/.luajit-commit" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <!-- Runtime-private sandbox bootstrap, and the script-facing prelude (Core's shared ksa.lua when it
+         exists, otherwise the placeholder prelude shipped with this project). -->
+    <ItemGroup>
+        <EmbeddedResource Include="Bootstrap\bootstrap.lua" LogicalName="KsaScripting.Runtime.Lua.bootstrap.lua" />
+        <EmbeddedResource Include="..\KsaScripting.Core\Api\Preludes\ksa.lua" LogicalName="KsaScripting.Runtime.Lua.ksa.lua" Condition="Exists('..\KsaScripting.Core\Api\Preludes\ksa.lua')" />
+        <EmbeddedResource Include="Prelude\ksa.placeholder.lua" LogicalName="KsaScripting.Runtime.Lua.ksa.lua" Condition="!Exists('..\KsaScripting.Core\Api\Preludes\ksa.lua')" />
     </ItemGroup>
 
     <ItemGroup>
