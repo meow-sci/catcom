@@ -1,0 +1,5 @@
+# LuaJIT v2.1 commit used for all native builds (tools/build-luajit.sh / .ps1)
+repo=https://github.com/LuaJIT/LuaJIT.git
+commit=2a8e017ef1ece6a95b983ffca073d30609dce7c4
+date=2026-10-14T14:31:01Z
+branch=v2.1
