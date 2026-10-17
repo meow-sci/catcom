@@ -1,6 +1,9 @@
 # Research bundle update log
 
 ## 2026-10-17
+* **Update** ([StarMap loader](ksa-host/starmap-loader-and-assembly-load-context.md)): re-verified against the real StarMap repository (commit `4dc60f8`) after an in-game failure — with purrTTY installed, ksa-scripting's shells went into "a registry nobody reads" and the launcher read as unavailable. Cause: the dist shipped local copies of `purrTTY.CustomShellContract.dll`/`purrTTY.Logging.dll` and the entry assembly defined types deriving from purrTTY's contract, so the contract was resolved from the local copy (type identity split). Documented the exact export/import semantics, the pre/post-PR-#86 timing of `GetTypes()` versus dependency wiring, the lazily path-loaded bridge-assembly layout that is robust on both, and the `-InstancePath` / `STARMAP_INSTANCE_PATH` documents-folder override.
+
+## 2026-10-17
 * **Implementation landed**: ksa-scripting v0.1.0 implemented from the plans by two manager agents (see `docs/progress/manager-a.md`, `docs/progress/manager-b.md`) — Core (contracts, hooks, scheduler, catalog, terminals, API schema + preludes, nvim RPC client), Ksa facade (gatOS ports, ActionExecutor, Step/Solver slots, event patches), GameMod (Script Manager window, shells, editor launcher, dist), LuaJIT and V8 runtimes with tests (816 + 613 + 542 green), purrTTY launcher contract on `feature/scripting` (purrtty `16c6d91`), tools and editor assets. Facts learned during implementation: hammering `lua_sethook` from another thread at an unbounded rate with the JIT on crashes LuaJIT (the runtime rate-limits re-arming to 50 Hz); one V8 isolate per script is needed for per-script heap limits and interrupts; the §5 API names changed to `setX` methods (JS getters cannot share a name with a method) and Lua uses `wait_until`/`next_step` (reserved word). The build book is `docs/IMPLEMENTATION_GUIDE.md`; in-game validation is pending per `docs/VALIDATION.md`.
 
 ## 2026-10-17

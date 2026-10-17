@@ -43,6 +43,7 @@ DEPS_FILE = "KsaScripting.GameMod.deps.json"
 REQUIRED_MANAGED = (
     "KsaScripting.GameMod.dll",
     DEPS_FILE,
+    "KsaScripting.PurrTty.dll",
     "KsaScripting.Core.dll",
     "KsaScripting.Ksa.dll",
     "KsaScripting.Runtime.Lua.dll",
@@ -446,8 +447,12 @@ def check_forbidden(dist):
                 out.append(("ERROR", "forbidden file in dist root: %s (ModMenu assemblies must not be shipped)"
                             % name))
         elif low in ("purrtty.customshellcontract.dll", "purrtty.logging.dll"):
-            out.append(("WARN", "%s in dist root: these should come from the purrTTY mod through StarMap "
-                        "ImportedAssemblies; a local copy can break type identity" % name))
+            out.append(("ERROR", "forbidden file in dist root: %s (purrTTY assemblies must come from the purrTTY mod "
+                        "through StarMap ImportedAssemblies; a local copy splits type identity and makes "
+                        "purrTTY's launcher and shell registries invisible)" % name))
+        elif low == "ksascripting.dist.dll":
+            out.append(("ERROR", "forbidden file in dist root: %s (the deploy project's own assembly; "
+                        "the dist target must exclude it)" % name))
     if not out:
         out.append(("OK", "no forbidden files in dist root"))
     return out
@@ -871,11 +876,22 @@ class CheckDistTests(unittest.TestCase):
         _write(self._path("0Harmony.dll"), b"harmony")
         self.assertTrue(_levels(check_forbidden(self.dist), "ERROR"))
 
-    def test_purrtty_local_copy_is_warning_not_error(self):
+    def test_purrtty_local_copy_is_error(self):
         _write(self._path("purrTTY.Logging.dll"), b"local copy")
-        results = check_forbidden(self.dist)
-        self.assertEqual(_levels(results, "ERROR"), [])
-        self.assertEqual(len(_levels(results, "WARN")), 1)
+        _write(self._path("purrTTY.CustomShellContract.dll"), b"local copy")
+        errors = _levels(check_forbidden(self.dist), "ERROR")
+        self.assertEqual(len(errors), 2)
+        self.assertTrue(all("type identity" in e for e in errors))
+
+    def test_dist_project_assembly_is_error(self):
+        _write(self._path("KsaScripting.Dist.dll"), b"deploy project")
+        self.assertEqual(len(_levels(check_forbidden(self.dist), "ERROR")), 1)
+
+    def test_missing_purrtty_bridge_is_error(self):
+        os.remove(self._path("KsaScripting.PurrTty.dll"))
+        errors = _levels(check_managed(self.dist), "ERROR")
+        self.assertEqual(len(errors), 1)
+        self.assertIn("KsaScripting.PurrTty.dll", errors[0])
 
     def test_modmenu_attributes_is_warning_other_modmenu_is_error(self):
         _write(self._path("ModMenu.Attributes.dll"), b"x")

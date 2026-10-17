@@ -3,9 +3,12 @@
 These assemblies are the pinned inter-mod ABI between ksa-scripting and purrTTY. They are built from
 purrTTY's `purrTTY.CustomShellContract` project (MIT, see `third-party-licenses/purrTTY-LICENSE.txt`).
 
-`KsaScripting.GameMod` compiles against them. At runtime, with purrTTY installed, `mod.toml`
-`ImportedAssemblies` makes StarMap resolve both assemblies from purrTTY's load context, so ksa-scripting and
-purrTTY share one `CustomShellRegistry.Instance` and one `TerminalLauncherRegistry.Current`.
+`KsaScripting.GameMod` and `KsaScripting.PurrTty` compile against them (`Private=false`); **they are never
+shipped in the dist**. At runtime, with purrTTY installed, `mod.toml` `ImportedAssemblies` makes StarMap resolve
+both assemblies from purrTTY's load context, so ksa-scripting and purrTTY share one `CustomShellRegistry.Instance`
+and one `TerminalLauncherRegistry.Current`. A local copy would be loaded instead by StarMap builds that scan the
+entry assembly's types before the dependency wiring exists, splitting type identity — which is why only
+`KsaScripting.PurrTty.dll` (loaded lazily by path) references these types.
 
 | File | Purpose |
 |---|---|

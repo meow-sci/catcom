@@ -6,10 +6,10 @@ This checklist is the in-game pass that CI and the development Mac cannot run. W
 
 ### Install
 
-- Build the dist from this repo on the test machine with `dotnet build src/KsaScripting.GameMod -c Release`. The game DLLs come from `KSA_DLL_DIR`, or from a sibling `ksa-game-assemblies` checkout. On Windows the default game folder is `C:\Program Files\Kitten Space Agency\`.
+- Build the dist from this repo on the test machine with `dotnet build src/KsaScripting.Dist -c Release` (the deploy project; it builds the mod and the purrTTY bridge assembly and copies the mod folder). The game DLLs come from `KSA_DLL_DIR`, or from a sibling `ksa-game-assemblies` checkout. On Windows the default game folder is `C:\Program Files\Kitten Space Agency\`.
 - On Windows the build deploys directly to `%USERPROFILE%\Documents\My Games\Kitten Space Agency\mods\ksa-scripting\`. On Linux the default deploy folder is `$HOME/repos/meow-sci/mods/ksa-scripting/`, so set `KSA_SCRIPTING_DIST_DIR` to `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting/` before building. Use the Documents folder that KSA itself uses on Linux.
 - The result must be the folder `mods/ksa-scripting/` directly under the KSA mods folder, with `mod.toml` at its top level.
-- Install purrTTY with the launcher contract, as its own mod. The contract assemblies (`purrTTY.CustomShellContract.dll`, `purrTTY.Logging.dll`) are vendored into the dist, but purrTTY itself must run.
+- Install purrTTY with the launcher contract, as its own mod. ksa-scripting ships none of purrTTY's DLLs: the dist must not contain `purrTTY.CustomShellContract.dll` or `purrTTY.Logging.dll` (StarMap resolves them from purrTTY's load context via `ImportedAssemblies`). The log line `purrTTY bridge loaded` must name purrTTY's mod folder as the contract location; `purrTTY is not installed` or `purrTTY contract could not be loaded` means the bridge was not loaded and terminals, REPL shells and the editor are unavailable.
 - Editor blobs are not produced by `dotnet build`. Before section 10, fetch them for this RID into the dist: `tools/fetch-nvim.sh` or `tools/fetch-nvim.ps1`, `tools/fetch-lsp.sh` or `tools/fetch-lsp.ps1`, and `tools/build-ts-parser.sh` for the TypeScript tree-sitter parser (bash only; on Windows run it from Git Bash or WSL). If the Windows parser cannot be produced, record section 10 TypeScript highlighting as blocked.
 
 ### Where data lives

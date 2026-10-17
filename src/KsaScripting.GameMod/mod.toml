@@ -8,9 +8,11 @@ EntryAssembly = "KsaScripting.GameMod"
 
 # With purrTTY installed, StarMap resolves these two assemblies from purrTTY's ALC
 # (it exports them via ExportedAssemblies) — one Assembly, one Type identity, one shared
-# CustomShellRegistry.Instance that purrTTY's menus read. Optional: without purrTTY the
-# vendored copies in this mod folder load instead and ksa-scripting still loads (scripts,
-# hooks and the Script Manager work; there are just no terminal surfaces).
+# CustomShellRegistry.Instance that purrTTY's menus read. The contract DLLs are NOT shipped with this
+# mod (compile-only references): only KsaScripting.PurrTty.dll references them, and the entry assembly
+# loads it by path only when purrTTY is a loaded mod, i.e. once this wiring exists. Optional: without
+# purrTTY nothing needs the contract and ksa-scripting still loads (scripts, hooks and the Script
+# Manager work; there are just no terminal surfaces, REPL shells or in-game editor).
 [[StarMap.ModDependencies]]
 ModId = "purrTTY"
 Optional = true

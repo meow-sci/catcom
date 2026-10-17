@@ -51,7 +51,9 @@ tools/
   build-luajit.sh  build-luajit.ps1  luajit.pin  host_shim.c
   fetch-nvim.sh  fetch-nvim.ps1  fetch-lsp.sh  fetch-lsp.ps1  fetch-ts.sh  fetch-ts.ps1  build-ts-parser.sh
   check-dist.py
-vendor/purrTTY/                            # pinned purrTTY.CustomShellContract.dll + purrTTY.Logging.dll (refresh after Plan 00b merges)
+vendor/purrTTY/                            # pinned purrTTY.CustomShellContract.dll + purrTTY.Logging.dll — COMPILE-TIME ONLY, never shipped
+  KsaScripting.PurrTty/                    # the ONLY assembly that references purrTTY types; loaded by GameMod by path when purrTTY is a loaded mod
+  KsaScripting.Dist/                       # deploy project: references GameMod + PurrTty, owns the CopyCustomContent dist target
 spikes/                                    # existing, keep building
 docs/research/                             # existing OKF bundle (update log.md when facts change)
 ```
@@ -415,11 +417,16 @@ Event names (v1): `engine.activate`, `engine.deactivate`, `engine.ignite`, `engi
 
 ---
 
-## 8. purrTTY side (Plan 00b) and vendoring
+## 8. purrTTY side (Plan 00b), vendoring, and the cross-mod assembly rule
 
-Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting` in `/Users/asherwin/repos/meow-sci/purrtty` (contract POCOs/interfaces exactly as listed there; `TerminalLauncher` with the main-thread pump; `NoResize`, `Closed`, `Configuration` forwarding, `TargetPartInstanceId`). Then `dotnet build purrTTY.CustomShellContract -c Release` and copy `purrTTY.CustomShellContract.dll` + `purrTTY.Logging.dll` into `ksa-scripting/vendor/purrTTY/` with a README noting the purrtty commit.
+Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting` in `/Users/asherwin/repos/meow-sci/purrtty`. Then `dotnet build purrTTY.CustomShellContract -c Release` and copy `purrTTY.CustomShellContract.dll` + `purrTTY.Logging.dll` into `ksa-scripting/vendor/purrTTY/` with a README noting the purrtty commit. These vendored DLLs are **compile-time references only** (`Private=false`) and are **never shipped** in the dist.
 
----
+**How StarMap actually shares assemblies** (real source: `/Users/asherwin/repos/meow-sci/StarMap`, see `docs/research/ksa-host/starmap-loader-and-assembly-load-context.md`): a mod's `ModAssemblyLoadContext.Load` resolves, in order, assemblies already in the default/core contexts, then the load contexts of the dependency mods named in `[[StarMap.ModDependencies]]` for the names in the *usable set* (the dependency's `ExportedAssemblies` ∩ the importer's `ImportedAssemblies` when both are non-empty; when the dependency loads later than the importer only `ImportedAssemblies` is used), then the mod's own `deps.json`. That dependency wiring is only attached to the load context *after* the entry assembly has been loaded. StarMap builds before PR #86 (2026-09-15) enumerate the entry assembly's types (`GetTypes()`) at that point, before the wiring exists, so a type **defined** in the entry assembly whose base class or interface is a purrTTY type resolves the contract through the local `deps.json` copy, splitting type identity (purrTTY's registries become invisible; and without a local copy the mod fails to load at all). Rules that follow, which hold on both old and new StarMap builds:
+
+1. Ship no purrTTY DLL. `tools/check-dist.py` treats them as forbidden.
+2. The entry assembly `KsaScripting.GameMod` contains no purrTTY type in any type definition, field, property, signature or attribute. Everything that touches the contract (`ScriptTerminalShell`, `ScriptReplShell`, launcher access, editor window launch) lives in `KsaScripting.PurrTty.dll`, which implements `KsaScripting.GameMod.Terminals.IPurrTtyBridge` and is loaded by `PurrTtyBridge.TryLoad` with `AssemblyLoadContext.GetLoadContext(entryAssembly).LoadFromAssemblyPath(...)` only when `KsaMods.IsLoaded("purrTTY")`; failures degrade to "purrTTY unavailable" with the reason logged.
+3. `KsaScripting.PurrTty.dll` is not in the entry assembly's `deps.json` (it is not a compile-time dependency), which is why it is loaded by explicit path into the mod's own context; its own references (contract, GameMod, Core) resolve through that context's `Load`.
+4. The data folder derives from `KSA.Constants.DocumentsFolderPath` so StarMap's `-InstancePath` / `STARMAP_INSTANCE_PATH` override is honoured.
 
 ## 9. Config (`ksa-scripting.toml`, Tomlyn)
 
@@ -463,7 +470,7 @@ Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting
 dotnet build ksa-scripting.slnx -nologo -v quiet                 # everything (game projects only when KSA_DLL_DIR / sibling checkout resolves)
 dotnet test  ksa-scripting.slnx --nologo -v quiet                # Core + runtime tests (Lua tests need tools/build-luajit.sh run once)
 tools/build-luajit.sh osx-arm64                                  # local native for tests
-dotnet build src/KsaScripting.GameMod -c Release                 # deploys the dist folder
+dotnet build src/KsaScripting.Dist -c Release                    # deploys the dist folder (builds GameMod + the purrTTY bridge)
 python3 tools/check-dist.py "$HOME/repos/meow-sci/mods/ksa-scripting"
 cd /Users/asherwin/repos/meow-sci/purrtty && dotnet test purrtty.slnx --nologo -v quiet
 ```
@@ -483,7 +490,7 @@ Required test coverage per work package is listed in §12; tests must be quiet a
 | **WP5 LuaJIT runtime** | §6.1 + `tools/build-luajit.*` + shim + tests (state lifecycle, sandbox escapes fail, host error protocol, coroutine wait/resume via a fake host, watchdog interrupt JIT on/off with CHECKHOOK build, memory polling, exports discovery, prelude smoke: `ksa.vessel("x").throttle(0.5)` reaches a fake facade with the right action) | osx-arm64 native built locally; tests green | committed |
 | **WP6 V8 runtime** | §6.2 + `tools/fetch-ts.*` + tests (transpile fixtures incl. enums/imports, loader containment, async export → scheduler continuation via a fake host, interrupt, heap limit, exports discovery, source-map line mapping, prelude smoke identical to WP5) | tests green on osx-arm64 native | committed |
 | **WP7 purrTTY extension** | Plan 00b on `feature/scripting`; vendored DLLs refreshed in ksa-scripting | `dotnet build purrtty.slnx` + `dotnet test purrtty.slnx` green; purrtty commits; vendor commit in ksa-scripting | |
-| **WP8 GameMod** | §7 complete: Mod lifecycle, Script Manager window, console commands, REPL shells, ScriptTerminalShell, TerminalPlacer, EditorLauncher, NvimRpcClient (Core.Editor) + its tests (frame encode/decode, notification dispatch against an in-process fake server over TCP), templates | `dotnet build src/KsaScripting.GameMod -c Release` deploys a dist that `tools/check-dist.py` accepts | committed |
+| **WP8 GameMod** | §7 complete: Mod lifecycle, Script Manager window, console commands, REPL shells, ScriptTerminalShell, TerminalPlacer, EditorLauncher, NvimRpcClient (Core.Editor) + its tests (frame encode/decode, notification dispatch against an in-process fake server over TCP), templates | `dotnet build src/KsaScripting.Dist -c Release` deploys a dist that `tools/check-dist.py` accepts | committed |
 | **WP9 Assets, tools, tui libs, docs, CI** | §10 scripts (run them here for osx-arm64 and verify), `scripts-lib/tui.*` with tests where possible (TS parser tested in V8 tests; Lua parser tested in Lua tests), `.github/workflows/build.yml`, `docs/VALIDATION.md` in-game checklist, README, bundle `log.md`, THIRD-PARTY-NOTICES | scripts run; tests green | committed |
 
 Dependency order: WP1 → {WP2, WP3, WP4, WP5, WP6, WP7, WP9-tools} in parallel → WP8 (needs WP2–WP7) → WP9 docs/CI last.

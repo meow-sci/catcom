@@ -1,4 +1,3 @@
-using System.Reflection;
 using Brutal.ImGuiApi;
 using HarmonyLib;
 using KSA;
@@ -84,8 +83,8 @@ internal static class MenuFallbackPatch
 {
     private static bool? s_modMenuPresent;
 
-    [KsaAnchor("Program.DrawProgramMenusHook(); ModLibrary.Find(string); Program.MainViewport; IGameViewportLifecycle.SetMenuBarInUse(bool)",
-        SourceFile = "KSA/Program.cs / KSA/ModLibrary.cs / KSA/IGameViewportLifecycle.cs", Verified = "2026-10-16",
+    [KsaAnchor("Program.DrawProgramMenusHook(); Program.MainViewport; IGameViewportLifecycle.SetMenuBarInUse(bool)",
+        SourceFile = "KSA/Program.cs / KSA/IGameViewportLifecycle.cs", Verified = "2026-10-16",
         GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
         Notes = "DrawProgramMenusHook is an empty instance hook called inside the open menu bar after the View/HUD menus. "
             + "Since 5402 IGameViewport.MenuBarInUse is read-only; the setter is the explicit IGameViewportLifecycle.SetMenuBarInUse "
@@ -120,32 +119,5 @@ internal static class MenuFallbackPatch
         }
     }
 
-    // ModLibrary.Find(string) is reached by reflection: its sibling overload Find(KeyHash) lives in Planet.Render.Core,
-    // which this project does not reference, so a compile-time call fails overload resolution (CS0012).
-    private static readonly MethodInfo? FindMod = typeof(ModLibrary).GetMethod(
-        nameof(ModLibrary.Find),
-        BindingFlags.Public | BindingFlags.Static,
-        binder: null,
-        types: [typeof(string)],
-        modifiers: null);
-
-    private static bool IsModMenuPresent() => s_modMenuPresent ??= ProbeModMenu();
-
-    private static bool ProbeModMenu()
-    {
-        try
-        {
-            if (FindMod is not null)
-            {
-                return FindMod.Invoke(null, ["ModMenu"]) is not null;
-            }
-
-            return AppDomain.CurrentDomain.GetAssemblies().Any(a => string.Equals(a.GetName().Name, "ModMenu", StringComparison.Ordinal));
-        }
-        catch (Exception ex)
-        {
-            Log.LogOnce("ui.menu.probe", LogLevel.Warn, $"Probing for ModMenu failed (assuming it is absent): {ex.Message}");
-            return false;
-        }
-    }
+    private static bool IsModMenuPresent() => s_modMenuPresent ??= KsaMods.IsLoaded("ModMenu");
 }

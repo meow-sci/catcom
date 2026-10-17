@@ -1,9 +1,11 @@
 using KsaScripting.Core.Logging;
 using KsaScripting.Core.Runtime;
 using KsaScripting.Core.Values;
+using KsaScripting.GameMod;
+using KsaScripting.GameMod.Shells;
 using purrTTY.Core.Terminal;
 
-namespace KsaScripting.GameMod.Shells;
+namespace KsaScripting.PurrTty.Shells;
 
 /// <summary>
 ///     A line-buffered REPL (<c>lua&gt;</c> / <c>ts&gt;</c>) for one script runtime, registered as a purrTTY custom

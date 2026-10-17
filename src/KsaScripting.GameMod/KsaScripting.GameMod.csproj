@@ -4,126 +4,21 @@
         <OutputType>Library</OutputType>
         <AssemblyName>KsaScripting.GameMod</AssemblyName>
         <RootNamespace>KsaScripting.GameMod</RootNamespace>
-        <Description>The KSA game mod: StarMap entry, script lifecycle, Script Manager window, console commands and terminal shells.</Description>
+        <Description>The KSA game mod: StarMap entry, script lifecycle, Script Manager window, console commands and the loader of the purrTTY bridge.</Description>
         <Product>ksa-scripting</Product>
         <Company>meow sci</Company>
         <Copyright>Copyright © meow sci</Copyright>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
-        <DistDir>$(KsaScriptingDistDir)</DistDir>
     </PropertyGroup>
 
-    <!-- The mod's own sources (StarMap entry, ImGui windows, purrTTY shells) compile only when the
+    <!-- The mod's own sources (StarMap entry, ImGui windows, console commands) compile only when the
          KSA reference assemblies are present. CI without the private game DLLs still builds the
          rest of the solution; this project then compiles to an empty assembly. -->
     <ItemGroup Condition="'$(KsaAssembliesPresent)' != 'true'">
         <Compile Remove="**/*.cs" />
     </ItemGroup>
-
-    <!-- Deploys the complete mod folder to $(DistDir) on every build (mirrors gatOS's / purrTTY's
-         CopyCustomContent). KsaScriptingDistDir resolves in Directory.Build.props:
-         KSA_SCRIPTING_DIST_DIR override (CI zips it; it is the FULL dist folder), else
-         <KSAUserDir>mods/ksa-scripting/. -->
-    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-
-        <!-- Wipe the managed payload (top-level files) and the folders that are 100% build output
-             (third-party-licenses, runtimes, scripts-lib) so a redeploy never leaves stale DLLs from
-             a previous version in the game's mod ALC. User data is deliberately NOT touched:
-               ksa-scripting.toml, bindings.toml, terminals.toml  (excluded from the top-level wipe)
-               scripts/                                           (the user's scripts; never wiped)
-               editor/                                            (fetched nvim/LSP blobs are large and
-                                                                   content-stable; they are copied with
-                                                                   SkipUnchangedFiles instead of wiped)
-             On Windows the install dir and the runtime data dir are the same folder, so the live
-             config and the user's scripts live here. -->
-        <ItemGroup>
-            <StaleDistFile Include="$(DistDir)*" Exclude="$(DistDir)ksa-scripting.toml;$(DistDir)bindings.toml;$(DistDir)terminals.toml"/>
-        </ItemGroup>
-        <Delete Files="@(StaleDistFile)"/>
-        <RemoveDir Directories="$(DistDir)third-party-licenses;$(DistDir)runtimes;$(DistDir)scripts-lib;$(DistDir)assets"/>
-        <MakeDir Directories="$(DistDir)"/>
-
-        <!-- mod.toml + deps.json (StarMap's ModAssemblyLoadContext resolves the mod's own
-             dependencies through an AssemblyDependencyResolver, which reads the deps.json). -->
-        <Copy SourceFiles="$(TargetDir)mod.toml" DestinationFolder="$(DistDir)" Condition="Exists('$(TargetDir)mod.toml')"/>
-        <Copy SourceFiles="$(ProjectDepsFilePath)" DestinationFolder="$(DistDir)" Condition="Exists('$(ProjectDepsFilePath)')"/>
-
-        <!-- Managed payload: everything in the build output EXCEPT the loader-supplied
-             assemblies (StarMap provides 0Harmony + StarMap.API to every mod ALC; shipping a
-             second copy risks type-identity splits). The KSA reference assemblies never reach
-             the output (Private=false). A glob with a deny-list — rather than an allow-list —
-             means a newly added NuGet dependency ships automatically instead of failing at
-             runtime in-game. Includes the vendored purrTTY contract DLLs: with purrTTY
-             installed they are shadowed by mod.toml ImportedAssemblies (dependency ALCs are
-             consulted first); without purrTTY they are the fallback that lets ksa-scripting
-             load without terminal surfaces. Game assemblies that MSBuild copy-locals as
-             transitive dependencies of the Private=false KSA references (Brutal.Core.Collections,
-             Brutal.Core.Memory, CommunityToolkit.HighPerformance, …) are game-provided and must
-             never ship (a second copy splits type identity), so they are denied here too. -->
-        <ItemGroup>
-            <ModManagedDll Include="$(TargetDir)*.dll"
-                           Exclude="$(TargetDir)0Harmony.dll;$(TargetDir)StarMap.API.dll;$(TargetDir)KSA.dll;$(TargetDir)Brutal.*.dll;$(TargetDir)Planet.*.dll;$(TargetDir)Bepu*.dll;$(TargetDir)CommunityToolkit.HighPerformance.dll;$(TargetDir)imgui.dll"/>
-        </ItemGroup>
-        <Copy SourceFiles="@(ModManagedDll)" DestinationFolder="$(DistDir)" Condition="'@(ModManagedDll)' != ''"/>
-
-        <!-- Native libraries: ClearScript V8 natives (NuGet) and the LuaJIT shared library
-             (src/KsaScripting.Runtime.Lua/runtimes/<rid>/native/, built by tools/build-luajit.*)
-             flow into $(TargetDir)runtimes/<rid>/native/ and are resolved by the .NET native
-             probing (deps.json) relative to the mod folder. -->
-        <ItemGroup>
-            <NativeFile Include="$(TargetDir)runtimes/**/*" Exclude="$(TargetDir)runtimes/**/.gitignore"/>
-        </ItemGroup>
-        <Copy SourceFiles="@(NativeFile)" DestinationFolder="$(DistDir)runtimes/%(RecursiveDir)" Condition="'@(NativeFile)' != ''"/>
-
-        <!-- V8 runtime assets (typescript.js, sucrase bundle + licences; fetched by tools/fetch-ts.*
-             into src/KsaScripting.Runtime.V8/assets/ and copied to $(TargetDir)assets/). -->
-        <ItemGroup>
-            <V8AssetFile Include="$(TargetDir)assets/**/*" Exclude="$(TargetDir)assets/**/.gitignore"/>
-        </ItemGroup>
-        <Copy SourceFiles="@(V8AssetFile)" DestinationFolder="$(DistDir)assets/%(RecursiveDir)" Condition="'@(V8AssetFile)' != ''"/>
-
-        <!-- Shipped script libraries (scripts-lib/): copied to <user>/scripts/lib on every start. -->
-        <ItemGroup>
-            <ScriptsLibFile Include="$(RepoRoot)scripts-lib/**/*"/>
-        </ItemGroup>
-        <Copy SourceFiles="@(ScriptsLibFile)" DestinationFolder="$(DistDir)scripts-lib/%(RecursiveDir)" Condition="'@(ScriptsLibFile)' != ''"/>
-
-        <!-- Editor payload (NOT wiped — see the wipe note). Small repo-owned files are always
-             refreshed; the fetched per-RID blobs (tools/fetch-nvim.*, gitignored) use
-             SkipUnchangedFiles to keep the per-build deploy cost near zero. A Message, not a
-             Warning, when a RID's blobs are absent: MSBuildTreatWarningsAsErrors would turn a
-             Warning into a failed build on a fresh clone, and plain builds must never require the
-             editor. -->
-        <ItemGroup>
-            <EditorConfigFile Include="$(RepoRoot)editor/config/**/*"/>
-            <EditorStubFile Include="$(RepoRoot)editor/noshell*"/>
-            <EditorStubFile Include="$(RepoRoot)editor/*.json"/>
-            <EditorWinX64File Include="$(RepoRoot)editor/win-x64/**/*"/>
-            <EditorLinuxX64File Include="$(RepoRoot)editor/linux-x64/**/*"/>
-            <EditorOsxArm64File Include="$(RepoRoot)editor/osx-arm64/**/*"/>
-        </ItemGroup>
-        <Copy SourceFiles="@(EditorConfigFile)" DestinationFolder="$(DistDir)editor/config/%(RecursiveDir)" Condition="'@(EditorConfigFile)' != ''"/>
-        <Copy SourceFiles="@(EditorStubFile)" DestinationFolder="$(DistDir)editor/" Condition="'@(EditorStubFile)' != ''"/>
-        <Copy SourceFiles="@(EditorWinX64File)" DestinationFolder="$(DistDir)editor/win-x64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorWinX64File)' != ''"/>
-        <Copy SourceFiles="@(EditorLinuxX64File)" DestinationFolder="$(DistDir)editor/linux-x64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorLinuxX64File)' != ''"/>
-        <Copy SourceFiles="@(EditorOsxArm64File)" DestinationFolder="$(DistDir)editor/osx-arm64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorOsxArm64File)' != ''"/>
-        <Message Importance="High" Condition="'@(EditorWinX64File)' == ''"
-                 Text="ksa-scripting dist: editor/win-x64/ not fetched; run tools/fetch-nvim.sh (or .ps1) win-x64 to bundle the Neovim editor for that platform."/>
-        <Message Importance="High" Condition="'@(EditorLinuxX64File)' == ''"
-                 Text="ksa-scripting dist: editor/linux-x64/ not fetched; run tools/fetch-nvim.sh (or .ps1) linux-x64 to bundle the Neovim editor for that platform."/>
-        <Message Importance="High" Condition="'@(EditorOsxArm64File)' == ''"
-                 Text="ksa-scripting dist: editor/osx-arm64/ not fetched; run tools/fetch-nvim.sh (or .ps1) osx-arm64 to bundle the Neovim editor for that platform."/>
-
-        <!-- Licenses (THIRD-PARTY-NOTICES.md carries the redistributed-component obligations;
-             third-party-licenses/ holds the full texts). Each is optional so a fresh clone builds. -->
-        <Copy SourceFiles="$(RepoRoot)LICENSE" DestinationFolder="$(DistDir)" Condition="Exists('$(RepoRoot)LICENSE')"/>
-        <Copy SourceFiles="$(RepoRoot)THIRD-PARTY-NOTICES.md" DestinationFolder="$(DistDir)" Condition="Exists('$(RepoRoot)THIRD-PARTY-NOTICES.md')"/>
-        <ItemGroup>
-            <ThirdPartyLicenseFile Include="$(RepoRoot)third-party-licenses/*"/>
-        </ItemGroup>
-        <Copy SourceFiles="@(ThirdPartyLicenseFile)" DestinationFolder="$(DistDir)third-party-licenses/" Condition="'@(ThirdPartyLicenseFile)' != ''"/>
-    </Target>
 
     <ItemGroup>
         <ProjectReference Include="..\KsaScripting.Core\KsaScripting.Core.csproj" />
@@ -142,20 +37,20 @@
         </PackageReference>
     </ItemGroup>
 
-    <!-- Vendored purrTTY contract: with purrTTY installed these resolve from purrTTY's ALC
-         (mod.toml ImportedAssemblies — StarMap's ModAssemblyLoadContext consults dependency mods
-         BEFORE the mod-local AssemblyDependencyResolver, so the local copies below never load and
-         type identity is purrTTY's). Private=true so the copies land in the build output AND in
-         KsaScripting.GameMod.deps.json — without the deps.json entry the resolver cannot find them,
-         and the no-purrTTY fallback would crash instead of idling. -->
+    <!-- Vendored purrTTY contract: COMPILE-ONLY (Private=false). No type declared in this assembly uses a purrTTY
+         type (the shells and the launcher bridge live in KsaScripting.PurrTty, loaded by path once purrTTY is a
+         loaded mod); the references stay so this project compiles against the same contract. They must never reach
+         the build output, a deps.json or the dist: shipping them splits type identity (a StarMap build that scans
+         the entry assembly's types before the dependency wiring exists would load the local copy instead of
+         purrTTY's, and purrTTY's TerminalLauncherRegistry.Current would be invisible to us). -->
     <ItemGroup>
         <Reference Include="purrTTY.CustomShellContract">
             <HintPath>$(RepoRoot)vendor/purrTTY/purrTTY.CustomShellContract.dll</HintPath>
-            <Private>true</Private>
+            <Private>false</Private>
         </Reference>
         <Reference Include="purrTTY.Logging">
             <HintPath>$(RepoRoot)vendor/purrTTY/purrTTY.Logging.dll</HintPath>
-            <Private>true</Private>
+            <Private>false</Private>
         </Reference>
     </ItemGroup>
 

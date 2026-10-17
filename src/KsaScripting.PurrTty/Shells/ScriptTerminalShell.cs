@@ -1,9 +1,10 @@
 using KsaScripting.Core.Catalog;
 using KsaScripting.Core.Logging;
 using KsaScripting.Core.Terminals;
+using KsaScripting.GameMod;
 using purrTTY.Core.Terminal;
 
-namespace KsaScripting.GameMod.Shells;
+namespace KsaScripting.PurrTty.Shells;
 
 /// <summary>
 ///     The purrTTY custom shell (id <c>ksa-script</c>) that is the "mock pty" of a script-owned

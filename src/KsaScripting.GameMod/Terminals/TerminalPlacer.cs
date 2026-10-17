@@ -23,9 +23,9 @@ public sealed record PlacedTerminal(Guid Id, string Script, string Kind, string 
 
 /// <summary>
 ///     Opens purrTTY surfaces (2D windows, in-world part quads) for script terminals through the
-///     purrTTY launcher contract (<c>TerminalLauncherRegistry.Current</c>), persists placements in
-///     terminals.toml and re-creates them when the script starts. Degrades to "purrTTY launcher
-///     unavailable" when purrTTY (or its launcher) is absent. Game thread only, except where noted.
+///     purrTTY bridge (<see cref="PurrTtyBridge.Current"/>), persists placements in terminals.toml and
+///     re-creates them when the script starts. Degrades to "purrTTY launcher unavailable" when purrTTY (or its
+///     launcher) is absent. Game thread only, except where noted.
 /// </summary>
 /// <remarks>
 ///     Placements are re-created by a reconcile pass: for every persisted placement of a running script
@@ -33,7 +33,7 @@ public sealed record PlacedTerminal(Guid Id, string Script, string Kind, string 
 ///     the vehicle exists. The pass runs when a script starts, when the launcher becomes available and
 ///     (via <see cref="RequestReconcile"/>) when the host sees vessels or a save appear. A placement whose
 ///     surface was closed by the user, exited by itself or failed to open is not re-created until its
-///     script starts again. All launcher types are reached through <see cref="LauncherAccess"/>.
+///     script starts again. No purrTTY type is referenced here: terminal handles are opaque objects owned by the bridge.
 /// </remarks>
 public sealed class TerminalPlacer : IDisposable
 {
@@ -61,7 +61,7 @@ public sealed class TerminalPlacer : IDisposable
 
         try
         {
-            _availabilitySubscription = LauncherAccess.SubscribeAvailability(OnAvailabilityChanged);
+            _availabilitySubscription = PurrTtyBridge.Current?.SubscribeAvailability(OnAvailabilityChanged);
         }
         catch (Exception ex)
         {
@@ -77,7 +77,7 @@ public sealed class TerminalPlacer : IDisposable
         {
             try
             {
-                return LauncherAccess.IsAvailable();
+                return PurrTtyBridge.Current is { IsLauncherAvailable: true };
             }
             catch
             {
@@ -87,7 +87,7 @@ public sealed class TerminalPlacer : IDisposable
     }
 
     /// <summary>Why <see cref="IsAvailable"/> is false.</summary>
-    public string? UnavailableReason => IsAvailable ? null : LauncherAccess.UnavailableText;
+    public string? UnavailableReason => IsAvailable ? null : PurrTtyBridge.UnavailableReason ?? PurrTtyBridge.UnavailableText;
 
     /// <summary>
     ///     Supplies the ids of the vehicles that exist right now (the bridge's vessel list); in-world
@@ -110,7 +110,7 @@ public sealed class TerminalPlacer : IDisposable
 
             try
             {
-                var info = LauncherAccess.Describe(surface.Handle);
+                var info = Bridge.Describe(surface.Handle);
                 result.Add(new PlacedTerminal(info.Id, surface.Spec.Script, surface.Spec.Kind, info.Name, info.IsOpen, info.Cols, info.Rows));
             }
             catch (Exception ex)
@@ -191,7 +191,7 @@ public sealed class TerminalPlacer : IDisposable
             if (surface?.Handle is null)
                 return;
 
-            ObserveFaults(LauncherAccess.Focus(surface.Handle), "Focusing a terminal");
+            ObserveFaults(Bridge.Focus(surface.Handle), "Focusing a terminal");
         }
         catch (Exception ex)
         {
@@ -327,7 +327,7 @@ public sealed class TerminalPlacer : IDisposable
         if (!IsAvailable)
         {
             if (userRequested)
-                Log.Warn($"Cannot open a terminal for '{spec.Script}': {LauncherAccess.UnavailableText}.");
+                Log.Warn($"Cannot open a terminal for '{spec.Script}': {UnavailableReason ?? PurrTtyBridge.UnavailableText}.");
             return;
         }
 
@@ -335,7 +335,7 @@ public sealed class TerminalPlacer : IDisposable
         Task<object> launch;
         try
         {
-            launch = LauncherAccess.LaunchAsync(spec, focus, startScript: userRequested);
+            launch = Bridge.LaunchTerminalAsync(spec, focus, startScript: userRequested);
         }
         catch (Exception ex)
         {
@@ -406,7 +406,7 @@ public sealed class TerminalPlacer : IDisposable
             }
 
             surface.Handle = handle;
-            var stillOpen = LauncherAccess.Watch(handle, () => _queue.PostWork(() => OnSurfaceEnded(surface)));
+            var stillOpen = Bridge.Watch(handle, () => _queue.PostWork(() => OnSurfaceEnded(surface)));
             if (!stillOpen)
                 OnSurfaceEnded(surface);
         }
@@ -523,7 +523,7 @@ public sealed class TerminalPlacer : IDisposable
 
             try
             {
-                if (!LauncherAccess.Describe(surface.Handle).IsOpen)
+                if (!Bridge.Describe(surface.Handle).IsOpen)
                     _surfaces.Remove(surface);
             }
             catch
@@ -544,7 +544,7 @@ public sealed class TerminalPlacer : IDisposable
 
             try
             {
-                if (LauncherAccess.Describe(surface.Handle).Id == id)
+                if (Bridge.Describe(surface.Handle).Id == id)
                     return surface;
             }
             catch (Exception ex)
@@ -563,7 +563,7 @@ public sealed class TerminalPlacer : IDisposable
 
         try
         {
-            ObserveFaults(LauncherAccess.Close(handle), "Closing a terminal");
+            ObserveFaults(Bridge.Close(handle), "Closing a terminal");
         }
         catch (Exception ex)
         {
@@ -591,6 +591,10 @@ public sealed class TerminalPlacer : IDisposable
             Log.Warn($"Could not save the terminal placements: {ex.Message}");
         }
     }
+
+    /// <summary>The loaded bridge; throws (callers catch) when purrTTY is absent or the bridge could not be loaded.</summary>
+    private static IPurrTtyBridge Bridge
+        => PurrTtyBridge.Current ?? throw new InvalidOperationException(PurrTtyBridge.UnavailableReason ?? PurrTtyBridge.UnavailableText);
 
     private static string? NullIfBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
 

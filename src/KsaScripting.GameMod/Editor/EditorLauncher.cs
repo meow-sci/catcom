@@ -1,10 +1,9 @@
-using System.Runtime.CompilerServices;
 using System.Text;
 using KsaScripting.Core.Config;
 using KsaScripting.Core.Editor;
 using KsaScripting.Core.Logging;
 using KsaScripting.Core.Scheduling;
-using purrTTY.Core.Terminal;
+using KsaScripting.GameMod.Terminals;
 
 namespace KsaScripting.GameMod.Editor;
 
@@ -13,7 +12,7 @@ public sealed record EditorSessionInfo(string ScriptName, string FullPath, int P
 
 /// <summary>
 ///     Launches the shipped Neovim on a script file inside a purrTTY window through the purrTTY
-///     launcher contract, connects the msgpack-RPC client over loopback TCP, forwards
+///     bridge (<see cref="PurrTtyBridge.Current"/>), connects the msgpack-RPC client over loopback TCP, forwards
 ///     <c>ksa_saved</c> notifications and pushes load errors back as diagnostics
 ///     (docs/research/editor/neovim-tcp-launch.md, save-detection-and-reload.md). Game thread only:
 ///     every background continuation (launch completion, RPC connect, lifecycle events) marshals its
@@ -60,7 +59,7 @@ public sealed class EditorLauncher : IDisposable
             if (!NvimExists())
                 return $"Neovim not found at {_paths.NvimExecutable} (run tools/fetch-nvim.sh)";
             if (!LauncherAvailable())
-                return "purrTTY launcher unavailable (install purrTTY with the launcher contract)";
+                return PurrTtyBridge.UnavailableReason ?? PurrTtyBridge.UnavailableText;
             return null;
         }
     }
@@ -153,7 +152,7 @@ public sealed class EditorLauncher : IDisposable
                 var session = _sessions[i];
                 if (session.Handle is { } handle)
                 {
-                    if (!handle.IsOpen)
+                    if (!IsHandleOpen(handle))
                         DropSession(session, closeTerminal: false);
                 }
                 else if (now - session.StartedAt > LaunchTimeoutMs)
@@ -188,21 +187,45 @@ public sealed class EditorLauncher : IDisposable
         }
     }
 
-    // The registry read lives in its own non-inlined method so a missing contract assembly fails
-    // here (inside a try/catch) instead of poisoning the JIT of every caller.
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static ITerminalLauncher? CurrentLauncher() => TerminalLauncherRegistry.Current;
-
+    // The bridge probes the launcher registry; an older purrTTY without the launcher contract fails inside it,
+    // so the read is guarded here.
     private static bool LauncherAvailable()
     {
         try
         {
-            return CurrentLauncher() is { IsAvailable: true };
+            return PurrTtyBridge.Current is { IsLauncherAvailable: true };
         }
         catch (Exception ex)
         {
             Log.LogOnce("editor.launcher." + ex.GetType().Name, LogLevel.Warn, "purrTTY launcher contract could not be read: " + ex.Message);
             return false;
+        }
+    }
+
+    // A handle that cannot be read (bridge unloaded, contract error) counts as closed.
+    private static bool IsHandleOpen(object handle)
+    {
+        try
+        {
+            return PurrTtyBridge.Current?.Describe(handle).IsOpen ?? false;
+        }
+        catch (Exception ex)
+        {
+            Log.LogOnce("editor.handle." + ex.GetType().Name, LogLevel.Warn, "reading the editor terminal failed: " + ex.Message);
+            return false;
+        }
+    }
+
+    private static void CloseHandle(object handle)
+    {
+        try
+        {
+            if (PurrTtyBridge.Current is { } bridge)
+                Observe(bridge.Close(handle), "close");
+        }
+        catch (Exception ex)
+        {
+            Log.LogOnce("editor.close." + ex.GetType().Name, LogLevel.Warn, "could not close the editor terminal: " + ex.Message);
         }
     }
 
@@ -298,9 +321,10 @@ public sealed class EditorLauncher : IDisposable
                 return;
             }
 
-            if (existing.Handle.IsOpen)
+            if (IsHandleOpen(existing.Handle))
             {
-                Observe(existing.Handle.FocusAsync(), "focus");
+                if (PurrTtyBridge.Current is { } focusBridge)
+                    Observe(focusBridge.Focus(existing.Handle), "focus");
                 if (line is { } target && existing.Client is { IsConnected: true } client)
                     Observe(Task.Run(() => client.GoToLineAsync(fullPath, target)), "goto-line");
                 return;
@@ -310,7 +334,7 @@ public sealed class EditorLauncher : IDisposable
         }
 
         var port = LoopbackPorts.PickFree(_config.EditorPortMin, _config.EditorPortMax);
-        if (!_config.EditorEnabled || !NvimExists() || CurrentLauncher() is not { IsAvailable: true } launcher)
+        if (!_config.EditorEnabled || !NvimExists() || PurrTtyBridge.Current is not { IsLauncherAvailable: true } bridge)
         {
             LogManualRecipe(scriptName, fullPath, line, port);
             return;
@@ -318,10 +342,10 @@ public sealed class EditorLauncher : IDisposable
 
         var session = new Session(scriptName, fullPath, port, Environment.TickCount64);
         _sessions.Add(session);
-        Task<ITerminalHandle> launch;
+        Task<object> launch;
         try
         {
-            launch = launcher.LaunchAsync(BuildRequest(scriptName, fullPath, line, port), session.Cts.Token);
+            launch = bridge.LaunchProcessAsync(BuildSpec(scriptName, fullPath, line, port), session.Cts.Token);
         }
         catch
         {
@@ -332,31 +356,23 @@ public sealed class EditorLauncher : IDisposable
         _ = AwaitLaunchAsync(session, launch);
     }
 
-    private TerminalLaunchRequest BuildRequest(string scriptName, string fullPath, int? line, int port)
+    private EditorLaunchSpec BuildSpec(string scriptName, string fullPath, int? line, int port)
     {
-        var program = new TerminalProgramSpec
-        {
-            Program = _paths.NvimExecutable,
-            WorkingDirectory = _paths.ScriptsDir,
-        };
-        program.Arguments.AddRange(NvimArguments(fullPath, line, port));
+        var environment = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (key, value) in NvimEnvironment())
-            program.Environment[key] = value;
+            environment[key] = value;
 
-        return new TerminalLaunchRequest
-        {
-            Placement = TerminalPlacementKind.Window,
-            Program = program,
-            Window = new TerminalWindowOptions
-            {
-                Name = "ksa-edit:" + scriptName,
-                Title = "nvim — " + scriptName,
-                ThemeName = string.IsNullOrEmpty(_config.EditorTheme) ? null : _config.EditorTheme,
-                Cols = 120,
-                Rows = 36,
-                Focus = true,
-            },
-        };
+        return new EditorLaunchSpec(
+            Program: _paths.NvimExecutable,
+            Arguments: NvimArguments(fullPath, line, port),
+            WorkingDirectory: _paths.ScriptsDir,
+            Environment: environment,
+            Name: "ksa-edit:" + scriptName,
+            Title: "nvim — " + scriptName,
+            Theme: string.IsNullOrEmpty(_config.EditorTheme) ? null : _config.EditorTheme,
+            Cols: 120,
+            Rows: 36,
+            Focus: true);
     }
 
     private List<string> NvimArguments(string fullPath, int? line, int port)
@@ -399,7 +415,7 @@ public sealed class EditorLauncher : IDisposable
         Log.Info(text.ToString());
     }
 
-    private async Task AwaitLaunchAsync(Session session, Task<ITerminalHandle> launch)
+    private async Task AwaitLaunchAsync(Session session, Task<object> launch)
     {
         try
         {
@@ -421,19 +437,21 @@ public sealed class EditorLauncher : IDisposable
     }
 
     // Game thread (posted).
-    private void OnLaunched(Session session, ITerminalHandle handle)
+    private void OnLaunched(Session session, object handle)
     {
         try
         {
             if (_disposed || session.Dropped)
             {
-                Observe(handle.CloseAsync(), "close");
+                CloseHandle(handle);
                 return;
             }
 
             session.Handle = handle;
-            handle.Lifecycle += OnLifecycle;
-            if (!handle.IsOpen || handle.ExitCode is not null)
+            var bridge = PurrTtyBridge.Current ?? throw new InvalidOperationException(PurrTtyBridge.UnavailableReason ?? PurrTtyBridge.UnavailableText);
+
+            // The callback is raised on the game's main thread by purrTTY; state changes are posted regardless.
+            if (!bridge.Watch(handle, () => _queue.PostWork(() => OnHandleEnded(session))))
             {
                 // Closed or exited before we subscribed (nvim failed to start): nothing to connect to.
                 DropSession(session, closeTerminal: false);
@@ -448,23 +466,12 @@ public sealed class EditorLauncher : IDisposable
         }
     }
 
-    // Raised on the game's main thread by purrTTY; state changes are posted regardless.
-    private void OnLifecycle(ITerminalHandle handle, TerminalLifecycleEvent lifecycleEvent)
-    {
-        if (lifecycleEvent is TerminalLifecycleEvent.Exited or TerminalLifecycleEvent.Closed)
-            _queue.PostWork(() => OnHandleEnded(handle));
-    }
-
-    // Game thread (posted).
-    private void OnHandleEnded(ITerminalHandle handle)
+    // Game thread (posted). Idempotent: a session that was already dropped ignores a late end notification.
+    private void OnHandleEnded(Session session)
     {
         try
         {
-            foreach (var session in _sessions.ToArray())
-            {
-                if (ReferenceEquals(session.Handle, handle))
-                    DropSession(session, closeTerminal: false);
-            }
+            DropSession(session, closeTerminal: false);
         }
         catch (Exception ex)
         {
@@ -578,12 +585,8 @@ public sealed class EditorLauncher : IDisposable
         session.Connected = false;
         session.Client?.Dispose();
         session.Client = null;
-        if (session.Handle is { } handle)
-        {
-            handle.Lifecycle -= OnLifecycle;
-            if (closeTerminal)
-                Observe(handle.CloseAsync(), "close");
-        }
+        if (closeTerminal && session.Handle is { } handle)
+            CloseHandle(handle);
     }
 
     private sealed class Session(string scriptName, string fullPath, int port, long startedAt)
@@ -598,7 +601,8 @@ public sealed class EditorLauncher : IDisposable
 
         public CancellationTokenSource Cts { get; } = new();
 
-        public ITerminalHandle? Handle { get; set; }
+        /// <summary>The launcher's terminal handle (opaque to this assembly) once the launch completed.</summary>
+        public object? Handle { get; set; }
 
         public NvimRpcClient? Client { get; set; }
 

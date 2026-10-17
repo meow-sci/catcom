@@ -11,8 +11,8 @@ name: Build and test
 # KSA_GAME_ASSEMBLIES_PAT repo secret (a fine-grained read-only PAT, same pattern as gatOS).
 # If the secret is not configured on this repo, the checkout is skipped, the game-coupled
 # projects drop out, and the build and tests stay green. When the secret is configured,
-# GameMod also deploys the mod folder to .tmp/dist/ksa-scripting, which the Linux job
-# validates with tools/check-dist.py.
+# KsaScripting.Dist (which builds GameMod and PurrTty) also deploys the mod folder to
+# .tmp/dist/ksa-scripting, which the Linux job validates with tools/check-dist.py.
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
       # Directory.Build.props resolves this before any per-OS default. When the
       # PAT is missing the dir simply doesn't exist and the guarded references drop out.
       KSA_DLL_DIR: ${{ github.workspace }}/.tmp/ksa-game-assemblies/current/dll
-      # GameMod deploys the mod folder here, inside the workspace, instead of the per-user default.
+      # KsaScripting.Dist deploys the mod folder here, inside the workspace, instead of the per-user default.
       KSA_SCRIPTING_DIST_DIR: ${{ github.workspace }}/.tmp/dist/ksa-scripting
       # secrets.* is not allowed directly in step `if:`; surface it via env.
       KSA_PAT: ${{ secrets.KSA_GAME_ASSEMBLIES_PAT }}
@@ -115,7 +115,7 @@ jobs:
 
       # Only one RID's LuaJIT is built here and nvim is not fetched, so only linux-x64 natives
       # are required; missing editor blobs are reported as warnings by the script. Skipped
-      # without the KSA assemblies, because GameMod then does not deploy a dist.
+      # without the KSA assemblies, because GameMod and PurrTty are then empty assemblies.
       - name: Check dist (Linux)
         if: runner.os == 'Linux' && env.KSA_PAT != ''
         run: python3 tools/check-dist.py .tmp/dist/ksa-scripting --rids linux-x64

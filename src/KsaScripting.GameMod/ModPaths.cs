@@ -1,11 +1,14 @@
 using System.Runtime.InteropServices;
+using KsaScripting.Core.Logging;
+using KsaScripting.Ksa;
 
 namespace KsaScripting.GameMod;
 
 /// <summary>
 ///     Every file-system location the mod uses (guide §0/§7). The install dir is where the mod's
 ///     DLLs live (the dist folder); the data dir is the user-writable folder under
-///     <c>&lt;Documents&gt;/My Games/Kitten Space Agency/mods/ksa-scripting</c> (on Windows the two are
+///     <c>&lt;KSA documents folder&gt;/mods/ksa-scripting</c> (normally
+///     <c>&lt;Documents&gt;/My Games/Kitten Space Agency/mods/ksa-scripting</c>; on Windows the two are
 ///     normally the same folder). Pure path math — nothing here touches the disk except
 ///     <see cref="EnsureDataDirs"/>.
 /// </summary>
@@ -23,14 +26,33 @@ public sealed class ModPaths
 
     /// <summary>
     ///     The production layout: install dir = the folder containing this assembly; data dir =
-    ///     <c>&lt;MyDocuments&gt;/My Games/Kitten Space Agency/mods/ksa-scripting</c>.
+    ///     <c>&lt;KSA documents folder&gt;/mods/ksa-scripting</c>. The documents folder is the game's own
+    ///     <c>Constants.DocumentsFolderPath</c> (<c>&lt;MyDocuments&gt;/My Games/Kitten Space Agency</c> unless the
+    ///     StarMap loader relocated it with <c>-InstancePath</c> / <c>STARMAP_INSTANCE_PATH</c>), so the mod's data
+    ///     follows the instance the game actually runs in.
     /// </summary>
+    [KsaAnchor("Constants.DocumentsFolderPath", SourceFile = "KSA/Constants.cs", Verified = "2026-10-16",
+        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Notes = "The folder KSA keeps settings.toml, logs and mods/ in. StarMap can override it (-InstancePath / STARMAP_INSTANCE_PATH). "
+            + "Falls back to <MyDocuments>/My Games/Kitten Space Agency when reading it throws.")]
     public static ModPaths Detect()
     {
         var install = Path.GetDirectoryName(typeof(ModPaths).Assembly.Location) ?? AppContext.BaseDirectory;
-        var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        var data = Path.Combine(documents, "My Games", "Kitten Space Agency", "mods", ModFolderName);
-        return new ModPaths(install, data);
+
+        string? documents = null;
+        try
+        {
+            documents = KSA.Constants.DocumentsFolderPath;
+        }
+        catch (Exception ex)
+        {
+            Log.LogOnce("paths.documents", LogLevel.Warn, $"Reading the game's documents folder failed; using <MyDocuments>/My Games/Kitten Space Agency: {ex.Message}");
+        }
+
+        if (string.IsNullOrWhiteSpace(documents))
+            documents = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Kitten Space Agency");
+
+        return new ModPaths(install, Path.Combine(documents, "mods", ModFolderName));
     }
 
     /// <summary>The folder holding the mod's DLLs, natives, editor blobs and shipped libraries.</summary>

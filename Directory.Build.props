@@ -30,8 +30,8 @@
     <!--
         ===== KSA game paths =====
 
-        RepoRoot — this repo's root directory (trailing slash). Used by the GameMod dist target
-        to reach editor/, scripts-lib/, vendor/ and the license files.
+        RepoRoot — this repo's root directory (trailing slash). Used by the KsaScripting.Dist deploy
+        target to reach editor/, scripts-lib/, vendor/ and the license files.
 
         KSAFolder — directory containing the KSA reference assemblies (KSA.dll,
         Brutal.*.dll, Planet.*.dll) the projects compile against. Always ends in a slash.
@@ -44,12 +44,12 @@
              ksa-game-assemblies checkout on macOS/Linux).
 
         Only KsaScripting.Ksa, KsaScripting.GameMod and the Ksa.CompileCheck project reference
-        these assemblies: the references are condition-guarded and their sources are
+        these assemblies (KsaScripting.PurrTty consumes GameMod, so it is compile-removed too): the references are condition-guarded and their sources are
         compile-removed when KsaAssembliesPresent is not 'true', so every game-free project
         (Core, the runtimes, their tests) builds even when the KSA DLLs are absent.
 
-        KsaScriptingDistDir — the FULL folder the built mod is deployed to by the GameMod
-        project (nothing is appended to it). Override with KSA_SCRIPTING_DIST_DIR (CI zips that
+        KsaScriptingDistDir — the FULL folder the built mod is deployed to by the
+        KsaScripting.Dist project (nothing is appended to it). Override with KSA_SCRIPTING_DIST_DIR (CI zips that
         folder); defaults to <KSAUserDir>mods/ksa-scripting/ (on macOS/Linux that is
         $HOME/repos/meow-sci/mods/ksa-scripting/).
 

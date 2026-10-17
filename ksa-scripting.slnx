@@ -10,6 +10,8 @@
         <Project Path="src/KsaScripting.Runtime.Lua/KsaScripting.Runtime.Lua.csproj" />
         <Project Path="src/KsaScripting.Runtime.V8/KsaScripting.Runtime.V8.csproj" />
         <Project Path="src/KsaScripting.GameMod/KsaScripting.GameMod.csproj" />
+        <Project Path="src/KsaScripting.PurrTty/KsaScripting.PurrTty.csproj" />
+        <Project Path="src/KsaScripting.Dist/KsaScripting.Dist.csproj" />
     </Folder>
     <Folder Name="/tests/">
         <Project Path="tests/KsaScripting.Core.Tests/KsaScripting.Core.Tests.csproj" />

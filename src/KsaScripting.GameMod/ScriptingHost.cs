@@ -13,7 +13,6 @@ using KsaScripting.Core.Terminals;
 using KsaScripting.GameMod.Commands;
 using KsaScripting.GameMod.Editor;
 using KsaScripting.GameMod.Persistence;
-using KsaScripting.GameMod.Shells;
 using KsaScripting.GameMod.Terminals;
 using KsaScripting.Ksa;
 using KsaScripting.Ksa.Bridge;
@@ -229,6 +228,7 @@ public sealed partial class ScriptingHost : IDisposable
         Safe("stop the scripts", StopAllScripts);
         Safe("close the editor", () => Editor?.Dispose());
         Safe("close the terminals", () => Placer?.Dispose());
+        Safe("unload the purrTTY bridge", PurrTtyBridge.Unload);
 
         Safe("unsubscribe the terminal events", () =>
         {
@@ -344,13 +344,13 @@ public sealed partial class ScriptingHost : IDisposable
         KsaSaveHooks.SaveWritten += _saveWritten;
         KsaSaveHooks.GameLoaded += _gameLoaded;
 
-        // l. console command and purrTTY shells
+        // l. console command and the purrTTY bridge (its shells register as part of the load)
         Safe("register the console command", () =>
         {
             ScriptCommands.Register(this);
             _commandsRegistered = true;
         });
-        Safe("register the purrTTY shells", () => ShellRegistrar.Register(this));
+        Safe("load the purrTTY bridge", () => PurrTtyBridge.TryLoad(this, paths));
 
         // m. terminal surfaces
         Placer = new TerminalPlacer(paths, Config, Terminals, Queue)
