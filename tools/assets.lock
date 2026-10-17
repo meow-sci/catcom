@@ -1,5 +1,5 @@
-# tools/assets.lock: SHA-256 pins for release assets fetched by tools/fetch-nvim.* and tools/fetch-lsp.*
-# Format: <sha256>  <asset file name>   (two spaces, as sha256sum prints it)
+# tools/assets.lock: SHA-256 pins for release assets fetched by tools/fetch-nvim.*, tools/fetch-lsp.* and tools/fetch-natives.*
+# Format: <sha256>  <asset file name>   (two spaces, as sha256sum prints it; natives are keyed <tag>/<asset>)
 # An asset missing here is pinned on its first download, after cross-checking the release's own digests.
 # A version bump that keeps the same file name (nvim-win64.zip, typescript-*.tgz) needs the old line removed first.
 1dbd148222b051ba6c307c4d17a318ed083df018a4f6a5a0ce46955ffc9ab87b  nvim-macos-arm64.tar.gz
@@ -11,3 +11,6 @@
 61fc4e141d2bc687db580e71bbfa63b9c209f0310645d82ca1b457eb3a24fd19  typescript-win32-x64.tgz
 93ad326b10f6c00911dd8c450fa098332dbd8f9f45d1052f5636a2d54479b947  lua-language-server-3.19.2-linux-x64.tar.gz
 7ecad6f67377e831856367ab062ef394f21506a611405bf8ac0ff039348637d3  typescript-linux-x64.tgz
+6f9a9e1cee8fe4af1bcd5afafce25027b6893ace9f05a51d98cf14970fe90349  natives-v1/natives-win-x64.tar.gz
+212910eedf0250f8e204ddacb24361cdc46cbebeb4ed8a0dc1d6fc22b3e1c982  natives-v1/natives-linux-x64.tar.gz
+75db8b7a74cfb2396d2fe0bb449e20ce0f48aa287603984848b4451c3869b8da  natives-v1/natives-osx-arm64.tar.gz
