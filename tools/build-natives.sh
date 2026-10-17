@@ -115,7 +115,7 @@ ensure_zig() {
   fi
   log "sha256 ok ($(basename "$tarball"))"
   tmp="$(mktemp -d "$CACHE/zig/extract.XXXXXX")"
-  tar -xJf "$tarball" -C "$tmp"
+  tar -xf "$tarball" -C "$tmp"   # xz; tar detects the format (needs xz-utils on Linux)
   rm -rf "$dir"
   mv "$tmp"/zig-* "$dir"
   rmdir "$tmp" 2>/dev/null || true
@@ -163,7 +163,8 @@ ensure_ts_src() {
   TS_SRC="$CACHE/tree-sitter-typescript-$TS_VERSION"
   if [ ! -f "$TS_SRC/typescript/src/parser.c" ]; then
     tmp="$(mktemp -d "$CACHE/extract.XXXXXX")"
-    tar -xJf "$archive" -C "$tmp"
+    # The release asset is named .tar.xz but is gzip-compressed; let tar detect the format.
+    tar -xf "$archive" -C "$tmp"
     rm -rf "$TS_SRC"
     chmod -R u+rwX,go+rX "$tmp"
     mv "$tmp" "$TS_SRC"
