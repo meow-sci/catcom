@@ -2,7 +2,7 @@
 # fetch-lsp.sh: download the language servers the shipped Neovim uses, into editor/<rid>/lsp/.
 #
 # Usage: tools/fetch-lsp.sh [--force] [rid...]
-#   rid      win-x64 | linux-x64 | osx-arm64   (default: the host platform)
+#   rid      win-x64 | linux-x64 | osx-arm64   (default: all three; any host fetches every platform)
 #   --force  replace existing installs even when the pinned versions are already present
 #
 # Sources (no Node.js needed at runtime):
@@ -47,7 +47,7 @@ WORK=""
 usage() {
   cat <<'USAGE'
 Usage: tools/fetch-lsp.sh [--force] [rid...]
-  rid      win-x64 | linux-x64 | osx-arm64 (default: host platform)
+  rid      win-x64 | linux-x64 | osx-arm64 (default: all three)
   --force  replace existing installs even if the pinned versions are present
 USAGE
 }
@@ -322,7 +322,7 @@ main() {
   done
 
   if [ -z "$RIDS" ]; then
-    RIDS=" $(host_rid)"
+    RIDS=" win-x64 linux-x64 osx-arm64"
   fi
 
   WORK="$(mktemp -d)"

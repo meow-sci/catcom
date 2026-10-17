@@ -95,7 +95,7 @@ public sealed class NativeLoaderTests
 
         Assert.That(result.Handle, Is.EqualTo(nint.Zero), "a library without the shim is never handed out");
         Assert.That(result.Path, Is.EqualTo(HomebrewLuaJit));
-        Assert.That(result.Reason, Does.Contain("missing the ksa host shim").And.Contain("tools/build-luajit"));
+        Assert.That(result.Reason, Does.Contain("missing the ksa host shim").And.Contain("tools/fetch-natives"));
     }
 
     [Test]

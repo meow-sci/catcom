@@ -12,16 +12,16 @@ node_modules/
 *.tsbuildinfo
 imgui.ini
 
-# Fetched/built artifacts (produced by tools/build-luajit.*, tools/fetch-ts.*, tools/fetch-nvim.*):
-# never committed. Note that vendor/purrTTY/*.dll ARE committed (pinned contract assemblies).
+# Fetched artifacts (tools/fetch-all.* = fetch-ts, fetch-nvim, fetch-lsp, fetch-natives) and the
+# cross-build cache (tools/build-natives.sh): never committed. Note that vendor/purrTTY/*.dll ARE committed (pinned contract assemblies).
 
-# Built LuaJIT natives (tools/build-luajit.sh)
+# LuaJIT natives for every platform (tools/fetch-natives.*)
 src/KsaScripting.Runtime.Lua/runtimes/
 # Fetched TypeScript compiler/transpiler assets (tools/fetch-ts.sh)
 src/KsaScripting.Runtime.V8/assets/
-# Fetched Neovim/LSP blobs per runtime id (tools/fetch-nvim.sh, tools/fetch-lsp.sh)
+# Fetched Neovim/LSP blobs and the tree-sitter parser per runtime id (tools/fetch-nvim.*, fetch-lsp.*, fetch-natives.*)
 editor/win-x64/
 editor/linux-x64/
 editor/osx-arm64/
-# Download cache for the fetch scripts
+# Download cache for the fetch scripts, the pinned zig, LuaJIT checkout and cross-build output
 tools/.cache/

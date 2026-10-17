@@ -1,0 +1,6 @@
+# tree-sitter-typescript release whose `typescript` grammar is compiled into the parser the shipped
+# Neovim loads (editor/<rid>/nvim/lib/nvim/parser/typescript.*), by tools/build-natives.sh.
+# The queries in editor/config/ksa-editor/queries/ target this grammar (tools/refresh-ts-queries.sh).
+version=0.23.2
+url=https://github.com/tree-sitter/tree-sitter-typescript/releases/download/v0.23.2/tree-sitter-typescript.tar.xz
+sha256=2d324af0616a692cc6fcaea35442a816decb2ef0d05242953cb1feb15a5dc72d

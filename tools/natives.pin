@@ -1,0 +1,10 @@
+# The GitHub release that holds the cross-built natives every host downloads (tools/fetch-natives.sh / .ps1):
+# LuaJIT (tools/luajit.pin + tools/host_shim.c) and the tree-sitter TypeScript parser (tools/ts-parser.pin)
+# for win-x64, linux-x64 and osx-arm64, built by tools/build-natives.sh on the Linux CI job
+# (.github/workflows/build.yml) and published when a `natives-v*` tag is pushed.
+#
+# Bump `tag` after publishing a new release (needed whenever luajit.pin, ts-parser.pin, zig.pin,
+# host_shim.c or build-natives.sh change): push the tag, wait for the workflow, update this file,
+# then run tools/fetch-all.sh once so tools/assets.lock gets the new pins.
+repo=meow-sci/ksa-scripting
+tag=natives-v1

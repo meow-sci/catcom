@@ -29,7 +29,56 @@
          items: KsaScripting.GameMod (the StarMap entry assembly) and KsaScripting.PurrTty (the only assembly
          that references purrTTY types; GameMod loads it by path, see PurrTtyBridge). Neither project depends
          on the other, so neither could host the target. -->
-    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+    <!-- Every binary the dist must always contain, for every platform, whatever host builds it. They are
+         fetched (never committed) by tools/fetch-all.sh / tools/fetch-all.ps1: the TypeScript assets, and per
+         platform the LuaJIT library and tree-sitter parser (cross-built by CI, tools/fetch-natives.*), the
+         ClearScript V8 native (NuGet), Neovim and the two language servers (tools/fetch-nvim.*, fetch-lsp.*).
+         A missing file fails the build: a dist is never produced without all of them. -->
+    <ItemGroup>
+        <DistGameRid Include="win-x64">
+            <Exe>.exe</Exe>
+            <LuaLib>lua51.dll</LuaLib>
+            <ParserExt>dll</ParserExt>
+            <V8Native>ClearScriptV8.win-x64.dll</V8Native>
+        </DistGameRid>
+        <DistGameRid Include="linux-x64">
+            <Exe></Exe>
+            <LuaLib>libluajit-5.1.so.2</LuaLib>
+            <ParserExt>so</ParserExt>
+            <V8Native>ClearScriptV8.linux-x64.so</V8Native>
+        </DistGameRid>
+        <DistGameRid Include="osx-arm64">
+            <Exe></Exe>
+            <LuaLib>libluajit-5.1.2.dylib</LuaLib>
+            <ParserExt>dylib</ParserExt>
+            <V8Native>ClearScriptV8.osx-arm64.dylib</V8Native>
+        </DistGameRid>
+    </ItemGroup>
+
+    <!-- Runs before the old dist is touched, so a failed check never leaves a half-wiped mod folder. -->
+    <Target Name="CheckDistPayload">
+        <ItemGroup>
+            <DistRequiredFile Include="$(TargetDir)assets/typescript.js;$(TargetDir)assets/sucrase.bundle.js" />
+            <DistRequiredFile Include="$(TargetDir)runtimes/%(DistGameRid.Identity)/native/%(DistGameRid.LuaLib)" />
+            <DistRequiredFile Include="$(TargetDir)runtimes/%(DistGameRid.Identity)/native/%(DistGameRid.V8Native)" />
+            <DistRequiredFile Include="$(RepoRoot)editor/%(DistGameRid.Identity)/nvim/bin/nvim%(DistGameRid.Exe)" />
+            <DistRequiredFile Include="$(RepoRoot)editor/%(DistGameRid.Identity)/nvim/lib/nvim/parser/typescript.%(DistGameRid.ParserExt)" />
+            <DistRequiredFile Include="$(RepoRoot)editor/%(DistGameRid.Identity)/lsp/lua-language-server/bin/lua-language-server%(DistGameRid.Exe)" />
+            <DistRequiredFile Include="$(RepoRoot)editor/%(DistGameRid.Identity)/lsp/typescript/lib/tsc%(DistGameRid.Exe)" />
+            <DistMissingFile Include="@(DistRequiredFile)" Condition="!Exists('%(DistRequiredFile.Identity)')" />
+        </ItemGroup>
+        <Error Condition="'@(DistMissingFile)' != ''"
+               Text="ksa-scripting dist: @(DistMissingFile->Count()) required binaries are missing, so no dist was produced. Run tools/fetch-all.sh (macOS/Linux) or tools/fetch-all.ps1 (Windows) once, then build again. Missing:%0A  @(DistMissingFile, '%0A  ')" />
+        <Message Importance="High" Text="ksa-scripting dist: all @(DistRequiredFile->Count()) required binaries present (3 platforms)" />
+    </Target>
+
+    <!-- Without the KSA reference assemblies GameMod and PurrTty compile to empty shells, so no dist is
+         deployed at all (a loud message, never a broken mod folder). -->
+    <Target Name="DistSkipped" AfterTargets="AfterBuild" Condition="'$(KsaAssembliesPresent)' != 'true'">
+        <Message Importance="High" Text="ksa-scripting dist: SKIPPED, the KSA reference assemblies were not found (KSAFolder='$(KSAFolder)'; set KSA_DLL_DIR or clone ksa-game-assemblies next to this repo)." />
+    </Target>
+
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild" DependsOnTargets="CheckDistPayload" Condition="'$(KsaAssembliesPresent)' == 'true'">
 
         <!-- Wipe the managed payload (top-level files) and the folders that are 100% build output
              (third-party-licenses, runtimes, scripts-lib) so a redeploy never leaves stale DLLs from
@@ -105,12 +154,10 @@
         </ItemGroup>
         <Copy SourceFiles="@(ScriptsLibFile)" DestinationFolder="$(DistDir)scripts-lib/%(RecursiveDir)" Condition="'@(ScriptsLibFile)' != ''"/>
 
-        <!-- Editor payload (NOT wiped — see the wipe note). Small repo-owned files are always
-             refreshed; the fetched per-RID blobs (tools/fetch-nvim.*, gitignored) use
-             SkipUnchangedFiles to keep the per-build deploy cost near zero. A Message, not a
-             Warning, when a RID's blobs are absent: MSBuildTreatWarningsAsErrors would turn a
-             Warning into a failed build on a fresh clone, and plain builds must never require the
-             editor. -->
+        <!-- Editor payload (NOT wiped, see the wipe note). Small repo-owned files are always refreshed; the
+             fetched per-RID blobs (tools/fetch-nvim.*, fetch-lsp.*, fetch-natives.*; gitignored) use
+             SkipUnchangedFiles to keep the per-build deploy cost near zero. Their presence was verified by
+             CheckDistPayload. -->
         <ItemGroup>
             <EditorConfigFile Include="$(RepoRoot)editor/config/**/*"/>
             <EditorStubFile Include="$(RepoRoot)editor/noshell*"/>
@@ -124,12 +171,6 @@
         <Copy SourceFiles="@(EditorWinX64File)" DestinationFolder="$(DistDir)editor/win-x64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorWinX64File)' != ''"/>
         <Copy SourceFiles="@(EditorLinuxX64File)" DestinationFolder="$(DistDir)editor/linux-x64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorLinuxX64File)' != ''"/>
         <Copy SourceFiles="@(EditorOsxArm64File)" DestinationFolder="$(DistDir)editor/osx-arm64/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(EditorOsxArm64File)' != ''"/>
-        <Message Importance="High" Condition="'@(EditorWinX64File)' == ''"
-                 Text="ksa-scripting dist: editor/win-x64/ not fetched; run tools/fetch-nvim.sh (or .ps1) win-x64 to bundle the Neovim editor for that platform."/>
-        <Message Importance="High" Condition="'@(EditorLinuxX64File)' == ''"
-                 Text="ksa-scripting dist: editor/linux-x64/ not fetched; run tools/fetch-nvim.sh (or .ps1) linux-x64 to bundle the Neovim editor for that platform."/>
-        <Message Importance="High" Condition="'@(EditorOsxArm64File)' == ''"
-                 Text="ksa-scripting dist: editor/osx-arm64/ not fetched; run tools/fetch-nvim.sh (or .ps1) osx-arm64 to bundle the Neovim editor for that platform."/>
 
         <!-- Licenses (THIRD-PARTY-NOTICES.md carries the redistributed-component obligations;
              third-party-licenses/ holds the full texts). Each is optional so a fresh clone builds. -->

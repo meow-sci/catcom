@@ -609,27 +609,28 @@ def check_editor(dist):
     if not missing:
         out.append(("OK", "editor: config/ksa-editor/init.lua, noshell and noshell.cmd present"))
 
+    # The per-platform editor payload is required: every dist ships the editor for every platform
+    # (tools/fetch-all.* fetches it; the dist target refuses to build without it).
+    parser_ext = {"win-x64": "dll", "linux-x64": "so", "osx-arm64": "dylib"}
     for rid in EDITOR_RIDS:
         exe = ".exe" if rid == "win-x64" else ""
         items = (
             "editor/%s/nvim/bin/nvim%s" % (rid, exe),
+            "editor/%s/nvim/lib/nvim/parser/typescript.%s" % (rid, parser_ext[rid]),
             "editor/%s/lsp/lua-language-server/bin/lua-language-server%s" % (rid, exe),
             "editor/%s/lsp/typescript/lib/tsc%s" % (rid, exe),
         )
         for rel in items:
             path = os.path.join(dist, *rel.split("/"))
             if os.path.isfile(path):
-                out.append(("OK", "editor optional: %s (%s)" % (rel, _fmt_size(os.path.getsize(path)))))
+                out.append(("OK", "editor %s: %s (%s)" % (rid, rel, _fmt_size(os.path.getsize(path)))))
             else:
-                out.append(("WARN", "editor optional: %s missing" % rel))
+                out.append(("ERROR", "editor %s: %s missing (run tools/fetch-all.sh or tools/fetch-all.ps1, then rebuild)" % (rid, rel)))
         parser_dir = os.path.join(dist, "editor", rid, "nvim", "lib", "nvim", "parser")
-        parser_files = [n for n in _listdir(parser_dir) if fnmatch.fnmatchcase(n, "typescript.*")]
-        if parser_files:
-            for n in parser_files:
-                out.append(("OK", "editor optional: editor/%s/nvim/lib/nvim/parser/%s (%s)"
-                            % (rid, n, _fmt_size(os.path.getsize(os.path.join(parser_dir, n))))))
-        else:
-            out.append(("WARN", "editor optional: editor/%s/nvim/lib/nvim/parser/typescript.* missing" % rid))
+        strays = [n for n in _listdir(parser_dir)
+                  if fnmatch.fnmatchcase(n, "typescript.*") and n != "typescript." + parser_ext[rid]]
+        for n in strays:
+            out.append(("ERROR", "editor %s: stray parser editor/%s/nvim/lib/nvim/parser/%s (another platform's build; nvim's parser/typescript.* lookup could pick it)" % (rid, rid, n)))
     return out
 
 
@@ -900,6 +901,20 @@ class CheckDistTests(unittest.TestCase):
         self.assertEqual(len(_levels(results, "WARN")), 1)
         _write(self._path("ModMenu.Core.dll"), b"x")
         self.assertEqual(len(_levels(check_forbidden(self.dist), "ERROR")), 1)
+
+    def test_missing_editor_payload_is_error(self):
+        os.remove(self._path("editor", "linux-x64", "lsp", "typescript", "lib", "tsc"))
+        os.remove(self._path("editor", "win-x64", "nvim", "lib", "nvim", "parser", "typescript.dll"))
+        errors = _levels(check_editor(self.dist), "ERROR")
+        self.assertEqual(len(errors), 2)
+        self.assertTrue(any("linux-x64/lsp/typescript/lib/tsc" in e for e in errors))
+        self.assertTrue(any("win-x64/nvim/lib/nvim/parser/typescript.dll" in e for e in errors))
+
+    def test_stray_parser_from_another_platform_is_error(self):
+        _write(self._path("editor", "osx-arm64", "nvim", "lib", "nvim", "parser", "typescript.so"), b"linux parser")
+        errors = _levels(check_editor(self.dist), "ERROR")
+        self.assertEqual(len(errors), 1)
+        self.assertIn("stray parser", errors[0])
 
     def test_wrong_arch_so_is_error(self):
         _write(self._path("runtimes", "linux-x64", "native", "ClearScriptV8.linux-x64.so"), _elf_bytes(183))

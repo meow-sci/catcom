@@ -160,7 +160,7 @@ internal static class LuaNativeLoader
             {
                 // A rejected library is never used, so its handle is released (only an accepted handle is cached for good).
                 NativeLibrary.Free(handle);
-                return new ProbeResult(0, candidate, "LuaJIT native library is missing the ksa host shim (rebuild with tools/build-luajit.*)");
+                return new ProbeResult(0, candidate, "LuaJIT native library is missing the ksa host shim (reinstall with tools/fetch-natives.sh or tools/fetch-natives.ps1)");
             }
 
             return new ProbeResult(handle, candidate, null);

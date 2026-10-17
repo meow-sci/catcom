@@ -1,18 +1,28 @@
 name: Build and test
 
-# One matrix job per OS (Linux x64, Windows x64, macOS arm64) builds the whole solution,
-# builds the native LuaJIT and fetches the TypeScript/sucrase assets for the runtimes, and
-# runs the full test suite. The tests are game-free: they never start the game.
+# ONE Linux job does everything, for every platform. No OS matrix:
+#   1. cross-builds the natives for win-x64, linux-x64 and osx-arm64 with the pinned zig
+#      (tools/build-natives.sh: LuaJIT + the tree-sitter TypeScript parser), verifying each
+#      library's format, exports and dependencies, and running the Linux and (under wine) the
+#      Windows builds;
+#   2. downloads Neovim, the language servers and the TypeScript assets for all three platforms
+#      (tools/fetch-all.sh, with the natives from step 1);
+#   3. builds the solution, runs the game-free test suites (on Linux);
+#   4. deploys the complete mod folder (KsaScripting.Dist refuses to build without every binary)
+#      and validates it for all three platforms with tools/check-dist.py; the folder is uploaded
+#      as the `ksa-scripting-dist` artifact.
 #
 # The KSA reference assemblies are licensed game files in the private repo
 # meow-sci/ksa-game-assemblies (DLLs under current/dll/). Only KsaScripting.Ksa,
-# KsaScripting.GameMod and the Ksa.CompileCheck project reference them; their sources are
-# compile-removed when KSA.dll is absent (see Directory.Build.props). Access uses the
-# KSA_GAME_ASSEMBLIES_PAT repo secret (a fine-grained read-only PAT, same pattern as gatOS).
-# If the secret is not configured on this repo, the checkout is skipped, the game-coupled
-# projects drop out, and the build and tests stay green. When the secret is configured,
-# KsaScripting.Dist (which builds GameMod and PurrTty) also deploys the mod folder to
-# .tmp/dist/ksa-scripting, which the Linux job validates with tools/check-dist.py.
+# KsaScripting.GameMod, KsaScripting.PurrTty and the Ksa.CompileCheck project reference them;
+# their sources are compile-removed when KSA.dll is absent (see Directory.Build.props). Access
+# uses the KSA_GAME_ASSEMBLIES_PAT repo secret (a fine-grained read-only PAT, same pattern as
+# gatOS). Without the secret the game-coupled projects drop out, no dist is deployed, and the
+# build and tests stay green.
+#
+# Natives release: pushing a `natives-v*` tag (or running this workflow by hand with
+# `publish_tag`) publishes the natives built by that run as a GitHub release. Every developer
+# host downloads them from there (tools/fetch-natives.*; tools/natives.pin names the tag).
 
 on:
   push:
@@ -22,11 +32,18 @@ on:
       - 'fix/**'
       - 'chore/**'
       - 'release/**'
+    tags:
+      - 'natives-v*'
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish_tag:
+        description: 'Publish the natives built by this run as a GitHub release with this tag (natives-vN). Leave empty to only build.'
+        required: false
+        default: ''
 
 permissions:
-  contents: read
+  contents: write  # creating the natives release; everything else only reads
   checks: write    # test-reporter publishes results as a check run
 
 concurrency:
@@ -35,12 +52,8 @@ concurrency:
 
 jobs:
   build:
-    name: build (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-14]
+    name: build (linux host, all platforms)
+    runs-on: ubuntu-latest
     env:
       # Directory.Build.props resolves this before any per-OS default. When the
       # PAT is missing the dir simply doesn't exist and the guarded references drop out.
@@ -49,6 +62,9 @@ jobs:
       KSA_SCRIPTING_DIST_DIR: ${{ github.workspace }}/.tmp/dist/ksa-scripting
       # secrets.* is not allowed directly in step `if:`; surface it via env.
       KSA_PAT: ${{ secrets.KSA_GAME_ASSEMBLIES_PAT }}
+      # The natives release tag to publish, if any (tag push or manual input).
+      PUBLISH_TAG: ${{ startsWith(github.ref, 'refs/tags/natives-v') && github.ref_name || inputs.publish_tag }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout ksa-scripting
         uses: actions/checkout@v6
@@ -68,63 +84,80 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # Not needed by the current scripts (the TypeScript fetch uses npm registry tarballs
-      # via curl), kept so a future script that needs node has it.
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      # The zig tarball, the LuaJIT checkout and the grammar tarball only change with their pins.
+      - name: Cache toolchain and sources
+        uses: actions/cache@v4
         with:
-          node-version: '24'
+          path: |
+            tools/.cache/zig
+            tools/.cache/luajit-src
+            tools/.cache/tree-sitter-typescript-*.tar.xz
+          key: natives-src-${{ hashFiles('tools/zig.pin', 'tools/luajit.pin', 'tools/ts-parser.pin') }}
 
-      # Puts the MSVC x64 toolchain on PATH for the steps that follow; tools/build-luajit.ps1
-      # also locates and runs vcvars64.bat itself.
-      - name: Enable MSVC developer environment
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
+      # wine lets the cross-built Windows LuaJIT run its version / JIT / no-FFI checks here.
+      - name: Install wine
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq wine64 || sudo apt-get install -y -qq wine
+          command -v wine64 || command -v wine
 
-      # Native LuaJIT for the Lua runtime tests (src/KsaScripting.Runtime.Lua/runtimes/<rid>/native).
-      # On x86_64 Linux the script builds linux-x64 natively, so no Docker is needed.
-      - name: Build LuaJIT (linux-x64)
-        if: runner.os == 'Linux'
-        run: bash tools/build-luajit.sh linux-x64
+      - name: Build natives for all platforms (zig cross-compile)
+        run: bash tools/build-natives.sh
 
-      - name: Build LuaJIT (osx-arm64)
-        if: runner.os == 'macOS'
-        run: bash tools/build-luajit.sh osx-arm64
-
-      - name: Build LuaJIT (win-x64)
-        if: runner.os == 'Windows'
-        run: pwsh tools/build-luajit.ps1
-
-      # TypeScript and sucrase assets for the V8 runtime (src/KsaScripting.Runtime.V8/assets).
-      - name: Fetch TypeScript assets (Linux, macOS)
-        if: runner.os != 'Windows'
-        run: bash tools/fetch-ts.sh
-
-      - name: Fetch TypeScript assets (Windows)
-        if: runner.os == 'Windows'
-        run: pwsh tools/fetch-ts.ps1
+      - name: Fetch every shipped binary for all platforms
+        run: bash tools/fetch-all.sh --natives-from tools/.cache/natives-out
 
       - name: Build
         run: dotnet build ksa-scripting.slnx -c Release --nologo -v quiet
 
       - name: Test
         id: test
-        run: dotnet test ksa-scripting.slnx -c Release --nologo -v quiet --logger trx --results-directory .tmp/test-results
+        run: dotnet test ksa-scripting.slnx -c Release --nologo -v quiet --no-build --logger trx --results-directory .tmp/test-results
 
-      # Only one RID's LuaJIT is built here and nvim is not fetched, so only linux-x64 natives
-      # are required; missing editor blobs are reported as warnings by the script. Skipped
-      # without the KSA assemblies, because GameMod and PurrTty are then empty assemblies.
-      - name: Check dist (Linux)
-        if: runner.os == 'Linux' && env.KSA_PAT != ''
-        run: python3 tools/check-dist.py .tmp/dist/ksa-scripting --rids linux-x64
+      - name: Check dist (all platforms)
+        if: env.KSA_PAT != ''
+        run: python3 tools/check-dist.py .tmp/dist/ksa-scripting
+
+      - name: Upload dist artifact
+        if: env.KSA_PAT != '' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ksa-scripting-dist
+          path: .tmp/dist/ksa-scripting
+          retention-days: 3
+          compression-level: 1
+
+      - name: Publish natives release
+        if: env.PUBLISH_TAG != ''
+        run: |
+          set -euo pipefail
+          tag="$PUBLISH_TAG"
+          case "$tag" in natives-v*) ;; *) echo "publish tag must look like natives-vN, got '$tag'" >&2; exit 1 ;; esac
+          cd tools/.cache/natives-out
+          {
+            echo "Cross-built natives for ksa-scripting (tools/build-natives.sh, run ${{ github.run_id }} on ${{ github.sha }})."
+            echo
+            echo '```'
+            cat NATIVES.txt
+            echo
+            cat SHA256SUMS
+            echo '```'
+            echo
+            echo "Downloaded by tools/fetch-natives.sh / .ps1 when tools/natives.pin names this tag."
+          } > release-notes.md
+          if gh release view "$tag" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "$tag" -R "${{ github.repository }}" --clobber natives-*.tar.gz SHA256SUMS NATIVES.txt
+            gh release edit "$tag" -R "${{ github.repository }}" --notes-file release-notes.md
+          else
+            gh release create "$tag" -R "${{ github.repository }}" --target "${{ github.sha }}" \
+              --title "Natives $tag" --notes-file release-notes.md natives-*.tar.gz SHA256SUMS NATIVES.txt
+          fi
 
       - name: Report test results
         uses: dorny/test-reporter@v3
         if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
         with:
-          name: test results (${{ matrix.os }})
+          name: test results (linux)
           path: .tmp/test-results/*.trx
           reporter: dotnet-trx
 
@@ -132,5 +165,5 @@ jobs:
         uses: actions/upload-artifact@v7
         if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
         with:
-          name: test-results-${{ matrix.os }}
+          name: test-results
           path: .tmp/test-results

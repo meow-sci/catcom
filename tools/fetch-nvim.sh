@@ -2,7 +2,7 @@
 # fetch-nvim.sh: download the pinned Neovim release for each platform into editor/<rid>/nvim/.
 #
 # Usage: tools/fetch-nvim.sh [--force] [rid...]
-#   rid      win-x64 | linux-x64 | osx-arm64   (default: the host platform)
+#   rid      win-x64 | linux-x64 | osx-arm64   (default: all three; any host fetches every platform)
 #   --force  replace an existing install even when the pinned version is already present
 #
 # Source: official archives of https://github.com/neovim/neovim/releases/tag/v0.12.6
@@ -38,7 +38,7 @@ WORK=""
 usage() {
   cat <<'USAGE'
 Usage: tools/fetch-nvim.sh [--force] [rid...]
-  rid      win-x64 | linux-x64 | osx-arm64 (default: host platform)
+  rid      win-x64 | linux-x64 | osx-arm64 (default: all three)
   --force  replace an existing install even if the pinned version is present
 USAGE
 }
@@ -276,7 +276,7 @@ main() {
   done
 
   if [ -z "$RIDS" ]; then
-    RIDS=" $(host_rid)"
+    RIDS=" win-x64 linux-x64 osx-arm64"
   fi
 
   WORK="$(mktemp -d)"

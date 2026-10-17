@@ -14,7 +14,7 @@ Status: v0.1.0 implemented and verified by builds, unit tests and off-game harne
 | `src/KsaScripting.Runtime.V8` | V8 runtime (TypeScript transpile, ES modules, promises, interrupt, heap limits, source maps). |
 | `src/KsaScripting.GameMod` | StarMap entry: lifecycle, composition root, Script Manager window, console `script` verbs, REPL and terminal shells, terminal placement, editor launcher, dist target. |
 | `tests/` | NUnit suites for Core and both runtimes; `KsaScripting.Ksa.CompileCheck` (one Harmony stub per patched member — build-as-alarm on game updates). |
-| `editor/`, `scripts-lib/`, `tools/` | Shipped nvim config, the `tui.ts` / `tui.lua` terminal helpers, native build and asset fetch scripts, `check-dist.py`. |
+| `editor/`, `scripts-lib/`, `tools/` | Shipped nvim config, the `tui.ts` / `tui.lua` terminal helpers, the fetch scripts (`fetch-all.*` and the per-component ones), the zig cross-build of the natives (`build-natives.sh`), `check-dist.py`, and the pins (`*.pin`, `assets.lock`). |
 | `src/KsaScripting.PurrTty` | The only assembly that touches purrTTY's contract (shells, launcher, editor window); loaded by the mod at runtime only when purrTTY is installed. |
 | `src/KsaScripting.Dist` | Deploy project: builds everything and copies the mod folder (the dist target). |
 | `vendor/purrTTY/` | Pinned purrTTY contract DLLs, **compile-time only** (never shipped: StarMap resolves them from purrTTY's load context). |
@@ -24,21 +24,22 @@ Status: v0.1.0 implemented and verified by builds, unit tests and off-game harne
 ## Build and test
 
 ```bash
-tools/build-luajit.sh osx-arm64          # once per RID: the LuaJIT native (linux-x64 on Linux; tools/build-luajit.ps1 on Windows)
-tools/fetch-ts.sh                        # once: typescript.js + sucrase for the V8 runtime
+tools/fetch-all.sh                       # once per clone (and after a pin under tools/ changes): EVERY shipped binary for ALL
+                                         # three platforms (win-x64, linux-x64, osx-arm64), from any host. Windows: tools/fetch-all.ps1
 dotnet build ksa-scripting.slnx -nologo -v quiet
 dotnet test  ksa-scripting.slnx --nologo -v quiet
 ```
 
-The game-coupled projects resolve the KSA reference assemblies from `KSA_DLL_DIR` or a sibling `ksa-game-assemblies/current/dll/` checkout; without them their sources are compile-removed and everything else still builds and tests.
+`tools/fetch-all.*` downloads, never compiles: the TypeScript assets, Neovim and the language servers from their upstream releases, and the LuaJIT library plus the tree-sitter TypeScript parser from this repo's `natives-v*` GitHub release (cross-built by the Linux CI job with zig, `tools/build-natives.sh`; the repo is private, so that step needs `gh auth login` or a `GH_TOKEN`). Everything lands in gitignored folders (`editor/<rid>/`, `src/*/runtimes/`, `src/*/assets/`, `tools/.cache/`); nothing downloaded is ever committed. The game-coupled projects resolve the KSA reference assemblies from `KSA_DLL_DIR` or a sibling `ksa-game-assemblies/current/dll/` checkout; without them their sources are compile-removed, no dist is deployed, and everything else still builds and tests.
 
 ## Deploy
 
 ```bash
 dotnet build src/KsaScripting.Dist -c Release         # deploys to $KSA_SCRIPTING_DIST_DIR, else ~/repos/meow-sci/mods/ksa-scripting (macOS/Linux)
                                                        # or %USERPROFILE%\Documents\My Games\Kitten Space Agency\mods\ksa-scripting (Windows)
-tools/fetch-nvim.sh; tools/fetch-lsp.sh; tools/build-ts-parser.sh   # optional editor payload (per RID)
 python3 tools/check-dist.py "$HOME/repos/meow-sci/mods/ksa-scripting"
 ```
+
+The dist always contains every binary for all three platforms; the build **fails** (before touching the old dist) if any fetched binary is missing, so a mod folder is never produced incomplete. CI (`.github/workflows/build.yml`, one Linux job) does the same end to end and uploads the folder as the `ksa-scripting-dist` artifact.
 
 Install purrTTY (with the launcher contract) for terminals, REPL shells and the editor (ksa-scripting never ships purrTTY's DLLs; it imports them from purrTTY through StarMap); ModMenu is optional (a fallback "Scripting" menu is injected without it). User scripts live in `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting/scripts/`; open the Script Manager with F11 (configurable).

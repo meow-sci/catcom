@@ -12,9 +12,10 @@
         <ProjectReference Include="..\KsaScripting.Core\KsaScripting.Core.csproj" />
     </ItemGroup>
 
-    <!-- Natives built by tools/build-luajit.* land in runtimes/<rid>/native/ (gitignored). -->
+    <!-- Natives installed by tools/fetch-natives.* (cross-built by CI with tools/build-natives.sh) land in
+         runtimes/<rid>/native/ (gitignored); the marker files stay out of the output. -->
     <ItemGroup>
-        <None Include="runtimes/**" Exclude="runtimes/.gitignore;runtimes/**/.luajit-commit" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="runtimes/**" Exclude="runtimes/.gitignore;runtimes/**/.luajit-commit;runtimes/**/.ksa-natives" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <!-- Runtime-private sandbox bootstrap, and the script-facing prelude (Core's shared ksa.lua when it

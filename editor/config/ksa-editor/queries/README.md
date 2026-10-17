@@ -9,5 +9,5 @@ shipped Neovim for TypeScript (parser: tree-sitter-typescript v0.23.2).
 - Files are byte-for-byte copies of the upstream files.
 - License: nvim-treesitter is Apache-2.0 (see its LICENSE at that commit). The
   grammar these queries target, tree-sitter-typescript, is MIT.
-- Refresh: tools/build-ts-parser.sh --queries (reads tools/nvim-treesitter.pin).
+- Refresh: tools/refresh-ts-queries.sh (reads tools/nvim-treesitter.pin).
   Do not edit these files by hand.

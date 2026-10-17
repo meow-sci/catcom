@@ -38,7 +38,7 @@ src/
   KsaScripting.Runtime.V8/                 # refs Core + Microsoft.ClearScript.V8 (+ native packages for win-x64, linux-x64, osx-arm64).
 tests/
   KsaScripting.Core.Tests/                 # NUnit; refs Core
-  KsaScripting.Runtime.Lua.Tests/          # NUnit; refs Runtime.Lua + Core; needs runtimes/<rid>/native/<luajit lib> (built by tools/build-luajit.sh)
+  KsaScripting.Runtime.Lua.Tests/          # NUnit; refs Runtime.Lua + Core; needs runtimes/<rid>/native/<luajit lib> (tools/fetch-all.sh)
   KsaScripting.Runtime.V8.Tests/           # NUnit; refs Runtime.V8 + Core
   KsaScripting.Ksa.CompileCheck/           # class library, build-only: one Harmony stub per patched member (grows from spikes/HookCompileCheck)
 editor/
@@ -48,8 +48,10 @@ editor/
 scripts-lib/                               # shipped script libraries, copied to <user>/scripts/lib on every start (overwrite)
   tui.ts  tui.lua  README.md
 tools/
-  build-luajit.sh  build-luajit.ps1  luajit.pin  host_shim.c
-  fetch-nvim.sh  fetch-nvim.ps1  fetch-lsp.sh  fetch-lsp.ps1  fetch-ts.sh  fetch-ts.ps1  build-ts-parser.sh
+  fetch-all.sh  fetch-all.ps1                # ONE command: every shipped binary for all three platforms, from any host (never compiles)
+  fetch-natives.sh  fetch-natives.ps1  natives.pin   # LuaJIT + tree-sitter parser from the natives-v* GitHub release (assets.lock pins)
+  build-natives.sh  zig.pin  luajit.pin  ts-parser.pin  host_shim.c  natives-verify.py   # the zig cross-build CI runs (Linux/macOS host)
+  fetch-nvim.sh  fetch-nvim.ps1  fetch-lsp.sh  fetch-lsp.ps1  fetch-ts.sh  fetch-ts.ps1  refresh-ts-queries.sh
   check-dist.py
 vendor/purrTTY/                            # pinned purrTTY.CustomShellContract.dll + purrTTY.Logging.dll — COMPILE-TIME ONLY, never shipped
   KsaScripting.PurrTty/                    # the ONLY assembly that references purrTTY types; loaded by GameMod by path when purrTTY is a loaded mod
@@ -388,7 +390,7 @@ Event names (v1): `engine.activate`, `engine.deactivate`, `engine.ignite`, `engi
 
 ### 6.1 LuaJIT (`KsaScripting.Runtime.Lua`) — see `plans/01-luajit-runtime-plan.md`
 
-- Native: `tools/build-luajit.sh` builds LuaJIT `v2.1` at `tools/luajit.pin` with `XCFLAGS="-DLUAJIT_DISABLE_FFI -DLUAJIT_ENABLE_CHECKHOOK"` plus `tools/host_shim.c` compiled into the library (amalgamation or an extra object linked into the shared lib), into `src/KsaScripting.Runtime.Lua/runtimes/<rid>/native/` (`libluajit-5.1.2.dylib` on osx-arm64; `libluajit-5.1.so.2` on linux-x64 via a `docker run` of `ubuntu:22.04`; `tools/build-luajit.ps1` for win-x64 with `/MT`). Natives are gitignored; CI builds them. The csproj copies `runtimes/**` to output.
+- Native: `tools/build-natives.sh` cross-compiles LuaJIT `v2.1` at `tools/luajit.pin` for all three platforms on one Linux/macOS host with the pinned zig (`tools/zig.pin`; `zig cc -target x86_64-windows-gnu | x86_64-linux-gnu.2.17 | aarch64-macos.11.0`), `XCFLAGS="-DLUAJIT_DISABLE_FFI -DLUAJIT_ENABLE_CHECKHOOK"`, `tools/host_shim.c` compiled into the amalgamation, `-g0`; on Linux zig's bundled LLVM libunwind is linked statically (`-lunwind`) in place of libgcc_s. Each library is verified by `tools/natives-verify.py` (format, arch, exports, dependency allow-list, glibc <= 2.17 / macOS >= 11.0) and the CLI is run where the host can (natively, docker, wine). CI publishes the result as the `natives-v*` GitHub release; every host installs it with `tools/fetch-natives.*` into `src/KsaScripting.Runtime.Lua/runtimes/<rid>/native/` (gitignored). The csproj copies `runtimes/**` to output.
 - `LuaNative` (`[LibraryImport("lua51")]`, `[ModuleInitializer]` resolver loading `<asmDir>/runtimes/<rid>/native/<file>` by absolute path with os-arch fallback; never `Free`).
 - Shim exports: `host_timeout_hook(lua_State*, lua_Debug*)`, `host_raise(lua_State*)`, `host_traceback(lua_State*)`.
 - Rules: host functions are `[UnmanagedCallersOnly(CallConvs=[typeof(CallConvCdecl)])] static int F(nint L)`, body in try/catch, **only non-raising API calls**, errors returned as `(false, message)`; raising happens in the Lua prelude (`error(msg, 2)`) or via `host_raise`.
@@ -457,7 +459,7 @@ Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting
 1. `tools/fetch-nvim.sh|.ps1 [rid...]` → `editor/<rid>/nvim/` from GitHub releases v0.12.6 (`nvim-win64.zip`, `nvim-linux-x86_64.tar.gz`, `nvim-macos-arm64.tar.gz`); delete `bin/xxd.exe`, `bin/win32yank.exe`; keep `LICENSE.txt`; print sizes. Idempotent (skip if present).
 2. `tools/fetch-lsp.sh|.ps1 [rid...]` → `editor/<rid>/lsp/lua-language-server/` (LuaLS 3.19.2 release assets) and `editor/<rid>/lsp/typescript/` (TypeScript 7.0.2 `typescript-<os>-<arch>.tgz` from the typescript-go GitHub release; keep `lib/tsc[.exe]` and `lib/*.d.ts`, LICENSE).
 3. `tools/fetch-ts.sh|.ps1` → `src/KsaScripting.Runtime.V8/assets/typescript.js` + `LICENSE.txt` from `https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz` (pin in `tools/typescript.pin`); copy `spikes/assets/sucrase.bundle.js` alongside.
-4. `tools/build-ts-parser.sh` → `editor/<rid>/nvim/lib/nvim/parser/typescript.{so,dylib,dll}` from `tree-sitter-typescript` v0.23.2 sources (`src/parser.c` + `src/scanner.c`, `cc -shared -fPIC -O2`); queries from `nvim-treesitter` (`queries/typescript/{highlights,injections,locals}.scm`) into `editor/config/ksa-editor/queries/typescript/`.
+4. `tools/build-natives.sh` → `editor/<rid>/nvim/lib/nvim/parser/typescript.{so,dylib,dll}` from `tree-sitter-typescript` v0.23.2 sources (`src/parser.c` + `src/scanner.c`, `zig cc -target <rid> -shared -O2 -g0`, all three platforms from one host; installed by `tools/fetch-natives.*`); queries from `nvim-treesitter` (`queries/typescript/{highlights,injections,locals}.scm`) into `editor/config/ksa-editor/queries/typescript/` by `tools/refresh-ts-queries.sh`.
 5. `editor/config/ksa-editor/init.lua`: the verified config (research page `editor/neovim-shipping.md` §Minimal init.lua) plus `vim.o.shell = vim.env.KSA_NOSHELL`, `shellcmdflag=''`, `mouse='a'`, `backupcopy='yes'`, LSP configs from `KSA_LSP_DIR`, completion, `BufWritePost → vim.rpcnotify(0,'ksa_saved', path, buf)`, `VimEnter` banner, `<C-z>` no-op.
 6. `scripts-lib/tui.ts` and `tui.lua`: **escape-code toolkit only** (first pass): `Screen` (enterApp/leaveApp with alt screen, cursor hide, mouse press/release SGR, optional kitty flags; `frame(fn)` wrapping DEC 2026; `clear`, `moveTo`, `write`, `style(fg,bg,bold…)`, `box(x,y,w,h,title)`, `hline/vline`, `fill`), `parseInput(term)` async-iterator / Lua yielding iterator producing `{kind:'key', name, mods, text}` | `{kind:'mouse', button, action:'press'|'release'|'motion'|'wheel', col, row, mods}` | `{kind:'reply', bytes}` | `{kind:'text', text}` with an incremental CSI/SS3/APC/OSC state machine handling legacy and kitty encodings exactly per `docs/research/existing-mods/purrtty-virtual-pty-bridge.md`, plus `Rect.contains(col,row)` and `Button` (draw + `hit(ev)`), `Toggle`, `ProgressBar`, `Label`. No widget framework, no layout engine.
 7. `tools/check-dist.py`: verifies the dist folder (required DLLs, `deps.json`, `mod.toml`, natives per RID, editor presence optional with warning).
@@ -468,8 +470,8 @@ Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting
 
 ```bash
 dotnet build ksa-scripting.slnx -nologo -v quiet                 # everything (game projects only when KSA_DLL_DIR / sibling checkout resolves)
-dotnet test  ksa-scripting.slnx --nologo -v quiet                # Core + runtime tests (Lua tests need tools/build-luajit.sh run once)
-tools/build-luajit.sh osx-arm64                                  # local native for tests
+tools/fetch-all.sh                                               # once: every shipped binary, all platforms (Windows: tools/fetch-all.ps1)
+dotnet test  ksa-scripting.slnx --nologo -v quiet                # Core + runtime tests
 dotnet build src/KsaScripting.Dist -c Release                    # deploys the dist folder (builds GameMod + the purrTTY bridge)
 python3 tools/check-dist.py "$HOME/repos/meow-sci/mods/ksa-scripting"
 cd /Users/asherwin/repos/meow-sci/purrtty && dotnet test purrtty.slnx --nologo -v quiet
@@ -487,7 +489,7 @@ Required test coverage per work package is listed in §12; tests must be quiet a
 | **WP2 Core hooks/scheduler/catalog/terminals/persistence** | `HookRegistry`, `BindingStore`, `EventBus`, `Scheduler`, `Watchdog` (Core), `ScriptCatalog`, `ScriptWatcher`, `ScriptTerminal`/`TerminalRegistry`, `ScriptStateStore`, `HostFacade`, `NullRuntime` (test runtime driven by C# lambdas) | tests: scheduler ordering/budgets/waits on all clocks; event delivery sync vs async; bindings persistence round trip; catalog load/reload-keeps-old-on-failure; terminal ring-buffer replay, smallest-grid, DEC 2026 wrapping, input queue/termRead; state store toml | green; committed |
 | **WP3 ApiSchema + generators + preludes** | `Core.Api` schema for §5, generators, golden tests; `ksa.js` and `ksa.lua` preludes as embedded resources in the runtime projects (shared source under `src/KsaScripting.Core/Api/Preludes/` copied by MSBuild) | golden files match; preludes parse (checked by the runtime tests in WP5/WP6) | green; committed |
 | **WP4 Ksa facade** | ports listed in §4, `ActionExecutor`, `VesselCache`, `KsaBridge`, `SlotHost`, `EventPatches`, `Watchdog` wiring, CompileCheck project with one stub per patched member | `dotnet build src/KsaScripting.Ksa` and `tests/KsaScripting.Ksa.CompileCheck` succeed against the 5554 DLLs; zero warnings | green; committed |
-| **WP5 LuaJIT runtime** | §6.1 + `tools/build-luajit.*` + shim + tests (state lifecycle, sandbox escapes fail, host error protocol, coroutine wait/resume via a fake host, watchdog interrupt JIT on/off with CHECKHOOK build, memory polling, exports discovery, prelude smoke: `ksa.vessel("x").throttle(0.5)` reaches a fake facade with the right action) | osx-arm64 native built locally; tests green | committed |
+| **WP5 LuaJIT runtime** | §6.1 + `tools/build-natives.sh` + shim + tests (state lifecycle, sandbox escapes fail, host error protocol, coroutine wait/resume via a fake host, watchdog interrupt JIT on/off with CHECKHOOK build, memory polling, exports discovery, prelude smoke: `ksa.vessel("x").throttle(0.5)` reaches a fake facade with the right action) | osx-arm64 native built locally; tests green | committed |
 | **WP6 V8 runtime** | §6.2 + `tools/fetch-ts.*` + tests (transpile fixtures incl. enums/imports, loader containment, async export → scheduler continuation via a fake host, interrupt, heap limit, exports discovery, source-map line mapping, prelude smoke identical to WP5) | tests green on osx-arm64 native | committed |
 | **WP7 purrTTY extension** | Plan 00b on `feature/scripting`; vendored DLLs refreshed in ksa-scripting | `dotnet build purrtty.slnx` + `dotnet test purrtty.slnx` green; purrtty commits; vendor commit in ksa-scripting | |
 | **WP8 GameMod** | §7 complete: Mod lifecycle, Script Manager window, console commands, REPL shells, ScriptTerminalShell, TerminalPlacer, EditorLauncher, NvimRpcClient (Core.Editor) + its tests (frame encode/decode, notification dispatch against an in-process fake server over TCP), templates | `dotnet build src/KsaScripting.Dist -c Release` deploys a dist that `tools/check-dist.py` accepts | committed |
