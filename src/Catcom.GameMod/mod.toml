@@ -1,0 +1,19 @@
+name = "catcom"
+description = "In-band Lua (LuaJIT) and TypeScript scripting for KSA: game-loop hooks, terminal scripts on purrTTY surfaces, and a shipped Neovim editor."
+version = "0.1.0"
+author = "meow sci"
+
+[StarMap]
+EntryAssembly = "Catcom.GameMod"
+
+# With purrTTY installed, StarMap resolves these two assemblies from purrTTY's ALC
+# (it exports them via ExportedAssemblies) — one Assembly, one Type identity, one shared
+# CustomShellRegistry.Instance that purrTTY's menus read. The contract DLLs are NOT shipped with this
+# mod (compile-only references): only Catcom.PurrTty.dll references them, and the entry assembly
+# loads it by path only when purrTTY is a loaded mod, i.e. once this wiring exists. Optional: without
+# purrTTY nothing needs the contract and catcom still loads (scripts, hooks and the Script
+# Manager work; there are just no terminal surfaces, REPL shells or in-game editor).
+[[StarMap.ModDependencies]]
+ModId = "purrTTY"
+Optional = true
+ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]

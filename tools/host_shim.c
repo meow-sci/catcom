@@ -1,4 +1,4 @@
-/* ksa-scripting host shim, compiled into the LuaJIT library (appended to ljamalg.c).
+/* catcom host shim, compiled into the LuaJIT library (appended to ljamalg.c).
  * Managed code must never raise Lua errors (Lua unwinding cannot cross .NET frames);
  * these three native entry points do it from a native frame instead. */
 #include "lua.h"

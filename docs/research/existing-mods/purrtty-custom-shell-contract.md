@@ -1,7 +1,7 @@
 ---
 type: API Contract
 title: purrTTY custom shell contract (ICustomShell) and cross-mod registration
-description: The exported purrTTY.CustomShellContract ABI, its base classes, how a second mod registers a shell (gatOS pattern, mod.toml on both sides), threading expectations, and how a Lua/JS REPL shell for ksa-scripting fits it.
+description: The exported purrTTY.CustomShellContract ABI, its base classes, how a second mod registers a shell (gatOS pattern, mod.toml on both sides), threading expectations, and how a Lua/JS REPL shell for catcom fits it.
 resource: /Users/asherwin/repos/meow-sci/purrtty/purrTTY.CustomShellContract
 tags: [purrtty, custom-shell, cross-mod, repl, starmap-dependencies]
 sources:
@@ -60,7 +60,7 @@ purrTTY exports exactly two assemblies and the consumer must import the same two
 EntryAssembly = "purrTTY.GameMod"
 ExportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 
-# consumer mod.toml (gatOS; ksa-scripting identical)
+# consumer mod.toml (gatOS; catcom identical)
 [[StarMap.ModDependencies]]
 ModId = "purrTTY"
 Optional = true
@@ -69,14 +69,14 @@ ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 
 The consumer references vendored copies of the two DLLs with `<Private>true</Private>` so they land in its output **and** `deps.json`; with purrTTY installed, the dependency ALC wins (one `Type` identity, one `CustomShellRegistry.Instance`), without it the local copies load and registration lands in a registry nobody reads. gatOS detects the fallback by comparing `typeof(CustomShellRegistry).Assembly.Location` with its own folder. Because the dependency is declared, the consumer's `[StarMapAllModsLoaded]` always runs after purrTTY's; menus enumerate the registry live on every draw, so registration timing is free.[^report]
 
-> **Caveat (2026-10-17, verified in-game and against the real StarMap source):** this gatOS recipe is unsafe. StarMap builds before PR #86 call `GetTypes()` on the entry assembly before the dependency wiring exists, so an entry assembly that *defines* a shell class resolves the contract through its local copy even with purrTTY installed, and every registration lands in a registry nobody reads (and the launcher registry reads as empty). ksa-scripting therefore ships **no** purrTTY DLL (`Private=false`, compile-only) and keeps every purrTTY-typed definition in a separate `KsaScripting.PurrTty.dll` loaded by path from a lifecycle hook once purrTTY is a loaded mod. See [StarMap loader](/ksa-host/starmap-loader-and-assembly-load-context.md) § "When the wiring exists".
+> **Caveat (2026-10-17, verified in-game and against the real StarMap source):** this gatOS recipe is unsafe. StarMap builds before PR #86 call `GetTypes()` on the entry assembly before the dependency wiring exists, so an entry assembly that *defines* a shell class resolves the contract through its local copy even with purrTTY installed, and every registration lands in a registry nobody reads (and the launcher registry reads as empty). catcom therefore ships **no** purrTTY DLL (`Private=false`, compile-only) and keeps every purrTTY-typed definition in a separate `Catcom.PurrTty.dll` loaded by path from a lifecycle hook once purrTTY is a loaded mod. See [StarMap loader](/ksa-host/starmap-loader-and-assembly-load-context.md) § "When the wiring exists".
 
 # Threading facts that matter for a scripting REPL
 
 - `CustomShellPtyBridge.Write` calls `WriteInputAsync` **synchronously on the game/tick thread**. For `BaseLineBufferedShell` the entire `ExecuteCommandLine` runs on the game thread — this is exactly how `GameConsoleShell` can call `Program.TerminalInterface.Execute` directly. A Lua/JS REPL can touch game state in `ExecuteCommandLine` **without marshalling**, but must return quickly (it stalls the frame otherwise).
 - Output (`OutputReceived`) and `Terminated` may be raised from any thread; purrTTY's surface `Write` is the one thread-safe member.[^report]
 
-# Fit for ksa-scripting
+# Fit for catcom
 
 A `ScriptReplShell : BaseLineBufferedShell` per runtime ("Lua REPL", "TypeScript REPL") is the cheapest in-game console to ship: it needs no purrTTY change, appears in New Tab / New Window / In-World / Layouts automatically, and its command handler already runs on the game thread. Long-running evaluations must be scheduled onto the hook scheduler rather than executed inline.
 

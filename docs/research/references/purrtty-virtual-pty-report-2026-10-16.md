@@ -11,11 +11,11 @@ status: stable
 
 # purrTTY as a virtual PTY for an in-process script (research, 2026-10-16)
 
-Scope: everything a sibling mod (ksa-scripting) needs to let a Lua/TS script *own* a purrTTY terminal
+Scope: everything a sibling mod (catcom) needs to let a Lua/TS script *own* a purrTTY terminal
 the way a TUI program owns a pty — emitting escape codes, consuming keyboard/mouse bytes — and have
 purrTTY render it in a 2D ImGui window or on an in-world quad. All paths are relative to
 `/Users/asherwin/repos/meow-sci/purrtty` unless prefixed. This deliberately does **not** repeat
-`ksa-scripting/docs/research/references/purrtty-internals-report-2026-10-16.md` (contract ABI, registry,
+`catcom/docs/research/references/purrtty-internals-report-2026-10-16.md` (contract ABI, registry,
 ALC/mod.toml, native loading, PTY backends, VT feature matrix); it goes deeper on the questions below and
 flags where the earlier report or purrTTY's own docs are stale.
 
@@ -36,7 +36,7 @@ $ git diff main...feature/scripting --stat → (empty)
 ```
 
 `feature/scripting` **is identical to `main`** (same commit `790a82b`). There is no scripting-related work on
-it: `grep -ril 'ksa-scripting|TerminalLauncher|ITerminalHandle|ScriptManager'` over `*.cs/*.md/*.toml`
+it: `grep -ril 'catcom|TerminalLauncher|ITerminalHandle|ScriptManager'` over `*.cs/*.md/*.toml`
 (excluding `vendor/`) returns nothing. Recent history on the branch is KSA-version upgrades
 (`2026.9.22.5482`), packaging, and kitty-graphics native work. Everything in §6 is greenfield. (verified)
 
@@ -799,7 +799,7 @@ a pure class (`TerminalLaunchMapper`) under `purrTTY.Display` so `purrTTY.Displa
 Versioning: bump the contract assembly's `AssemblyVersion` minor; consumers that reference the old DLL still
 bind (additive types only).
 
-Consumer side (ksa-scripting): `RegisterShell("ksa-script", () => new ScriptTerminalShell(...))` in
+Consumer side (catcom): `RegisterShell("ksa-script", () => new ScriptTerminalShell(...))` in
 `[StarMapAllModsLoaded]`, then `TerminalLauncherRegistry.Current?.LaunchAsync(new TerminalLaunchRequest {
 Placement = InWorldPart, Program = new { CustomShellId = "ksa-script", Environment = { ["KSA_SCRIPT"] = path } },
 InWorld = new { Cols = 40, Rows = 12, PartInstanceId = …, WidthMeters = 0.6f, HeightMeters = 0.2f } })`.
@@ -845,7 +845,7 @@ summary table (`TerminalMod.RenderHotkeySummaryTable`).
 Hotkey suppression while typing: purrTTY does **not** suppress per-widget; it relies on
 `Patch03_HotkeyGuard` (prefix on `GameSettings.OnKeyAll`): `if (!consoleOpen && (ImGui.GetIO().WantTextInput || InWorldTerminalManager.IsInputFocused)) { __result = true; return false; }`
 (`Patcher.cs:135-152`). Because purrTTY installs this process-wide, a sibling mod's `InputText` fields are
-**already protected while purrTTY is loaded**; if ksa-scripting must work without purrTTY it needs its own
+**already protected while purrTTY is loaded**; if catcom must work without purrTTY it needs its own
 copy of the same 10-line prefix (Harmony id distinct; both prefixes returning `false` is harmless). The
 toggle hotkey itself is read with `ImGui.IsKeyPressed(key, repeat:false)` and skipped while
 `io.WantTextInput` (`ToggleHotkeyBinding.MatchesPress`).

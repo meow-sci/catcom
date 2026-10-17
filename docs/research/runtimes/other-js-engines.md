@@ -1,7 +1,7 @@
 ---
 type: Runtime Evaluation
 title: Other JavaScript engines considered and dismissed
-description: Short verdicts on QuickJS/QuickJS-NG, PuerTS, Deno, Bun, Hermes, Boa, YantraJS, ChakraCore, Edge.js and the AssemblyScript/WASM route, with the reason each is not the primary choice for ksa-scripting.
+description: Short verdicts on QuickJS/QuickJS-NG, PuerTS, Deno, Bun, Hermes, Boa, YantraJS, ChakraCore, Edge.js and the AssemblyScript/WASM route, with the reason each is not the primary choice for catcom.
 tags: [runtime, javascript, quickjs, puerts, deno, bun, hermes, rejected]
 sources:
   - id: report

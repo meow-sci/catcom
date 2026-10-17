@@ -133,7 +133,7 @@ Lua returns `CommandResult` tables; Solver-phase calls yield the running corouti
 
 # Stub generation
 
-A reflection-based generator in `KsaScripting.Core` walks the `ApiSchema` and writes `stubs/host.d.ts` (with JSDoc from the schema docs) and `stubs/ksa.lua` (LuaCATS) into the scripts folder on every mod start, plus `tsconfig.json` (`"types": ["./stubs/host.d.ts"]`, `module: esnext`, `target: es2022`, `strict`) and `.luarc.json` (`runtime.version = "LuaJIT"`, `workspace.library = ["stubs"]`). nvim's LSPs pick them up with no user action.[^readers]
+A reflection-based generator in `Catcom.Core` walks the `ApiSchema` and writes `stubs/host.d.ts` (with JSDoc from the schema docs) and `stubs/ksa.lua` (LuaCATS) into the scripts folder on every mod start, plus `tsconfig.json` (`"types": ["./stubs/host.d.ts"]`, `module: esnext`, `target: es2022`, `strict`) and `.luarc.json` (`runtime.version = "LuaJIT"`, `workspace.library = ["stubs"]`). nvim's LSPs pick them up with no user action.[^readers]
 
 [^sim]: gatOS /sim API surface (condensed)
 [^actuators]: gatOS actuator catalog

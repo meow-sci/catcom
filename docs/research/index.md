@@ -2,13 +2,13 @@
 okf_version: "0.2"
 ---
 
-# ksa-scripting research bundle
+# catcom research bundle
 
 Research distilled on 2026-10-16 for building **in-band scripting of Kitten Space Agency** (LuaJIT and TypeScript) with a gatOS-like read/write model, in-game-loop event hooks, and a shipped Neovim editor inside purrTTY. Start with the brief, then the host facts, then the runtime evaluations, then the architecture and recommendation. Implementation plans live in [/plans](../../plans/README.md).
 
 ## Start here
 
-* [Problem statement and goals](00-problem-and-goals.md) - What ksa-scripting must deliver and the constraints discovered.
+* [Problem statement and goals](00-problem-and-goals.md) - What catcom must deliver and the constraints discovered.
 * [Recommendation](decisions/recommendation.md) - Which runtimes to build, in what order, and the risks to retire first.
 * [Runtime comparison matrix](runtimes/runtime-comparison-matrix.md) - Every runtime side by side with measured numbers.
 

@@ -18,7 +18,7 @@
 #   before it is pinned. -From archives are checked against DIR/SHA256SUMS only and never pinned.
 #
 # Installs (per rid):
-#   src/KsaScripting.Runtime.Lua/runtimes/<rid>/native/<luajit lib>, .luajit-commit, .ksa-natives
+#   src/Catcom.Runtime.Lua/runtimes/<rid>/native/<luajit lib>, .luajit-commit, .ksa-natives
 #   editor/<rid>/nvim/lib/nvim/parser/typescript.<ext>, .typescript.ksa-version, .ksa-natives
 #       (needs that rid's Neovim: tools/fetch-nvim.ps1 runs first in tools/fetch-all.ps1)
 #   tools/.cache/bin/<rid>/luajit[.exe]  (the CLI, for manual checks; not shipped)
@@ -50,7 +50,7 @@ $ToolsDir    = Join-Path $RepoRoot 'tools'
 $Lock        = Join-Path $ToolsDir 'assets.lock'
 $BinDir      = Join-Path (Join-Path $ToolsDir '.cache') 'bin'
 $Utf8NoBom   = New-Object System.Text.UTF8Encoding($false)
-$UserAgent   = 'ksa-scripting-fetch-natives'
+$UserAgent   = 'catcom-fetch-natives'
 
 # Env overrides may be relative to the shell's location, which .NET file APIs would not see.
 function Resolve-FullPath([string]$Path) {
@@ -59,7 +59,7 @@ function Resolve-FullPath([string]$Path) {
 }
 $RuntimesDir = $env:KSA_RUNTIMES_DIR
 if ($RuntimesDir) { $RuntimesDir = Resolve-FullPath $RuntimesDir }
-else { $RuntimesDir = Join-Path (Join-Path (Join-Path $RepoRoot 'src') 'KsaScripting.Runtime.Lua') 'runtimes' }
+else { $RuntimesDir = Join-Path (Join-Path (Join-Path $RepoRoot 'src') 'Catcom.Runtime.Lua') 'runtimes' }
 $EditorDir = $env:KSA_EDITOR_DIR
 if ($EditorDir) { $EditorDir = Resolve-FullPath $EditorDir }
 else { $EditorDir = Join-Path $RepoRoot 'editor' }

@@ -8,13 +8,13 @@ name: Build and test
 #   2. downloads Neovim, the language servers and the TypeScript assets for all three platforms
 #      (tools/fetch-all.sh, with the natives from step 1);
 #   3. builds the solution, runs the game-free test suites (on Linux);
-#   4. deploys the complete mod folder (KsaScripting.Dist refuses to build without every binary)
+#   4. deploys the complete mod folder (Catcom.Dist refuses to build without every binary)
 #      and validates it for all three platforms with tools/check-dist.py; the folder is uploaded
-#      as the `ksa-scripting-dist` artifact.
+#      as the `catcom-dist` artifact.
 #
 # The KSA reference assemblies are licensed game files in the private repo
-# meow-sci/ksa-game-assemblies (DLLs under current/dll/). Only KsaScripting.Ksa,
-# KsaScripting.GameMod, KsaScripting.PurrTty and the Ksa.CompileCheck project reference them;
+# meow-sci/ksa-game-assemblies (DLLs under current/dll/). Only Catcom.Ksa,
+# Catcom.GameMod, Catcom.PurrTty and the Ksa.CompileCheck project reference them;
 # their sources are compile-removed when KSA.dll is absent (see Directory.Build.props). Access
 # uses the KSA_GAME_ASSEMBLIES_PAT repo secret (a fine-grained read-only PAT, same pattern as
 # gatOS). Without the secret the game-coupled projects drop out, no dist is deployed, and the
@@ -58,15 +58,15 @@ jobs:
       # Directory.Build.props resolves this before any per-OS default. When the
       # PAT is missing the dir simply doesn't exist and the guarded references drop out.
       KSA_DLL_DIR: ${{ github.workspace }}/.tmp/ksa-game-assemblies/current/dll
-      # KsaScripting.Dist deploys the mod folder here, inside the workspace, instead of the per-user default.
-      KSA_SCRIPTING_DIST_DIR: ${{ github.workspace }}/.tmp/dist/ksa-scripting
+      # Catcom.Dist deploys the mod folder here, inside the workspace, instead of the per-user default.
+      CATCOM_DIST_DIR: ${{ github.workspace }}/.tmp/dist/catcom
       # secrets.* is not allowed directly in step `if:`; surface it via env.
       KSA_PAT: ${{ secrets.KSA_GAME_ASSEMBLIES_PAT }}
       # The natives release tag to publish, if any (tag push or manual input).
       PUBLISH_TAG: ${{ startsWith(github.ref, 'refs/tags/natives-v') && github.ref_name || inputs.publish_tag }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout ksa-scripting
+      - name: Checkout catcom
         uses: actions/checkout@v6
 
       - name: Checkout private KSA assemblies
@@ -108,22 +108,22 @@ jobs:
         run: bash tools/fetch-all.sh --natives-from tools/.cache/natives-out
 
       - name: Build
-        run: dotnet build ksa-scripting.slnx -c Release --nologo -v quiet
+        run: dotnet build catcom.slnx -c Release --nologo -v quiet
 
       - name: Test
         id: test
-        run: dotnet test ksa-scripting.slnx -c Release --nologo -v quiet --no-build --logger trx --results-directory .tmp/test-results
+        run: dotnet test catcom.slnx -c Release --nologo -v quiet --no-build --logger trx --results-directory .tmp/test-results
 
       - name: Check dist (all platforms)
         if: env.KSA_PAT != ''
-        run: python3 tools/check-dist.py .tmp/dist/ksa-scripting
+        run: python3 tools/check-dist.py .tmp/dist/catcom
 
       - name: Upload dist artifact
         if: env.KSA_PAT != '' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7
         with:
-          name: ksa-scripting-dist
-          path: .tmp/dist/ksa-scripting
+          name: catcom-dist
+          path: .tmp/dist/catcom
           retention-days: 3
           compression-level: 1
 
@@ -135,7 +135,7 @@ jobs:
           case "$tag" in natives-v*) ;; *) echo "publish tag must look like natives-vN, got '$tag'" >&2; exit 1 ;; esac
           cd tools/.cache/natives-out
           {
-            echo "Cross-built natives for ksa-scripting (tools/build-natives.sh, run ${{ github.run_id }} on ${{ github.sha }})."
+            echo "Cross-built natives for catcom (tools/build-natives.sh, run ${{ github.run_id }} on ${{ github.sha }})."
             echo
             echo '```'
             cat NATIVES.txt

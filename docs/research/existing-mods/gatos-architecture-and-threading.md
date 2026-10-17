@@ -82,7 +82,7 @@ Mechanics to copy: two `ConcurrentQueue<Pending>`; `TaskCompletionSource` create
 
 Result vocabulary: `CommandResult(CommandOutcome Outcome, string? Message)` with `Ok, Invalid(EINVAL/400), NotFound(ENOENT/404), Denied(EACCES/403), Busy(EBUSY/409), Fault(EIO/500), TimedOut(ETIMEDOUT/504), Unsupported(EOPNOTSUPP/501)`. The executor contract is "never throw".[^report]
 
-# What ksa-scripting takes from this
+# What catcom takes from this
 
 - Tick scripts where gatOS drains: a Frame slot (viewport prefix or `[StarMapBeforeGui]` with the `[StarMapAfterOnFrame]` F2-proof latch), a Solver slot (`Priority.First` prefix on `Universe.ExecuteNextVehicleSolvers`), and a post-solver slot (`JobSystems.VehicleSolver.Wait()` first).
 - Keep the Solver action set as the phase truth table so flight-computer setpoints written by scripts stick.

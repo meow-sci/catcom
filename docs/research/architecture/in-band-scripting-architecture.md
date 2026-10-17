@@ -1,7 +1,7 @@
 ---
 type: Architecture
 title: In-band scripting architecture for KSA (runtime-agnostic host)
-description: The proposed layered design of the ksa-scripting mod - StarMap lifecycle, the two Harmony-anchored execution slots, the game API facade with gatOS's read/write firewall, the hook registry and script scheduler, the runtime abstraction that LuaJIT, V8 and Jint plug into, the script catalog and hot reload, the editor bridge, and packaging - with the reasoning behind each choice.
+description: The proposed layered design of the catcom mod - StarMap lifecycle, the two Harmony-anchored execution slots, the game API facade with gatOS's read/write firewall, the hook registry and script scheduler, the runtime abstraction that LuaJIT, V8 and Jint plug into, the script catalog and hot reload, the editor bridge, and packaging - with the reasoning behind each choice.
 tags: [architecture, design, host, scheduler, facade, runtime-abstraction]
 sources:
   - id: gameloop
@@ -23,17 +23,17 @@ status: draft
 # Layering
 
 ```
-KsaScripting.GameMod      StarMap entry: lifecycle, Harmony slots, menus, REPL shells, editor launcher   (refs KSA, purrTTY contract)
-KsaScripting.Ksa          the ONLY assembly besides GameMod that references KSA: readers, actuators,
+Catcom.GameMod      StarMap entry: lifecycle, Harmony slots, menus, REPL shells, editor launcher   (refs KSA, purrTTY contract)
+Catcom.Ksa          the ONLY assembly besides GameMod that references KSA: readers, actuators,
                           event patches, phase executor, [KsaAnchor]s, KsaHealth                          (ported from gatOS Game/Ksa)
-KsaScripting.Core         game-free: DTO records, action vocabulary, hook registry, scheduler, script
+Catcom.Core         game-free: DTO records, action vocabulary, hook registry, scheduler, script
                           catalog, manifest parsing, sidecar persistence, stub generators, nvim RPC client
-KsaScripting.Runtime.Lua  LuaJIT binding + Lua adapter        }  implement IScriptRuntime; no KSA types
-KsaScripting.Runtime.V8   ClearScript binding + TS loader     }  (only Core DTOs cross the boundary)
-KsaScripting.Runtime.Jint Jint adapter (fallback)             }
+Catcom.Runtime.Lua  LuaJIT binding + Lua adapter        }  implement IScriptRuntime; no KSA types
+Catcom.Runtime.V8   ClearScript binding + TS loader     }  (only Core DTOs cross the boundary)
+Catcom.Runtime.Jint Jint adapter (fallback)             }
 ```
 
-The gatOS rule "only the GameMod references KSA; two immutable records are the firewall" is kept: scripts never see live `Vehicle`/`Part` objects, only DTOs and handles. This keeps every runtime adapter game-free and testable, and keeps KSA churn confined to `KsaScripting.Ksa`.[^gatos-threading]
+The gatOS rule "only the GameMod references KSA; two immutable records are the firewall" is kept: scripts never see live `Vehicle`/`Part` objects, only DTOs and handles. This keeps every runtime adapter game-free and testable, and keeps KSA churn confined to `Catcom.Ksa`.[^gatos-threading]
 
 # Execution slots (Harmony-anchored)
 
@@ -49,13 +49,13 @@ Why the `ApplyVehicleSolvers` postfix rather than StarMap's `BeforeGui`: `Before
 
 Every slot body is try/catch, budgeted, and self-disabling on repeated faults; a throw on the sim path crashes the game.
 
-# Game API facade (`KsaScripting.Ksa`)
+# Game API facade (`Catcom.Ksa`)
 
 - **Reads:** readers ported from gatOS (`VesselReader`, `PartsReader`, `BodyReader`, `CameraReader`) produce the same DTOs (`VesselSnapshot`, `BodySnapshot`, …) with the same units and frames. Two access styles: a per-step **snapshot** (zero-cost reads for many hooks; consistent) and **live handles** (`VesselRef`) whose property reads call the reader on demand (cheap for a few fields). Both are valid only on the game thread, which is where all script code runs.
 - **Writes:** one `ActionExecutor` with the gatOS action vocabulary (`vessel.ignite`, `engine.active`, `vessel.attitude_target`, `debug.teleport`, …), validation, authority gate, health latch, and `PhaseFor(action)`; Frame actions execute inline in the Step slot, Solver actions are queued to the Solver slot. Off-thread callers (REPL output threads, nvim RPC, file watcher) go through a `CommandQueue` identical to gatOS's.
 - **Events:** two producers feeding one stream — Harmony patches on the targets in [event hook points](/ksa-host/event-hook-points.md) (capture args, stamp `ut`, enqueue) and an `EventDiffer` over consecutive snapshots (situation, SOI, propellant, battery, animation). Delivered in the Step slot.[^hooks]
 
-# Hook registry and scheduler (`KsaScripting.Core`)
+# Hook registry and scheduler (`Catcom.Core`)
 
 - Hook kinds: `event` (named, optional vessel filter, `sync` or `async`), `tick` (`frame`, `step`, `every <seconds ut|wall>`), `command` (console/REPL verb), `service` (long-running coroutine/async function started at load).
 - Scheduler: per-frame budget (default 2 ms, configurable), per-call watchdog (default 50 ms → runtime interrupt → script disabled with an error), FIFO per script, fairness across scripts. Async waits (`sleep(ut)`, `nextStep()`, `until(pred)`, `waitEvent(name)`) are resolved by the scheduler in the Step slot on the sim clock; wall/render clocks are also available (gatOS schedule semantics).
@@ -79,7 +79,7 @@ interface IScriptRuntime : IDisposable
 
 # Script catalog and hot reload
 
-- Scripts live under `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting/scripts/` (user-writable; shared with nvim), with `lib/` for shared modules and `stubs/` for generated type stubs. A script's kind and hooks are declared in code (`ksa.on(...)`), not in a manifest; a header comment may carry metadata (name, autostart).
+- Scripts live under `<Documents>/My Games/Kitten Space Agency/mods/catcom/scripts/` (user-writable; shared with nvim), with `lib/` for shared modules and `stubs/` for generated type stubs. A script's kind and hooks are declared in code (`ksa.on(...)`), not in a manifest; a header comment may carry metadata (name, autostart).
 - Registration: on mod start (autostart list), on nvim `BufWritePost` RPC, on the debounced file watcher, or from the console (`script run <file>`). Reload = compile new version → swap hooks atomically → dispose old scope → optional `onReload(state)`.
 - Persistence: per-script `state` table/object serialized to a sidecar next to the save (`UncompressedSave.Write` postfix) and restored on load.
 

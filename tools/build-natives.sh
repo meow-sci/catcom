@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# build-natives.sh: cross-compiles every native library ksa-scripting ships, for every platform,
+# build-natives.sh: cross-compiles every native library catcom ships, for every platform,
 # on ONE host (Linux or macOS). No per-platform build machines: the pinned zig toolchain
 # (tools/zig.pin) targets win-x64, linux-x64 and osx-arm64 from anywhere. CI runs this on a single
 # Linux job and publishes the result as a GitHub release that tools/fetch-natives.* downloads.

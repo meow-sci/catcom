@@ -1,7 +1,7 @@
 ---
 type: Decision Record
 title: Recommendation - which runtimes to build and in what order
-description: The recommended path for ksa-scripting - a shared in-band host first, then LuaJIT (direct P/Invoke) and V8 (ClearScript with in-isolate TypeScript transpilation) as the two primary runtimes (Jint dropped by decision, libnode rejected for now), plus the 2026-10-16 scope additions (ImGui Script Manager, UI-created bindings, terminal scripts on purrTTY surfaces, nvim over TCP) - with the evidence behind each choice and the open risks to retire first.
+description: The recommended path for catcom - a shared in-band host first, then LuaJIT (direct P/Invoke) and V8 (ClearScript with in-isolate TypeScript transpilation) as the two primary runtimes (Jint dropped by decision, libnode rejected for now), plus the 2026-10-16 scope additions (ImGui Script Manager, UI-created bindings, terminal scripts on purrTTY surfaces, nvim over TCP) - with the evidence behind each choice and the open risks to retire first.
 tags: [decision, recommendation, roadmap]
 sources:
   - id: matrix

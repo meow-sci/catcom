@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fetch typescript.js (+ licences) and the sucrase bundle into
-# src/KsaScripting.Runtime.V8/assets/. npm tarballs are verified against the
+# src/Catcom.Runtime.V8/assets/. npm tarballs are verified against the
 # registry's SHA-512 integrity value before anything is extracted. Downloaded
 # content is only copied and read, never executed.
 #
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ASSETS="${KSA_V8_ASSETS_DIR:-$ROOT/src/KsaScripting.Runtime.V8/assets}"
+ASSETS="${KSA_V8_ASSETS_DIR:-$ROOT/src/Catcom.Runtime.V8/assets}"
 REGISTRY="https://registry.npmjs.org"
 SUCRASE_VERSION="3.35.1"
 

@@ -1,5 +1,5 @@
 /**
- * tui.ts - escape-code toolkit for terminal scripts (ksa-scripting).
+ * tui.ts - escape-code toolkit for terminal scripts (catcom).
  *
  * Dependency-free, no DOM, no Node APIs, ES2022 only. Mirrors tui.lua.
  *

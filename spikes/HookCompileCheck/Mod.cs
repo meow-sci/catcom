@@ -3,13 +3,13 @@ using HarmonyLib;
 using KSA;
 using StarMap.API;
 
-namespace KsaScripting.HookCompileCheck;
+namespace Catcom.HookCompileCheck;
 
 [StarMapMod]
 public class Mod
 {
     public static Mod? Instance;
-    private static readonly Harmony _harmony = new("meowsci.ksa-scripting.compilecheck");
+    private static readonly Harmony _harmony = new("meowsci.catcom.compilecheck");
     private static readonly Queue<Action> _gameThreadQueue = new();
 
     [StarMapImmediateLoad] public void OnImmediateLoad(KSA.Mod definingMod) { }

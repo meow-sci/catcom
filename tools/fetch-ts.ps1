@@ -1,5 +1,5 @@
 # PowerShell twin of tools/fetch-ts.sh. Fetches typescript.js (+ licences) and the
-# sucrase bundle into src/KsaScripting.Runtime.V8/assets/. npm tarballs are verified
+# sucrase bundle into src/Catcom.Runtime.V8/assets/. npm tarballs are verified
 # against the registry's SHA-512 integrity value before extraction. Downloaded
 # content is only copied and read, never executed.
 #
@@ -23,7 +23,7 @@ $SucraseVersion = '3.35.1'
 if ($env:KSA_V8_ASSETS_DIR) {
     $Assets = [IO.Path]::GetFullPath($env:KSA_V8_ASSETS_DIR)
 } else {
-    $Assets = Join-Path $Root 'src/KsaScripting.Runtime.V8/assets'
+    $Assets = Join-Path $Root 'src/Catcom.Runtime.V8/assets'
 }
 
 $TsVersion = (Get-Content -LiteralPath (Join-Path $Root 'tools/typescript.pin') -Raw).Trim()

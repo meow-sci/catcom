@@ -28,7 +28,7 @@ status: stable
 | Laylua | 1.0.0 (2025-01) | 5.4 | wrapper with memory/instruction sandbox | **LGPL-3.0** | license and 5.4; no |
 | WattleScript | 0.6.0-beta1 (2022) | MoonSharp-derived 5.2 | pure C# | BSD-3 | abandoned |
 
-Measured context: LuaJIT via direct P/Invoke costs ≈1 ns per native call and 5–7 ns per host callback on this workstation, so the managed interpreters trade one to two orders of magnitude of script throughput for the absence of a native library. For ksa-scripting the native library problem is already solved by the purrTTY resolver pattern, so **LuaJIT direct is the primary Lua runtime and Lua-CSharp is the designated fallback** (same `IScriptRuntime` adapter, different dialect caveats surfaced in docs).[^report]
+Measured context: LuaJIT via direct P/Invoke costs ≈1 ns per native call and 5–7 ns per host callback on this workstation, so the managed interpreters trade one to two orders of magnitude of script throughput for the absence of a native library. For catcom the native library problem is already solved by the purrTTY resolver pattern, so **LuaJIT direct is the primary Lua runtime and Lua-CSharp is the designated fallback** (same `IScriptRuntime` adapter, different dialect caveats surfaced in docs).[^report]
 
 [^report]: Lua/LuaJIT embedding research report (2026-10-16)
 [^luacsharp]: Lua-CSharp

@@ -4,7 +4,7 @@ Status: proposed · Depends on: [Plan 00](00-shared-foundation-plan.md) · Resea
 
 ## 1. Goal
 
-`KsaScripting.Runtime.Lua` implements `IScriptRuntime` on LuaJIT 2.1 with: a sandboxed per-script environment, host API bound from `ApiSchema`, coroutine-based awaits, a watchdog that can stop runaway scripts, memory accounting, tracebacks mapped to `scripts/<file>.lua:<line>`, and a Lua REPL. Users get LuaLS completion from the generated LuaCATS stub.
+`Catcom.Runtime.Lua` implements `IScriptRuntime` on LuaJIT 2.1 with: a sandboxed per-script environment, host API bound from `ApiSchema`, coroutine-based awaits, a watchdog that can stop runaway scripts, memory accounting, tracebacks mapped to `scripts/<file>.lua:<line>`, and a Lua REPL. Users get LuaLS completion from the generated LuaCATS stub.
 
 ## 2. Native build pipeline (`tools/build-luajit.*` + CI)
 

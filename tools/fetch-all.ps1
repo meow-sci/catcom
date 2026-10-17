@@ -58,8 +58,8 @@ function Invoke-Fetch([string]$Script, [hashtable]$Params) {
 # Where a repo-relative path really lives: the repo, or the env override the sub-scripts used.
 function Resolve-Shipped([string]$Rel) {
     $roots = @(
-        @{ Prefix = 'src/KsaScripting.Runtime.V8/assets/';     Env = $env:KSA_V8_ASSETS_DIR },
-        @{ Prefix = 'src/KsaScripting.Runtime.Lua/runtimes/';  Env = $env:KSA_RUNTIMES_DIR },
+        @{ Prefix = 'src/Catcom.Runtime.V8/assets/';     Env = $env:KSA_V8_ASSETS_DIR },
+        @{ Prefix = 'src/Catcom.Runtime.Lua/runtimes/';  Env = $env:KSA_RUNTIMES_DIR },
         @{ Prefix = 'editor/';                                 Env = $env:KSA_EDITOR_DIR }
     )
     foreach ($root in $roots) {
@@ -101,17 +101,17 @@ $nativesParams = $common + @{ Rid = $Rids }
 if ($NativesFrom) { $nativesParams['From'] = $NativesFrom }
 Invoke-Fetch 'fetch-natives.ps1' $nativesParams
 
-# The same list the dist target (src/KsaScripting.Dist) refuses to build without.
+# The same list the dist target (src/Catcom.Dist) refuses to build without.
 Step 'Checking that every shipped binary is present'
-Test-Shipped 'src/KsaScripting.Runtime.V8/assets/typescript.js'
-Test-Shipped 'src/KsaScripting.Runtime.V8/assets/sucrase.bundle.js'
+Test-Shipped 'src/Catcom.Runtime.V8/assets/typescript.js'
+Test-Shipped 'src/Catcom.Runtime.V8/assets/sucrase.bundle.js'
 foreach ($rid in $Rids) {
     switch ($rid) {
         'win-x64'   { $exe = '.exe'; $lib = 'lua51.dll';             $ext = 'dll' }
         'linux-x64' { $exe = '';     $lib = 'libluajit-5.1.so.2';    $ext = 'so' }
         'osx-arm64' { $exe = '';     $lib = 'libluajit-5.1.2.dylib'; $ext = 'dylib' }
     }
-    Test-Shipped "src/KsaScripting.Runtime.Lua/runtimes/$rid/native/$lib"
+    Test-Shipped "src/Catcom.Runtime.Lua/runtimes/$rid/native/$lib"
     Test-Shipped "editor/$rid/nvim/bin/nvim$exe"
     Test-Shipped "editor/$rid/nvim/lib/nvim/parser/typescript.$ext"
     Test-Shipped "editor/$rid/lsp/lua-language-server/bin/lua-language-server$exe"
@@ -119,5 +119,5 @@ foreach ($rid in $Rids) {
 }
 if ($script:Missing -ne 0) { Fail "$($script:Missing) file(s) missing; see above" }
 Write-Host ''
-Write-Host 'fetch-all: complete. Build the mod with: dotnet build src/KsaScripting.Dist -c Release'
+Write-Host 'fetch-all: complete. Build the mod with: dotnet build src/Catcom.Dist -c Release'
 exit 0

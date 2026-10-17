@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyName>Catcom.Core</AssemblyName>
+        <RootNamespace>Catcom.Core</RootNamespace>
+        <Description>Game-free core of catcom: script values, runtime/host contracts, command model, snapshots, config, logging.</Description>
+    </PropertyGroup>
+
+    <!-- GAME-FREE: no references to KSA, Brutal, StarMap, Harmony, ImGui or purrTTY, ever. -->
+    <ItemGroup>
+        <PackageReference Include="Tomlyn" Version="2.10.1" />
+        <PackageReference Include="MessagePack" Version="3.1.12" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Catcom.Core.Tests" />
+    </ItemGroup>
+
+</Project>

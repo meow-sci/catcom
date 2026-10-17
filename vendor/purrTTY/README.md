@@ -1,14 +1,14 @@
 # Vendored purrTTY contract DLLs
 
-These assemblies are the pinned inter-mod ABI between ksa-scripting and purrTTY. They are built from
+These assemblies are the pinned inter-mod ABI between catcom and purrTTY. They are built from
 purrTTY's `purrTTY.CustomShellContract` project (MIT, see `third-party-licenses/purrTTY-LICENSE.txt`).
 
-`KsaScripting.GameMod` and `KsaScripting.PurrTty` compile against them (`Private=false`); **they are never
+`Catcom.GameMod` and `Catcom.PurrTty` compile against them (`Private=false`); **they are never
 shipped in the dist**. At runtime, with purrTTY installed, `mod.toml` `ImportedAssemblies` makes StarMap resolve
-both assemblies from purrTTY's load context, so ksa-scripting and purrTTY share one `CustomShellRegistry.Instance`
+both assemblies from purrTTY's load context, so catcom and purrTTY share one `CustomShellRegistry.Instance`
 and one `TerminalLauncherRegistry.Current`. A local copy would be loaded instead by StarMap builds that scan the
 entry assembly's types before the dependency wiring exists, splitting type identity — which is why only
-`KsaScripting.PurrTty.dll` (loaded lazily by path) references these types.
+`Catcom.PurrTty.dll` (loaded lazily by path) references these types.
 
 | File | Purpose |
 |---|---|
@@ -34,8 +34,8 @@ git checkout feature/scripting && git pull          # or the release branch once
 dotnet build purrTTY.CustomShellContract -c Release -nologo -v quiet
 cp purrTTY.CustomShellContract/bin/Release/net10.0/purrTTY.CustomShellContract.{dll,xml} \
    purrTTY.CustomShellContract/bin/Release/net10.0/purrTTY.Logging.dll \
-   /path/to/ksa-scripting/vendor/purrTTY/
-shasum -a 256 /path/to/ksa-scripting/vendor/purrTTY/*.dll   # update the table above with the new commit + hashes
+   /path/to/catcom/vendor/purrTTY/
+shasum -a 256 /path/to/catcom/vendor/purrTTY/*.dll   # update the table above with the new commit + hashes
 ```
 
 Only additive contract changes are allowed (existing consumers such as gatOS keep binding to the newer

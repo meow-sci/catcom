@@ -58,7 +58,7 @@ else
   bash "$TOOLS/fetch-natives.sh" $FORCE $RIDS
 fi
 
-# The same list the dist target (src/KsaScripting.Dist) refuses to build without.
+# The same list the dist target (src/Catcom.Dist) refuses to build without.
 step "Checking that every shipped binary is present"
 missing=0
 check() {
@@ -69,15 +69,15 @@ check() {
     missing=$((missing + 1))
   fi
 }
-check src/KsaScripting.Runtime.V8/assets/typescript.js
-check src/KsaScripting.Runtime.V8/assets/sucrase.bundle.js
+check src/Catcom.Runtime.V8/assets/typescript.js
+check src/Catcom.Runtime.V8/assets/sucrase.bundle.js
 for rid in $RIDS; do
   case "$rid" in
     win-x64)   exe=.exe; lib=lua51.dll;            ext=dll ;;
     linux-x64) exe="";   lib=libluajit-5.1.so.2;   ext=so ;;
     osx-arm64) exe="";   lib=libluajit-5.1.2.dylib; ext=dylib ;;
   esac
-  check "src/KsaScripting.Runtime.Lua/runtimes/$rid/native/$lib"
+  check "src/Catcom.Runtime.Lua/runtimes/$rid/native/$lib"
   check "editor/$rid/nvim/bin/nvim$exe"
   check "editor/$rid/nvim/lib/nvim/parser/typescript.$ext"
   check "editor/$rid/lsp/lua-language-server/bin/lua-language-server$exe"
@@ -85,4 +85,4 @@ for rid in $RIDS; do
 done
 [ "$missing" -eq 0 ] || die "$missing file(s) missing; see above"
 echo
-echo "fetch-all: complete. Build the mod with: dotnet build src/KsaScripting.Dist -c Release"
+echo "fetch-all: complete. Build the mod with: dotnet build src/Catcom.Dist -c Release"

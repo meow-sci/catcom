@@ -61,7 +61,7 @@ Limits: `vim.system()` / `jobstart()` from Lua still spawn processes (verified),
 # What the mod does with the channel
 
 1. Connect `TcpClient("127.0.0.1", port)` with retries for ~2 s after spawn.
-2. Send `nvim_set_client_info("ksa-scripting", …)`, then `nvim_get_api_info` to learn the channel id.
+2. Send `nvim_set_client_info("catcom", …)`, then `nvim_get_api_info` to learn the channel id.
 3. Receive `ksa_saved` notifications from the shipped `BufWritePost` autocmd (broadcast with channel 0) and reload the script on the game thread.
 4. Push diagnostics (`vim.diagnostic.set` via `nvim_exec_lua`) when a load fails; jump to the line with `nvim_win_set_cursor`; show banners with `nvim_echo`.
 5. On `ProcessExited` from the PTY layer, close the socket and release the port.

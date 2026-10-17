@@ -1,4 +1,4 @@
-# ksa-scripting implementation plans
+# catcom implementation plans
 
 These plans turn the research bundle in [`docs/research`](../docs/research/index.md) into buildable work. Read the [recommendation](../docs/research/decisions/recommendation.md) first; it explains the ordering below.
 
@@ -14,7 +14,7 @@ These plans turn the research bundle in [`docs/research`](../docs/research/index
 Conventions shared by every plan:
 
 - Target `net10.0` / C# 13, warnings as errors, nullable, the gatOS `Directory.Build.props` path resolution (`KSA_DLL_DIR` or the sibling `ksa-game-assemblies` checkout).
-- Only `KsaScripting.GameMod` and `KsaScripting.Ksa` reference KSA/Brutal/StarMap assemblies; everything else is game-free and unit-tested.
+- Only `Catcom.GameMod` and `Catcom.Ksa` reference KSA/Brutal/StarMap assemblies; everything else is game-free and unit-tested.
 - Every KSA touch carries a `[KsaAnchor]` attribute; every Harmony patch body is try/catch with log-once and self-disable; nothing on the sim path may throw.
 - Spikes under [`/spikes`](../spikes) are the executable evidence; extend `HookCompileCheck` with one stub per new Harmony target before implementing it.
 - Plans are written so that a future agentic session can execute them without re-reading the whole bundle; each task names the concept pages it relies on.

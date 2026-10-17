@@ -1,4 +1,4 @@
--- ksa-scripting shipped Neovim configuration (NVIM_APPNAME=ksa-editor).
+-- catcom shipped Neovim configuration (NVIM_APPNAME=ksa-editor).
 -- The mod launches:  nvim --clean -u <ModDir>/editor/config/ksa-editor/init.lua --listen 127.0.0.1:<port> <file>
 -- with env: NVIM_APPNAME=ksa-editor, XDG_*_HOME (mod-owned dirs), KSA_LSP_DIR=<ModDir>/editor/<rid>/lsp,
 --           KSA_NOSHELL=<ModDir>/editor/noshell[.cmd], optional KSA_SCRIPTS_DIR and KSA_SERVER_FILE.

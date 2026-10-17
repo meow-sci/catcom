@@ -1,10 +1,10 @@
 # Manager B progress — WP7, WP9-tools, WP5, WP6
 
-Owner paths: `src/KsaScripting.Runtime.Lua/**`, `src/KsaScripting.Runtime.V8/**`, `tests/KsaScripting.Runtime.Lua.Tests/**`, `tests/KsaScripting.Runtime.V8.Tests/**`, `tools/**`, `editor/**`, `scripts-lib/**`, `vendor/**`, `THIRD-PARTY-NOTICES.md`, `third-party-licenses/**`, this file, and the purrTTY repo (`feature/scripting`).
+Owner paths: `src/Catcom.Runtime.Lua/**`, `src/Catcom.Runtime.V8/**`, `tests/Catcom.Runtime.Lua.Tests/**`, `tests/Catcom.Runtime.V8.Tests/**`, `tools/**`, `editor/**`, `scripts-lib/**`, `vendor/**`, `THIRD-PARTY-NOTICES.md`, `third-party-licenses/**`, this file, and the purrTTY repo (`feature/scripting`).
 
 | WP | Status | Commits |
 |---|---|---|
-| WP7 purrTTY launcher contract + vendoring | **done** | purrtty `16c6d91` (feature/scripting); ksa-scripting `d8b4af2` |
+| WP7 purrTTY launcher contract + vendoring | **done** | purrtty `16c6d91` (feature/scripting); catcom `d8b4af2` |
 | WP9-tools (fetch/build scripts, editor config, tui libs, check-dist, notices) | **done** | `a72ee8f`, `047747d`, `39bacc3`, `0d6e392`, `847a760` |
 | WP5 LuaJIT runtime | **done** | `644147c`, `353d97c` (613 tests) |
 | WP6 V8 runtime | **done** | `614f646`, `ba78ecc`, `64d06c1` (542 tests) |
@@ -24,14 +24,14 @@ Owner paths: `src/KsaScripting.Runtime.Lua/**`, `src/KsaScripting.Runtime.V8/**`
 
 ## Verification (2026-10-16, macOS arm64)
 
-- `dotnet build ksa-scripting.slnx -nologo -v quiet`: 0 warnings, 0 errors. `dotnet test ksa-scripting.slnx --nologo -v quiet`: Core 816, Runtime.Lua 613, Runtime.V8 542 — all green, quiet.
+- `dotnet build catcom.slnx -nologo -v quiet`: 0 warnings, 0 errors. `dotnet test catcom.slnx --nologo -v quiet`: Core 816, Runtime.Lua 613, Runtime.V8 542 — all green, quiet.
 - purrtty `feature/scripting` @ `16c6d91`: `dotnet build purrtty.slnx` 0 warnings; `dotnet test purrtty.slnx` 214 + 38 + 120 + 126 (2 platform skips) green.
 - Scripts executed here: `tools/fetch-nvim.sh` and `tools/fetch-lsp.sh` (osx-arm64, win-x64, linux-x64), `tools/fetch-ts.sh`, `tools/build-ts-parser.sh` (all three RIDs via cc / zig cc) and `--queries`, `tools/build-luajit.sh` (osx-arm64 native, linux-x64 in docker), `tools/check-dist.py --self-test` and against the deployed dist (0 errors; warnings: win-x64 lua51.dll absent, purrTTY/ModMenu DLL copies).
 - Not verifiable here: the PowerShell scripts (`build-luajit.ps1`, `fetch-*.ps1`; no pwsh on this Mac), the win-x64 LuaJIT build, loading the linux-x64/win-x64 natives in a .NET process, nvim.exe on Windows (needs VCRUNTIME140.dll, not in the zip), and everything in-game (purrTTY launcher windows/tabs/in-world quads, JIT-on interrupt inside the game process).
 
 ## Notes for other work packages
 
-- Dist: `assets/` (typescript.js, sucrase.bundle.js + licences) must be in the dist next to `KsaScripting.Runtime.V8.dll` — done by Manager A in `2b44a04`.
+- Dist: `assets/` (typescript.js, sucrase.bundle.js + licences) must be in the dist next to `Catcom.Runtime.V8.dll` — done by Manager A in `2b44a04`.
 - `editor/luarc.json` and `editor/tsconfig.template.json` are reference templates matching what the stub generators write into the scripts folder; they are not part of the §1 dist copy list.
 - Editor env: `KSA_LSP_DIR=<ModDir>/editor/<rid>/lsp`, `KSA_NOSHELL=<ModDir>/editor/noshell[.cmd]` (init.lua falls back to the stub next to `editor/config/`), optional `KSA_SERVER_FILE`.
 - Linux natives (LuaJIT built on ubuntu:22.04) need glibc ≥ 2.34 — the same floor as the shipped Neovim.

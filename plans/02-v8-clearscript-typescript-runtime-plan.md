@@ -4,7 +4,7 @@ Status: proposed · Depends on: [Plan 00](00-shared-foundation-plan.md) · Resea
 
 ## 1. Goal
 
-`KsaScripting.Runtime.V8` implements `IScriptRuntime` on **Microsoft.ClearScript.V8 7.5.1.1** so that users write `.ts` files that run with no build step: the mod transpiles with `typescript@6` inside V8 on load and on every save, resolves `import "./x.ts"` through a custom `DocumentLoader`, exposes the `ksa` API as host objects, maps `async` handlers to the scheduler via Promise ↔ Task conversion, enforces heap and watchdog limits, and offers a V8 inspector port for debugging. Users get completion from the generated `host.d.ts` via TypeScript 7's native `tsc --lsp`.
+`Catcom.Runtime.V8` implements `IScriptRuntime` on **Microsoft.ClearScript.V8 7.5.1.1** so that users write `.ts` files that run with no build step: the mod transpiles with `typescript@6` inside V8 on load and on every save, resolves `import "./x.ts"` through a custom `DocumentLoader`, exposes the `ksa` API as host objects, maps `async` handlers to the scheduler via Promise ↔ Task conversion, enforces heap and watchdog limits, and offers a V8 inspector port for debugging. Users get completion from the generated `host.d.ts` via TypeScript 7's native `tsc --lsp`.
 
 ## 2. Packages and files
 

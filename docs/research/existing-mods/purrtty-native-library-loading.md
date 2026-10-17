@@ -75,9 +75,9 @@ P/Invokes use `[LibraryImport("ghostty-vt")]` with the plain logical name.[^reso
 - Natives with sibling dependencies (V8's ICU data, libnode) must be loaded in dependency order with explicit `NativeLibrary.Load(absPath)` calls, or placed where the OS loader finds them.
 - A one-time native-ABI self-check at first use (`RawCellLayout.Validate()`) catches managed/native drift after a version bump; do the same for a scripting runtime (check `jit.version` / V8 version string on startup).
 
-# Application to ksa-scripting
+# Application to catcom
 
-Put each runtime binding in its own assembly (`KsaScripting.Lua`, `KsaScripting.V8`), register a resolver per assembly for its logical names (`luajit` → `lua51.dll`/`libluajit-5.1.so.2`/`libluajit-5.1.dylib`; ClearScript has its own loader, see [V8 ClearScript](/runtimes/v8-clearscript.md)), copy natives with the same `<None Link>` approach, and copy them into the dist folder in `CopyCustomContent`.
+Put each runtime binding in its own assembly (`Catcom.Lua`, `Catcom.V8`), register a resolver per assembly for its logical names (`luajit` → `lua51.dll`/`libluajit-5.1.so.2`/`libluajit-5.1.dylib`; ClearScript has its own loader, see [V8 ClearScript](/runtimes/v8-clearscript.md)), copy natives with the same `<None Link>` approach, and copy them into the dist folder in `CopyCustomContent`.
 
 [^resolver]: NativeLibraryResolver.cs
 [^vtcsproj]: Ghostty.Vt.csproj

@@ -1,7 +1,7 @@
 ---
 type: Analysis
 title: How TypeScript can run with no user-visible build step
-description: Settles that no engine executes TypeScript natively (Node's "native TS" is type stripping by amaro before V8), then compares the in-process transpile options (typescript.js 6, sucrase, swc-wasm, esbuild) with measured numbers from the spikes, and sets the recommended transpile policy for ksa-scripting.
+description: Settles that no engine executes TypeScript natively (Node's "native TS" is type stripping by amaro before V8), then compares the in-process transpile options (typescript.js 6, sucrase, swc-wasm, esbuild) with measured numbers from the spikes, and sets the recommended transpile policy for catcom.
 tags: [typescript, transpile, type-stripping, sucrase, swc, esbuild, node]
 sources:
   - id: report
@@ -40,7 +40,7 @@ status: stable
 
 # The premise, corrected
 
-**V8 does not execute TypeScript.** Node's "run .ts natively" feature replaces type syntax with whitespace using amaro (a wrapper over `@swc/wasm-typescript`) before V8 sees the code: added in v22.6.0, on by default from v23.6.0 / v22.18.0, stable in v25.2.0 / v24.12.0; v26 removed `--experimental-transform-types`, so Node ships strip-only. Unsupported there: `enum`, `namespace` with runtime code, parameter properties, `import x = require`, decorators, `tsconfig` paths, `.tsx`.[^nodets][^amaro] TypeScript 5.8's `--erasableSyntaxOnly` mirrors exactly that subset.[^ts58] The TC39 Type Annotations proposal is still Stage 1 (last presented 2023-09), so no engine will parse types in the foreseeable future.[^tc39] Deno and Bun also transpile internally. **Every "run TS" story is a transpile step somewhere; the only question is who runs it.** For ksa-scripting the answer is: the mod, in-process, at load and on save.
+**V8 does not execute TypeScript.** Node's "run .ts natively" feature replaces type syntax with whitespace using amaro (a wrapper over `@swc/wasm-typescript`) before V8 sees the code: added in v22.6.0, on by default from v23.6.0 / v22.18.0, stable in v25.2.0 / v24.12.0; v26 removed `--experimental-transform-types`, so Node ships strip-only. Unsupported there: `enum`, `namespace` with runtime code, parameter properties, `import x = require`, decorators, `tsconfig` paths, `.tsx`.[^nodets][^amaro] TypeScript 5.8's `--erasableSyntaxOnly` mirrors exactly that subset.[^ts58] The TC39 Type Annotations proposal is still Stage 1 (last presented 2023-09), so no engine will parse types in the foreseeable future.[^tc39] Deno and Bun also transpile internally. **Every "run TS" story is a transpile step somewhere; the only question is who runs it.** For catcom the answer is: the mod, in-process, at load and on save.
 
 # In-process transpiler options
 

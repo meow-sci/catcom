@@ -1,8 +1,8 @@
 ---
 type: Research Brief
 title: Problem statement and goals for in-band KSA scripting
-description: What ksa-scripting must deliver - in-process, in-band scripting of Kitten Space Agency in LuaJIT and TypeScript with a gatOS-like read/write model, event hooks that run inside the game loop, and a shipped Neovim editing experience inside purrTTY - and the constraints inherited from the game, the loader, and the sibling mods.
-tags: [brief, goals, constraints, ksa-scripting]
+description: What catcom must deliver - in-process, in-band scripting of Kitten Space Agency in LuaJIT and TypeScript with a gatOS-like read/write model, event hooks that run inside the game loop, and a shipped Neovim editing experience inside purrTTY - and the constraints inherited from the game, the loader, and the sibling mods.
+tags: [brief, goals, constraints, catcom]
 sources:
   - id: brief
     resource: ../../REFERENCES.md
@@ -15,7 +15,7 @@ status: stable
 
 gatOS exposes live KSA state and control to a Linux guest as a filesystem (`/sim`) plus HTTP, MQTT and MCP. It is deliberately **out of band**: a separate VM, a serialization boundary, and a 2-second command timeout. That is the right shape for shells and external programs, but it cannot participate in the game loop: a script cannot run *inside* the frame when an engine ignites, cannot mutate state in the solver-safe window, and pays a transport hop per read.[^brief]
 
-ksa-scripting is the **in-band** counterpart: scripts run inside the game process, on the game thread, with the same data model and action vocabulary as gatOS, and with hooks that fire from the game's own code paths.
+catcom is the **in-band** counterpart: scripts run inside the game process, on the game thread, with the same data model and action vocabulary as gatOS, and with hooks that fire from the game's own code paths.
 
 # Goals
 

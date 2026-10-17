@@ -9,11 +9,11 @@ status: stable
 
 > Mirrored from the session scratchpad into the bundle so the cited source outlives the session. Scratchpad paths mentioned inside (e.g. harness locations) no longer exist.
 
-# purrTTY internals — reference for the ksa-scripting mod
+# purrTTY internals — reference for the catcom mod
 
 Scope: how purrTTY (repo `/Users/asherwin/repos/meow-sci/purrtty`, all paths below relative to it unless
 prefixed) loads native libs inside StarMap's ALC, how its PTY/session/shell layers are shaped, what a second
-mod can and cannot reach today, and what the minimal purrTTY-side change would be to let ksa-scripting open
+mod can and cannot reach today, and what the minimal purrTTY-side change would be to let catcom open
 a terminal running `nvim <file>`. Cross-references: gatOS (`/Users/asherwin/repos/meow-sci/gatOS`) as the
 existing consumer; StarMap sources at `gatOS/thirdparty/starmap`.
 
@@ -193,13 +193,13 @@ From `vendor/Ghostty.Vt/README.md`, `docs/build-and-test.md`, `docs/gotchas.md`:
 - **Windows must be the `gnu` ABI** (`x86_64-windows-gnu`); msvc fails to compile the C++ deps.
 - **Never `-mcpu native`** — produced an AV inside `vt_write` on other machines; SIMD deps runtime-dispatch anyway.
 - **Linux pins glibc 2.31** (`x86_64-linux-gnu.2.31`); strip DWARF with `llvm-strip --strip-debug` (7.6 MB → 1.7 MB).
-- **Flat filenames collide if two RIDs of one OS are ever added** (osx-x64, linux-arm64…); switch to `runtimes/<rid>/native`, which the resolver already probes. **This is directly relevant to LuaJIT/V8 if ksa-scripting ships both osx-arm64 and osx-x64 or win-x64 + win-arm64.**
+- **Flat filenames collide if two RIDs of one OS are ever added** (osx-x64, linux-arm64…); switch to `runtimes/<rid>/native`, which the resolver already probes. **This is directly relevant to LuaJIT/V8 if catcom ships both osx-arm64 and osx-x64 or win-x64 + win-arm64.**
 - **No unload.** The ALC is never unloaded; StarMap can "reload" a mod without an ALC unload, so statics (including the `_registered` flag and the Harmony instance) survive — the resolver guard exists because `SetDllImportResolver` throws on a second call for the same assembly. There is no `NativeLibrary.Free` anywhere.
-- **No Windows DLL-search-order or RPATH tricks** — absolute-path `TryLoad` sidesteps both. The native lib statically links its deps (highway, simdutf; zig's own libc++), so it has no sibling-DLL dependencies to resolve. If a ksa-scripting native (e.g. V8) has sibling DLL deps, load them explicitly in dependency order with `NativeLibrary.Load(absPath)` before the main one, or use `runtimes/<rid>/native` + the same resolver.
+- **No Windows DLL-search-order or RPATH tricks** — absolute-path `TryLoad` sidesteps both. The native lib statically links its deps (highway, simdutf; zig's own libc++), so it has no sibling-DLL dependencies to resolve. If a catcom native (e.g. V8) has sibling DLL deps, load them explicitly in dependency order with `NativeLibrary.Load(absPath)` before the main one, or use `runtimes/<rid>/native` + the same resolver.
 - `RawCellLayout.Validate()` runs once per process (`GhosttyTerminalSurface` ctor) to catch a native/managed layout drift after a pin bump — a model for a "native ABI self-check at first use".
 - Local native patches are vendored as `vendor/Ghostty.Vt/native-patches/*.patch` (fork-free workflow).
 
-**Pattern to copy for ksa-scripting:** put the LuaJIT/V8 bindings in their own assembly; add a
+**Pattern to copy for catcom:** put the LuaJIT/V8 bindings in their own assembly; add a
 `[ModuleInitializer]` that registers a `DllImportResolver` on that assembly, mapping the logical name(s) to
 `Path.Combine(Path.GetDirectoryName(assembly.Location), <platform file>)` and `runtimes/<rid>/native/...`;
 copy natives flat (or under `runtimes/<rid>/native/`) with `<None Include=... Link=... CopyToOutputDirectory>`;
@@ -468,7 +468,7 @@ bytes are ignored**). `WriteInputAsync` is **fully synchronous** (returns `Task.
 `protected abstract string GetPrompt()`. Helpers: `SendPrompt()`, `SendOutput(string|byte[])`,
 `SendError(string|byte[])`, `CancelCurrentLine()`; inspection `CommandHistory`, `CurrentLine`, `CursorPosition`.
 
-A REPL shell for ksa-scripting fits `BaseLineBufferedShell` (one line → `ExecuteCommandLine`) or
+A REPL shell for catcom fits `BaseLineBufferedShell` (one line → `ExecuteCommandLine`) or
 `BaseChannelOutputShell` if it needs raw-mode/multi-line input (then it must handle its own echo and editing —
 the terminal does no local echo).
 
@@ -546,7 +546,7 @@ Consequences: (a) any name the game already loaded wins (so shared NuGets must m
 
 Load order (`ModLoader.PrepareMods`): a mod whose dependencies are not yet loaded is parked in `WaitingMods`
 and initialized right after the dependency loads (`CheckForDependentMods`), or at the end if the dependency is
-`Optional` and never appears (`TryLoadWaitingMods`). So with `ModId = "purrTTY"` listed, ksa-scripting's
+`Optional` and never appears (`TryLoadWaitingMods`). So with `ModId = "purrTTY"` listed, catcom's
 `[StarMapAllModsLoaded]` always runs after purrTTY's. purrTTY runs shell discovery inside its own
 `OnFullyLoaded → InitializeTerminal → GhosttySessionManagerFactory.EnsureGameShellsDiscovered()`
 (`purrTTY.GameMod/TerminalMod.cs:131-157, 264-323`). The New Tab / New Window menus enumerate
@@ -676,7 +676,7 @@ from New Tab / New Window / In-World / Layouts, and (2) have the user save a lay
 
 ### 4.4 Proposed minimal purrTTY-side extension (recommended)
 
-Keep the ABI in the already-exported contract assembly so ksa-scripting needs no new imports and purrTTY's
+Keep the ABI in the already-exported contract assembly so catcom needs no new imports and purrTTY's
 Display/Terminal stay private:
 
 ```csharp
@@ -891,7 +891,7 @@ its own native), then a single ubuntu build job: `dotnet build purrTTY.GameMod -
 `PURRTTY_DIST_DIR=.tmp/dist` → `zip -r purrTTY-<version>.zip purrTTY`. Versions `1.<run>.0` from `main`,
 `-beta` from `feature/**`. Install note (README): delete the old `purrTTY/` folder before unzipping.
 
-Packaging contrasts worth copying for ksa-scripting:
+Packaging contrasts worth copying for catcom:
 - purrTTY ships an **allow-list** of DLLs; gatOS ships a **deny-list glob** (`$(TargetDir)*.dll` minus
   `0Harmony.dll;StarMap.API.dll`) so new NuGet deps ship automatically — prefer the gatOS form.
 - Both copy `<Entry>.deps.json` (StarMap's ALC uses `AssemblyDependencyResolver`, which reads it).
@@ -900,7 +900,7 @@ Packaging contrasts worth copying for ksa-scripting:
 
 ---
 
-## 9. Quick answers for ksa-scripting
+## 9. Quick answers for catcom
 
 - **Native libs**: copy `NativeLibraryResolver` verbatim into the LuaJIT/V8 binding assembly (change the logical
   name and filenames); flat copy natives beside the entry DLL; add `runtimes/<rid>/native` if two RIDs share an

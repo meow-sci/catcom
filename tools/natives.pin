@@ -6,5 +6,5 @@
 # Bump `tag` after publishing a new release (needed whenever luajit.pin, ts-parser.pin, zig.pin,
 # host_shim.c or build-natives.sh change): push the tag, wait for the workflow, update this file,
 # then run tools/fetch-all.sh once so tools/assets.lock gets the new pins.
-repo=meow-sci/ksa-scripting
+repo=meow-sci/catcom
 tag=natives-v1

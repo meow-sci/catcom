@@ -1,7 +1,7 @@
 ---
 type: Design
 title: Hook model - ad-hoc scripts, sync and async event hooks, tick hooks, timers
-description: Precise semantics for every way a script can run in ksa-scripting - what thread and slot it runs in, what it may read and write, how sync hooks differ from async hooks, how awaits are resolved on the sim clock, ordering and budgets - plus the event catalog and example scripts in TypeScript and Lua.
+description: Precise semantics for every way a script can run in catcom - what thread and slot it runs in, what it may read and write, how sync hooks differ from async hooks, how awaits are resolved on the sim clock, ordering and budgets - plus the event catalog and example scripts in TypeScript and Lua.
 tags: [design, hooks, events, async, coroutines, scheduler]
 sources:
   - id: arch

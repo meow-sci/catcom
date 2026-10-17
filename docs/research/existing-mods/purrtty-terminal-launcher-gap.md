@@ -1,7 +1,7 @@
 ---
 type: Gap Analysis
 title: Programmatic terminal launch from another mod is not possible in purrTTY today
-description: What terminal-creation API exists inside purrTTY, why none of it is reachable across the StarMap ALC boundary, the user-driven workarounds available now, and the minimal purrTTY extension (ITerminalLauncher in the exported contract assembly) ksa-scripting needs to open nvim in a terminal from code.
+description: What terminal-creation API exists inside purrTTY, why none of it is reachable across the StarMap ALC boundary, the user-driven workarounds available now, and the minimal purrTTY extension (ITerminalLauncher in the exported contract assembly) catcom needs to open nvim in a terminal from code.
 resource: /Users/asherwin/repos/meow-sci/purrtty/purrTTY.Display/Ghostty/GhosttyTerminalController.cs
 tags: [purrtty, gap, terminal-launcher, nvim, cross-mod]
 sources:
@@ -16,7 +16,7 @@ status: stable
 
 `purrTTY.Display.Ghostty.GhosttyTerminalController` has `OpenWindow(ProcessLaunchOptions?, string? title)`, `OpenTab(...)`, `CreateConfiguredWindow(WindowLayoutRecord, ThemeDefinition?)`, `CloseWindow`, `IsVisible`; `TerminalWindow` has `RequestFocus()`, `Close()`, `Sessions` (a `SessionManager` with `CreateSessionAsync`, `RestartSessionAsync`), and `TerminalSession.ProcessExited`. `TerminalTargetRegistry` names every live terminal.[^report]
 
-# Why ksa-scripting cannot call it
+# Why catcom cannot call it
 
 - `purrTTY.Terminal` and `purrTTY.Display` are not in `ExportedAssemblies`, so none of those types can be imported across the ALC boundary.
 - The live controller is private state (`TerminalMod._controller`; `TerminalMenus.MenuController` is `internal static`). There is no public static accessor, event bus, or main-thread dispatcher.
@@ -50,6 +50,6 @@ public static class TerminalLauncherRegistry { public static ITerminalLauncher? 
 
 Implementation sketch: map the request to `ProcessLaunchOptions.CreateCustom(Program, args)` / `CreateCustomGame(id)` / `CreateDefault()` + `StartupCommand`, call `controller.OpenWindow(opts, title)` or `OpenTab`, set `IsVisible = true`, `RequestFocus()`, and wire `session.ProcessExited` to `Exited` (raised off-thread; consumer marshals). About 150 lines, no new exports. The alternative of exporting `purrTTY.Display`/`purrTTY.Terminal` exposes far more surface and still needs the main-thread marshalling.[^report]
 
-ksa-scripting should treat the launcher as **optional**: if `TerminalLauncherRegistry.Current` is null (older purrTTY), fall back to printing the layout instructions and the file path.
+catcom should treat the launcher as **optional**: if `TerminalLauncherRegistry.Current` is null (older purrTTY), fall back to printing the layout instructions and the file path.
 
 [^report]: purrTTY internals research report (2026-10-16)

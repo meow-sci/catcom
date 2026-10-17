@@ -1,5 +1,5 @@
 <Project>
-  <!-- Spike projects for ksa-scripting research. Mirrors gatOS/purrTTY KSAFolder resolution
+  <!-- Spike projects for catcom research. Mirrors gatOS/purrTTY KSAFolder resolution
        (ksa-game-assemblies checkout next to this repo, or KSA_DLL_DIR). -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

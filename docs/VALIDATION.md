@@ -1,4 +1,4 @@
-# ksa-scripting in-game validation checklist
+# catcom in-game validation checklist
 
 This checklist is the in-game pass that CI and the development Mac cannot run. Work through it on Windows x64 and on Linux x64 with KSA build 2026.10.10.5554 and purrTTY (with the launcher contract) installed. Each item is an action followed by its expected result. Run the sections in order, because later sections assume the earlier ones pass. All features listed here are implemented as of 2026-10-16 and proven by builds, unit tests and off-game harnesses on macOS; none of them has run inside the game yet, so record every deviation precisely (what you did, what happened, the log lines).
 
@@ -6,27 +6,27 @@ This checklist is the in-game pass that CI and the development Mac cannot run. W
 
 ### Install
 
-- Build the dist from this repo on the test machine with `dotnet build src/KsaScripting.Dist -c Release` (the deploy project; it builds the mod and the purrTTY bridge assembly and copies the mod folder). The game DLLs come from `KSA_DLL_DIR`, or from a sibling `ksa-game-assemblies` checkout. On Windows the default game folder is `C:\Program Files\Kitten Space Agency\`.
-- On Windows the build deploys directly to `%USERPROFILE%\Documents\My Games\Kitten Space Agency\mods\ksa-scripting\`. On Linux the default deploy folder is `$HOME/repos/meow-sci/mods/ksa-scripting/`, so set `KSA_SCRIPTING_DIST_DIR` to `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting/` before building. Use the Documents folder that KSA itself uses on Linux.
-- The result must be the folder `mods/ksa-scripting/` directly under the KSA mods folder, with `mod.toml` at its top level.
-- Install purrTTY with the launcher contract, as its own mod. ksa-scripting ships none of purrTTY's DLLs: the dist must not contain `purrTTY.CustomShellContract.dll` or `purrTTY.Logging.dll` (StarMap resolves them from purrTTY's load context via `ImportedAssemblies`). The log line `purrTTY bridge loaded` must name purrTTY's mod folder as the contract location; `purrTTY is not installed` or `purrTTY contract could not be loaded` means the bridge was not loaded and terminals, REPL shells and the editor are unavailable.
+- Build the dist from this repo on the test machine with `dotnet build src/Catcom.Dist -c Release` (the deploy project; it builds the mod and the purrTTY bridge assembly and copies the mod folder). The game DLLs come from `KSA_DLL_DIR`, or from a sibling `ksa-game-assemblies` checkout. On Windows the default game folder is `C:\Program Files\Kitten Space Agency\`.
+- On Windows the build deploys directly to `%USERPROFILE%\Documents\My Games\Kitten Space Agency\mods\catcom\`. On Linux the default deploy folder is `$HOME/repos/meow-sci/mods/catcom/`, so set `CATCOM_DIST_DIR` to `<Documents>/My Games/Kitten Space Agency/mods/catcom/` before building. Use the Documents folder that KSA itself uses on Linux.
+- The result must be the folder `mods/catcom/` directly under the KSA mods folder, with `mod.toml` at its top level.
+- Install purrTTY with the launcher contract, as its own mod. catcom ships none of purrTTY's DLLs: the dist must not contain `purrTTY.CustomShellContract.dll` or `purrTTY.Logging.dll` (StarMap resolves them from purrTTY's load context via `ImportedAssemblies`). The log line `purrTTY bridge loaded` must name purrTTY's mod folder as the contract location; `purrTTY is not installed` or `purrTTY contract could not be loaded` means the bridge was not loaded and terminals, REPL shells and the editor are unavailable.
 - Run `tools/fetch-all.sh` (macOS/Linux) or `tools/fetch-all.ps1` (Windows) once before building: it downloads every shipped binary for all three platforms (TypeScript assets, Neovim, language servers, and the cross-built LuaJIT + TypeScript parser from the `natives-v*` GitHub release; the private repo needs `gh auth login` or `GH_TOKEN`). The dist build fails if anything is missing, so a dist that built at all is complete.
 
 ### Where data lives
 
-- The mod folder (install dir) holds the DLLs, `mod.toml`, `runtimes/`, `assets/` (TypeScript compiler), `scripts-lib/`, and `editor/`. The user data always lives in `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting/`: `ksa-scripting.toml`, `scripts/`, `bindings.toml`, `terminals.toml`, `cache/`, and `editor/{data,state,cache}`. On Windows that is normally the same folder as the install dir.
+- The mod folder (install dir) holds the DLLs, `mod.toml`, `runtimes/`, `assets/` (TypeScript compiler), `scripts-lib/`, and `editor/`. The user data always lives in `<Documents>/My Games/Kitten Space Agency/mods/catcom/`: `catcom.toml`, `scripts/`, `bindings.toml`, `terminals.toml`, `cache/`, and `editor/{data,state,cache}`. On Windows that is normally the same folder as the install dir.
 - On each start the mod regenerates `scripts/stubs/` (`host.d.ts`, `ksa.lua`, and the tsconfig and LuaLS config files) and copies `scripts-lib/` to `scripts/lib/`.
-- The script state for a save is kept in the sidecar `ksa-scripting-state.toml`, written into the save's own folder (the `directory` in the `save.write` payload).
+- The script state for a save is kept in the sidecar `catcom-state.toml`, written into the save's own folder (the `directory` in the `save.write` payload).
 
 ### Logs
 
-- Standard output: start KSA from a terminal or console so that stdout is visible. Mod lines have the form `[ksa-scripting] <level>: <message>`.
+- Standard output: start KSA from a terminal or console so that stdout is visible. Mod lines have the form `[catcom] <level>: <message>`.
 - In-game console: the same lines appear in KSA's console window. `ksa.console.log` output goes to both places and to the Output tab of the Script Manager.
 - Record here where the file log is written, if the build writes one: ____
 
 ### Configuration
 
-`ksa-scripting.toml` (in the mod data folder) holds the keys this checklist uses. The defaults are shown in brackets: `debug_namespace` (true), `control_all_vessels` (true), `fault_limit` (3), `frame_budget_ms` (2.0), `sync_hook_budget_ms` (5.0), `call_budget_ms` (50.0), `lua_jit_enabled` (true), `lua_memory_limit_kb` (65536), `v8_heap_limit_mb` (64), `manager_hotkey` ("F11"). Restart KSA after editing it.
+`catcom.toml` (in the mod data folder) holds the keys this checklist uses. The defaults are shown in brackets: `debug_namespace` (true), `control_all_vessels` (true), `fault_limit` (3), `frame_budget_ms` (2.0), `sync_hook_budget_ms` (5.0), `call_budget_ms` (50.0), `lua_jit_enabled` (true), `lua_memory_limit_kb` (65536), `v8_heap_limit_mb` (64), `manager_hotkey` ("F11"). Restart KSA after editing it.
 
 ### Conventions used below
 
@@ -42,11 +42,11 @@ For each failure, record the date, the KSA build, the OS, the section and item n
 
 ## 1. Load and lifecycle
 
-- [ ] Start KSA with the mod installed and load a save or a new game. Expected: the game reaches the world without a crash dialog, and stdout contains a line with `ksa-scripting started`.
+- [ ] Start KSA with the mod installed and load a save or a new game. Expected: the game reaches the world without a crash dialog, and stdout contains a line with `catcom started`.
 - [ ] Read the runtime status in the Runtimes tab or in the startup log. Expected: the Lua runtime (LuaJIT) and the TypeScript runtime (V8) both report available. Record the `jit.status` value from the log. Expected `true` on Windows and Linux (section 13 covers the JIT caveat).
 - [ ] Create a Lua file `scripts/timer.lua` containing `ksa.every(1, function(ctx) ksa.console.log("tick", ctx.ut) end)`. It needs no Run, because the hook is declared in code. Expected: `tick` lines appear about once per simulated second at 1x.
 - [ ] Press F2 to hide the game UI, wait 5 seconds, then press F2 again. Expected: the UI hides and returns, and `tick` lines keep appearing while the UI is hidden.
-- [ ] Unload the mod if the game's mod list allows it (disable ksa-scripting and restart). Expected: the unload completes without an exception in the log, and no `[ksa-scripting]` line appears afterwards. Record "not testable" if the game cannot disable a mod without deleting its folder.
+- [ ] Unload the mod if the game's mod list allows it (disable catcom and restart). Expected: the unload completes without an exception in the log, and no `[catcom]` line appears afterwards. Record "not testable" if the game cannot disable a mod without deleting its folder.
 
 ## 2. Script Manager window
 
@@ -92,7 +92,7 @@ For each failure, record the date, the KSA build, the OS, the section and item n
 - [ ] Debug namespace on (the default). Call `v.debug:refill_fuel()` on a vehicle with empty tanks. Expected: `Ok`, and the tank fractions become 1. Call `v.debug:refill_battery()` on a vehicle with a battery. Expected: `Ok`.
 - [ ] With the debug namespace on, call `v.debug:teleport(pos, vel)` with `pos` 10 metres above the current `position.cci`. Expected: `Ok`, and the vessel moves by about that offset.
 - [ ] With the debug namespace on, call `v.debug:impulse({x = 0, y = 1, z = 0}, "body", "dv")`. Expected: `Ok`, and the velocity changes by about 1 m/s along the body's Y axis.
-- [ ] Set `debug_namespace = false` in `ksa-scripting.toml`, restart, and repeat the refill and teleport calls. Expected: each returns `Denied` with `ok` false, and nothing changes. Restore the setting afterwards.
+- [ ] Set `debug_namespace = false` in `catcom.toml`, restart, and repeat the refill and teleport calls. Expected: each returns `Denied` with `ok` false, and nothing changes. Restore the setting afterwards.
 - [ ] Optional: set `control_all_vessels = false`, restart, and call `v.debug:control()` on another vessel. Expected: `Denied`. Record the actual outcome if it differs. Restore the setting.
 
 ## 6. Events
@@ -218,7 +218,7 @@ Events come from Harmony hooks (intent and transitions, delivered at the call) a
 ## 12. Persistence
 
 - [ ] In a Lua tick, run `ksa.state.set("count", (ksa.state.get("count") or 0) + 1)` once per second. Expected: the count rises.
-- [ ] Save the game. Expected: `save.write` fires, and `ksa-scripting-state.toml` appears in the save folder named in the payload, holding the script's state.
+- [ ] Save the game. Expected: `save.write` fires, and `catcom-state.toml` appears in the save folder named in the payload, holding the script's state.
 - [ ] Let the count rise further, then load that save. Expected: `save.load` fires, and the count restarts from the saved value, not from the later one.
 - [ ] In a TypeScript script, use `ksa.state.counter = 1`, then save and reload. Expected: the same result as Lua.
 - [ ] Store a function value: `ksa.state.set("f", function() end)` in Lua, or `ksa.state.f = () => 1` in TypeScript. Expected: the write is rejected with an error in the Output tab, and the other keys are unchanged.
@@ -227,7 +227,7 @@ Events come from Harmony hooks (intent and transitions, delivered at the call) a
 ## 13. Safety and limits
 
 - [ ] Lua runaway loop: a service with `function main(ctx) while true do end end`. Expected: the watchdog stops it within about `call_budget_ms` (50 ms). The Output tab and log show a timeout error ("script timed out"), the script is marked faulted, and the game keeps running at normal frame rate. Record whether the script shows `disabled` afterwards; it is disabled after `fault_limit` consecutive faults.
-- [ ] JIT caveat for the item above: with `lua_jit_enabled = true`, a compiled loop can run without returning to the interpreter. The count hook is checked inside traces only in the build's CHECKHOOK configuration. If the game freezes, does not stop, or crashes, record it, set `lua_jit_enabled = false` in `ksa-scripting.toml`, restart, and repeat. Record the result with the JIT on and again with it off.
+- [ ] JIT caveat for the item above: with `lua_jit_enabled = true`, a compiled loop can run without returning to the interpreter. The count hook is checked inside traces only in the build's CHECKHOOK configuration. If the game freezes, does not stop, or crashes, record it, set `lua_jit_enabled = false` in `catcom.toml`, restart, and repeat. Record the result with the JIT on and again with it off.
 - [ ] TypeScript runaway loop: an ad-hoc `export function main(ctx) { for (;;) {} }`. Expected: it is interrupted within about 100 ms, the error is reported as interrupted or timed out, the script is faulted, and the game stays responsive.
 - [ ] Sync hook budget: `ksa.on("stage", fn, {sync = true})`, where `fn` runs `while true do end`, then stage a vehicle. Expected: the sync budget (`sync_hook_budget_ms`, 5 ms) interrupts the hook, the hook is demoted to async with a logged error, and the stage completes without a freeze.
 - [ ] Unbounded allocation (Lua): `local t = {} while true do t[#t + 1] = string.rep("x", 1048576) end` in an ad-hoc run. Expected: the script is faulted at the memory limit (`lua_memory_limit_kb`, 64 MiB), an error is logged, and the game stays responsive.
@@ -236,15 +236,15 @@ Events come from Harmony hooks (intent and transitions, delivered at the call) a
 - [ ] Script errors never crash the game: load one script with a syntax error and one whose event handler raises at runtime. Expected: both show in the Output tab with file and line, and the game keeps running.
 - [ ] Vehicle destroyed mid-hook: a service that waits with `ksa.wait_until(function() return ksa.active ~= nil end)` and then sets the throttle every second. Destroy the vehicle while the loop runs. Expected: reads return nil or empty, writes return `NotFound`, `vessel.destroy` fires, and there is no crash.
 - [ ] Vehicle destroyed mid-hook with a terminal quad attached (section 9). Expected: the quad is removed, the script receives `term.detach`, and there is no crash.
-- [ ] 50 scripts with step hooks under warp. Create 50 files, each containing `ksa.every("step", function(ctx) end)`. Windows PowerShell: `1..50 | ForEach-Object { 'ksa.every("step", function(ctx) end)' | Set-Content "$env:USERPROFILE\Documents\My Games\Kitten Space Agency\mods\ksa-scripting\scripts\load-$_.lua" }`. Linux bash: `for i in $(seq 1 50); do echo 'ksa.every("step", function(ctx) end)' > "$HOME/Documents/My Games/Kitten Space Agency/mods/ksa-scripting/scripts/load-$i.lua"; done`. Set warp to 1000x if `warp_speeds` contains it, otherwise to the largest entry, and wait 60 seconds of real time. Expected: the frame rate stays close to its 1x value, no script is faulted, and the Runtimes tab's per-slot budget stays within `frame_budget_ms` (2.0 ms). Record the frame rate and the budget figures, then delete the 50 files.
+- [ ] 50 scripts with step hooks under warp. Create 50 files, each containing `ksa.every("step", function(ctx) end)`. Windows PowerShell: `1..50 | ForEach-Object { 'ksa.every("step", function(ctx) end)' | Set-Content "$env:USERPROFILE\Documents\My Games\Kitten Space Agency\mods\catcom\scripts\load-$_.lua" }`. Linux bash: `for i in $(seq 1 50); do echo 'ksa.every("step", function(ctx) end)' > "$HOME/Documents/My Games/Kitten Space Agency/mods/catcom/scripts/load-$i.lua"; done`. Set warp to 1000x if `warp_speeds` contains it, otherwise to the largest entry, and wait 60 seconds of real time. Expected: the frame rate stays close to its 1x value, no script is faulted, and the Runtimes tab's per-slot budget stays within `frame_budget_ms` (2.0 ms). Record the frame rate and the budget figures, then delete the 50 files.
 
 ## 14. Packaging
 
-- [ ] List the installed mod folder. Expected: `mod.toml`, `KsaScripting.GameMod.deps.json`, the `KsaScripting.*.dll` assemblies, `ClearScript.Core.dll`, `ClearScript.V8.dll`, `ClearScript.V8.ICUData.dll`, `Newtonsoft.Json.dll`, `Tomlyn.dll`, `MessagePack.dll`, `runtimes/<rid>/native/`, `scripts-lib/` (`tui.ts`, `tui.lua`, `README.md`), `editor/config/ksa-editor/init.lua`, `editor/noshell`, `editor/noshell.cmd`, `assets/typescript.js`, `assets/sucrase.bundle.js`, `LICENSE`, `THIRD-PARTY-NOTICES.md`, and `third-party-licenses/`.
+- [ ] List the installed mod folder. Expected: `mod.toml`, `Catcom.GameMod.deps.json`, the `Catcom.*.dll` assemblies, `ClearScript.Core.dll`, `ClearScript.V8.dll`, `ClearScript.V8.ICUData.dll`, `Newtonsoft.Json.dll`, `Tomlyn.dll`, `MessagePack.dll`, `runtimes/<rid>/native/`, `scripts-lib/` (`tui.ts`, `tui.lua`, `README.md`), `editor/config/ksa-editor/init.lua`, `editor/noshell`, `editor/noshell.cmd`, `assets/typescript.js`, `assets/sucrase.bundle.js`, `LICENSE`, `THIRD-PARTY-NOTICES.md`, and `third-party-licenses/`.
 - [ ] On Windows run `python3 tools/check-dist.py "<dist>" --rids win-x64` (use `py -3` if `python3` is absent). On Linux run `python3 tools/check-dist.py "<dist>" --rids linux-x64`. Expected: no `ERROR` line and 0 errors in the summary. The default `--rids` requires both RIDs, and each machine has only its own natives, so pass the local RID. A `WARN` for missing editor blobs is acceptable only when section 10 is recorded as blocked.
 - [ ] Natives: `runtimes/win-x64/native/` holds `lua51.dll` and `ClearScriptV8.win-x64.dll`, and `runtimes/linux-x64/native/` holds `libluajit-5.1.so.2` and `ClearScriptV8.linux-x64.so`. Expected: both are present, and `check-dist` reports the expected architecture for each.
 - [ ] `0Harmony.dll` and `StarMap.API.dll` are not in the dist folder. Expected: neither is present. `check-dist` reports an error if either is.
-- [ ] Start the game from the installed folder, not the build folder. Expected: the `ksa-scripting started` line appears (as in section 1).
+- [ ] Start the game from the installed folder, not the build folder. Expected: the `catcom started` line appears (as in section 1).
 
 ## 15. Known limitations to observe
 

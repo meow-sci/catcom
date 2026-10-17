@@ -1,7 +1,7 @@
 ---
 type: Comparison
 title: Scripting runtime comparison matrix
-description: Side-by-side comparison of every runtime evaluated for ksa-scripting (LuaJIT direct, Lua-CSharp, ClearScript V8, Jint, node-api-dotnet/libnode, PuerTS, QuickJS, Roslyn C# scripting) across language, maintenance, native footprint, loader fit, performance, limits, async model, debugging, editor tooling and risk, with measured numbers from the spikes.
+description: Side-by-side comparison of every runtime evaluated for catcom (LuaJIT direct, Lua-CSharp, ClearScript V8, Jint, node-api-dotnet/libnode, PuerTS, QuickJS, Roslyn C# scripting) across language, maintenance, native footprint, loader fit, performance, limits, async model, debugging, editor tooling and risk, with measured numbers from the spikes.
 tags: [comparison, matrix, runtimes, decision]
 sources:
   - id: luajit

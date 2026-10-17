@@ -4,25 +4,25 @@ Status: proposed (revised 2026-10-16 for the Script Manager UI, UI-created bindi
 
 ## 1. Goal
 
-Build the runtime-agnostic part of the ksa-scripting mod so that each scripting runtime (LuaJIT, V8) is a thin adapter behind one interface. When this plan is complete, a player can — entirely from an ImGui window — create a script, edit it in the shipped Neovim inside a purrTTY terminal, run it once, run it forever, attach its exported functions to game events or ticks, give it a virtual terminal rendered in a 2D window or on an in-world part, and see its output and errors; and a "null runtime" (C# lambdas behind `IScriptRuntime`) proves every one of those paths before any engine exists.
+Build the runtime-agnostic part of the catcom mod so that each scripting runtime (LuaJIT, V8) is a thin adapter behind one interface. When this plan is complete, a player can — entirely from an ImGui window — create a script, edit it in the shipped Neovim inside a purrTTY terminal, run it once, run it forever, attach its exported functions to game events or ticks, give it a virtual terminal rendered in a 2D window or on an in-world part, and see its output and errors; and a "null runtime" (C# lambdas behind `IScriptRuntime`) proves every one of those paths before any engine exists.
 
 Design sources: [architecture](../docs/research/architecture/in-band-scripting-architecture.md), [hook model](../docs/research/architecture/hook-model-sync-async.md), [script API surface](../docs/research/architecture/script-api-surface.md), [exports and bindings](../docs/research/architecture/script-exports-and-bindings.md), [Script Manager UI](../docs/research/architecture/script-manager-ui.md), [terminal scripts](../docs/research/architecture/terminal-scripts-and-virtual-terminals.md), [sandboxing](../docs/research/architecture/sandboxing-limits-and-safety.md), [neovim TCP launch](../docs/research/editor/neovim-tcp-launch.md).
 
 ## 2. Repository and project layout
 
 ```
-ksa-scripting/
-  ksa-scripting.slnx
+catcom/
+  catcom.slnx
   Directory.Build.props                 # copy of gatOS's (KSAFolder resolution, dist dir, zero-warning policy)
   src/
-    KsaScripting.Core/                  # game-free: DTOs, ApiSchema, hooks, bindings, scheduler, catalog, terminals (host side), persistence, stub generators, nvim RPC client
-    KsaScripting.Ksa/                   # KSA-facing: readers, actuators, ActionExecutor, event patches, slots, KsaHealth, KsaAnchor
-    KsaScripting.GameMod/               # StarMap entry: Mod.cs, Patcher.cs, Script Manager window, menu, REPL shells, terminal shells, editor launcher, mod.toml
-    KsaScripting.Runtime.Lua/           # plan 01
-    KsaScripting.Runtime.V8/            # plan 02
+    Catcom.Core/                        # game-free: DTOs, ApiSchema, hooks, bindings, scheduler, catalog, terminals (host side), persistence, stub generators, nvim RPC client
+    Catcom.Ksa/                         # KSA-facing: readers, actuators, ActionExecutor, event patches, slots, KsaHealth, KsaAnchor
+    Catcom.GameMod/                     # StarMap entry: Mod.cs, Patcher.cs, Script Manager window, menu, REPL shells, terminal shells, editor launcher, mod.toml
+    Catcom.Runtime.Lua/                 # plan 01
+    Catcom.Runtime.V8/                  # plan 02
   tests/
-    KsaScripting.Core.Tests/            # NUnit, game-free
-    KsaScripting.Ksa.CompileCheck/      # grows from spikes/HookCompileCheck: one stub per Harmony target
+    Catcom.Core.Tests/                  # NUnit, game-free
+    Catcom.Ksa.CompileCheck/            # grows from spikes/HookCompileCheck: one stub per Harmony target
   editor/                               # shipped nvim config (init.lua), noshell stub, luarc.json, tsconfig template; binaries fetched by tools/
   scripts-lib/                          # shipped script libraries copied to <scripts>/lib (tui.lua, tui.ts, ...)
   tools/                                # fetch-nvim.*, fetch-lsp.*, build-luajit.*, fetch-ts.*, check-dist.py
@@ -33,13 +33,13 @@ ksa-scripting/
 `mod.toml`:
 
 ```toml
-name = "ksa-scripting"
+name = "catcom"
 description = "In-band Lua (LuaJIT) and TypeScript scripting for KSA: game-loop hooks, terminal scripts on purrTTY surfaces, and a shipped Neovim editor."
 version = "0.1.0"
 author = "meow sci"
 
 [StarMap]
-EntryAssembly = "KsaScripting.GameMod"
+EntryAssembly = "Catcom.GameMod"
 
 [[StarMap.ModDependencies]]
 ModId = "purrTTY"
@@ -47,7 +47,7 @@ Optional = true
 ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 ```
 
-Packaging follows [runtime and packaging](../docs/research/ksa-host/runtime-and-packaging.md): deny-list DLL glob, `deps.json`, natives under `runtimes/<rid>/native/`, editor blobs outside the wipe step with `SkipUnchangedFiles`, licenses. User data under `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting/`: `scripts/` (user files), `scripts/lib/` (shipped helpers, overwritten on update), `scripts/stubs/` (generated), `bindings.toml`, `terminals.toml`, `editor/{data,state,cache}/`, `ksa-scripting.toml`.
+Packaging follows [runtime and packaging](../docs/research/ksa-host/runtime-and-packaging.md): deny-list DLL glob, `deps.json`, natives under `runtimes/<rid>/native/`, editor blobs outside the wipe step with `SkipUnchangedFiles`, licenses. User data under `<Documents>/My Games/Kitten Space Agency/mods/catcom/`: `scripts/` (user files), `scripts/lib/` (shipped helpers, overwritten on update), `scripts/stubs/` (generated), `bindings.toml`, `terminals.toml`, `editor/{data,state,cache}/`, `catcom.toml`.
 
 ## 3. Work breakdown
 
@@ -70,7 +70,7 @@ Source: [game loop and threading](../docs/research/ksa-host/game-loop-and-thread
 
 Acceptance: empty mod loads, slots fire each frame, F2 does not stop timers, unload leaves no patches.
 
-### Phase C — Game API facade (`KsaScripting.Ksa`) (5–8 days)
+### Phase C — Game API facade (`Catcom.Ksa`) (5–8 days)
 
 Source: [gatOS snapshot model](../docs/research/existing-mods/gatos-snapshot-and-reader-model.md), [gatOS actuators](../docs/research/existing-mods/gatos-actuator-catalog.md), [gatOS /sim surface](../docs/research/existing-mods/gatos-sim-api-surface.md), [state surface](../docs/research/ksa-host/state-read-write-surface.md), [event hook points](../docs/research/ksa-host/event-hook-points.md).
 
@@ -78,7 +78,7 @@ Source: [gatOS snapshot model](../docs/research/existing-mods/gatos-snapshot-and
 2. `IHostFacade` (coarse, ~15 methods: `Read`, `Snapshot`, `List`, `Act`, `Wait`, `Subscribe/Unsubscribe`, `Log`, `State*`, `Term*`) implemented over the facade; this is the only object the runtimes bind.
 3. Events: `EventDiffer` port + `EventPatches` (one per catalog row) producing `ScriptEvent`s; sync-hook dispatch inside the patch under the sync budget.
 4. Persistence: save sidecar via `UncompressedSave.Write` postfix / `Program.OnGameLoaded` postfix.
-5. Extend `KsaScripting.Ksa.CompileCheck` with a stub per patched member (CI "build as alarm").
+5. Extend `Catcom.Ksa.CompileCheck` with a stub per patched member (CI "build as alarm").
 
 Acceptance (in game, null runtime): read telemetry each step; ignite, stage, attitude target under warp, teleport; receive `engine.activate`, `stage`, `dock`, `situation.change`.
 

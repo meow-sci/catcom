@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify a built ksa-scripting dist folder.
+"""Verify a built catcom dist folder.
 
     python3 tools/check-dist.py <dist-dir> [--rids win-x64,linux-x64]
                                 [--allow-missing-natives] [--quiet]
@@ -38,16 +38,16 @@ except ImportError:  # Python 3.9 and 3.10 use parse_toml_fallback
 MIB = 1024.0 * 1024.0
 GAME_RIDS = ("win-x64", "linux-x64")  # default required RIDs (override with --rids)
 EDITOR_RIDS = ("win-x64", "linux-x64", "osx-arm64")
-DEPS_FILE = "KsaScripting.GameMod.deps.json"
+DEPS_FILE = "Catcom.GameMod.deps.json"
 
 REQUIRED_MANAGED = (
-    "KsaScripting.GameMod.dll",
+    "Catcom.GameMod.dll",
     DEPS_FILE,
-    "KsaScripting.PurrTty.dll",
-    "KsaScripting.Core.dll",
-    "KsaScripting.Ksa.dll",
-    "KsaScripting.Runtime.Lua.dll",
-    "KsaScripting.Runtime.V8.dll",
+    "Catcom.PurrTty.dll",
+    "Catcom.Core.dll",
+    "Catcom.Ksa.dll",
+    "Catcom.Runtime.Lua.dll",
+    "Catcom.Runtime.V8.dll",
     "ClearScript.Core.dll",
     "ClearScript.V8.dll",
     "ClearScript.V8.ICUData.dll",
@@ -356,15 +356,15 @@ def check_mod_toml(dist):
     starmap = data.get("StarMap") if isinstance(data.get("StarMap"), dict) else {}
     entry = starmap.get("EntryAssembly")
     ok = True
-    if name != "ksa-scripting":
+    if name != "catcom":
         ok = False
-        out.append(("ERROR", "mod.toml name is %r, expected 'ksa-scripting'" % (name,)))
+        out.append(("ERROR", "mod.toml name is %r, expected 'catcom'" % (name,)))
     if not isinstance(version, str) or not version:
         ok = False
         out.append(("ERROR", "mod.toml has no version"))
-    if entry != "KsaScripting.GameMod":
+    if entry != "Catcom.GameMod":
         ok = False
-        out.append(("ERROR", "mod.toml StarMap.EntryAssembly is %r, expected 'KsaScripting.GameMod'" % (entry,)))
+        out.append(("ERROR", "mod.toml StarMap.EntryAssembly is %r, expected 'Catcom.GameMod'" % (entry,)))
     if ok:
         out.append(("OK", "mod.toml: name=%s version=%s StarMap.EntryAssembly=%s" % (name, version, entry)))
 
@@ -450,7 +450,7 @@ def check_forbidden(dist):
             out.append(("ERROR", "forbidden file in dist root: %s (purrTTY assemblies must come from the purrTTY mod "
                         "through StarMap ImportedAssemblies; a local copy splits type identity and makes "
                         "purrTTY's launcher and shell registries invisible)" % name))
-        elif low == "ksascripting.dist.dll":
+        elif low == "catcom.dist.dll":
             out.append(("ERROR", "forbidden file in dist root: %s (the deploy project's own assembly; "
                         "the dist target must exclude it)" % name))
     if not out:
@@ -696,13 +696,13 @@ def run_checks(dist, rids=GAME_RIDS, allow_missing_natives=False):
 
 # ---------------------------------------------------------------- self-test fixtures
 
-GUIDE_MOD_TOML = '''name = "ksa-scripting"
+GUIDE_MOD_TOML = '''name = "catcom"
 description = "In-band Lua (LuaJIT) and TypeScript scripting for KSA: game-loop hooks, terminal scripts on purrTTY surfaces, and a shipped Neovim editor."
 version = "0.1.0"
 author = "meow sci"
 
 [StarMap]
-EntryAssembly = "KsaScripting.GameMod"
+EntryAssembly = "Catcom.GameMod"
 
 [[StarMap.ModDependencies]]
 ModId = "purrTTY"
@@ -711,13 +711,13 @@ ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 '''
 
 GUIDE_MOD_TOML_EXPECTED = {
-    "name": "ksa-scripting",
+    "name": "catcom",
     "description": "In-band Lua (LuaJIT) and TypeScript scripting for KSA: game-loop hooks, "
                    "terminal scripts on purrTTY surfaces, and a shipped Neovim editor.",
     "version": "0.1.0",
     "author": "meow sci",
     "StarMap": {
-        "EntryAssembly": "KsaScripting.GameMod",
+        "EntryAssembly": "Catcom.GameMod",
         "ModDependencies": [
             {"ModId": "purrTTY", "Optional": True,
              "ImportedAssemblies": ["purrTTY.CustomShellContract", "purrTTY.Logging"]},
@@ -782,14 +782,14 @@ def make_complete_tree(root):
         "runtimeTarget": {"name": ".NETCoreApp,Version=v10.0/osx-arm64"},
         "targets": {
             ".NETCoreApp,Version=v10.0/osx-arm64": {
-                "KsaScripting.GameMod/0.1.0": {"runtime": {"KsaScripting.GameMod.dll": {}}},
+                "Catcom.GameMod/0.1.0": {"runtime": {"Catcom.GameMod.dll": {}}},
                 "Newtonsoft.Json/13.0.3": {"runtime": {"lib/net6.0/Newtonsoft.Json.dll": {}}},
                 "Lib.Harmony/2.4.2": {"runtime": {"lib/net8.0/0Harmony.dll": {}}},
                 "Some.Reference/1.0.0": {"runtime": {"lib/net10.0/NotShipped.dll": {}}},
             }
         },
         "libraries": {
-            "KsaScripting.GameMod/0.1.0": {"type": "project"},
+            "Catcom.GameMod/0.1.0": {"type": "project"},
             "Newtonsoft.Json/13.0.3": {"type": "package"},
             "Lib.Harmony/2.4.2": {"type": "package"},
             "Some.Reference/1.0.0": {"type": "reference"},
@@ -858,7 +858,7 @@ class CheckDistTests(unittest.TestCase):
             self.assertEqual(tomllib.loads(GUIDE_MOD_TOML), GUIDE_MOD_TOML_EXPECTED)
 
     def test_mod_toml_wrong_entry_assembly_is_error(self):
-        _write(self._path("mod.toml"), GUIDE_MOD_TOML.replace("KsaScripting.GameMod\"", "Other.Mod\"").encode())
+        _write(self._path("mod.toml"), GUIDE_MOD_TOML.replace("Catcom.GameMod\"", "Other.Mod\"").encode())
         self.assertTrue(_levels(check_mod_toml(self.dist), "ERROR"))
 
     def test_missing_clearscript_v8_is_error(self):
@@ -885,14 +885,14 @@ class CheckDistTests(unittest.TestCase):
         self.assertTrue(all("type identity" in e for e in errors))
 
     def test_dist_project_assembly_is_error(self):
-        _write(self._path("KsaScripting.Dist.dll"), b"deploy project")
+        _write(self._path("Catcom.Dist.dll"), b"deploy project")
         self.assertEqual(len(_levels(check_forbidden(self.dist), "ERROR")), 1)
 
     def test_missing_purrtty_bridge_is_error(self):
-        os.remove(self._path("KsaScripting.PurrTty.dll"))
+        os.remove(self._path("Catcom.PurrTty.dll"))
         errors = _levels(check_managed(self.dist), "ERROR")
         self.assertEqual(len(errors), 1)
-        self.assertIn("KsaScripting.PurrTty.dll", errors[0])
+        self.assertIn("Catcom.PurrTty.dll", errors[0])
 
     def test_modmenu_attributes_is_warning_other_modmenu_is_error(self):
         _write(self._path("ModMenu.Attributes.dll"), b"x")
@@ -998,7 +998,7 @@ def run_self_test():
 # ---------------------------------------------------------------- main
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Verify a built ksa-scripting dist folder.")
+    parser = argparse.ArgumentParser(description="Verify a built catcom dist folder.")
     parser.add_argument("dist_dir", nargs="?", help="dist folder to check")
     parser.add_argument("--rids", default=",".join(GAME_RIDS),
                         help="comma-separated RIDs whose natives are required (default: %(default)s)")

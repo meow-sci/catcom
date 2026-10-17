@@ -1,6 +1,6 @@
-# ksa-scripting — Implementation Guide (the build book)
+# catcom — Implementation Guide (the build book)
 
-This document is the single source of truth for everyone (human or agent) implementing ksa-scripting. It pins the project layout, conventions, exact C# contracts, the script-facing API, the work packages and their acceptance criteria. When this guide and a research page disagree about *what to build*, this guide wins; when they disagree about *a fact about KSA/purrTTY/gatOS*, the research page wins and this guide must be corrected.
+This document is the single source of truth for everyone (human or agent) implementing catcom. It pins the project layout, conventions, exact C# contracts, the script-facing API, the work packages and their acceptance criteria. When this guide and a research page disagree about *what to build*, this guide wins; when they disagree about *a fact about KSA/purrTTY/gatOS*, the research page wins and this guide must be corrected.
 
 Research bundle: [`docs/research/index.md`](research/index.md). Plans: [`plans/README.md`](../plans/README.md).
 
@@ -21,26 +21,26 @@ Research bundle: [`docs/research/index.md`](research/index.md). Plans: [`plans/R
 | Cannot do here | run the game (Windows/Linux only). In-game validation is a checklist for the user; everything else must be proven by builds, unit tests, and runtime spikes on macOS. |
 | CI (GitHub Actions, to be added) | ubuntu-latest, windows-latest, macos-14; game DLLs provided via `KSA_DLL_DIR` secret or compile-removal of game code |
 
-Mod folder at runtime: `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting/` (dist). User data: same folder (`scripts/`, `bindings.toml`, `terminals.toml`, `editor/`, `ksa-scripting.toml`). Dev deploy target: `$(KSA_SCRIPTING_DIST_DIR)` else `$(HOME)/repos/meow-sci/mods/ksa-scripting/` on macOS/Linux, `%USERPROFILE%\Documents\My Games\Kitten Space Agency\mods\ksa-scripting\` on Windows.
+Mod folder at runtime: `<Documents>/My Games/Kitten Space Agency/mods/catcom/` (dist). User data: same folder (`scripts/`, `bindings.toml`, `terminals.toml`, `editor/`, `catcom.toml`). Dev deploy target: `$(CATCOM_DIST_DIR)` else `$(HOME)/repos/meow-sci/mods/catcom/` on macOS/Linux, `%USERPROFILE%\Documents\My Games\Kitten Space Agency\mods\catcom\` on Windows.
 
 ---
 
 ## 1. Solution layout
 
 ```
-ksa-scripting.slnx
-Directory.Build.props                      # copy gatOS's; rename GATOS_DIST_DIR → KSA_SCRIPTING_DIST_DIR; keep KSAFolder resolution
+catcom.slnx
+Directory.Build.props                      # copy gatOS's; rename GATOS_DIST_DIR → CATCOM_DIST_DIR; keep KSAFolder resolution
 src/
-  KsaScripting.Core/                       # GAME-FREE. No KSA/Brutal/StarMap/Harmony/ImGui/purrTTY references.
-  KsaScripting.Ksa/                        # refs KSA DLLs + Lib.Harmony + Core. Readers, actuators, executor, patches, slots, bridge.
-  KsaScripting.GameMod/                    # StarMap entry. refs Ksa, Core, Runtime.Lua, Runtime.V8, purrTTY contract (vendored), StarMap.API, Lib.Harmony, KSA DLLs (ImGui).
-  KsaScripting.Runtime.Lua/                # refs Core only. LibraryImport bindings to lua51 + adapter.
-  KsaScripting.Runtime.V8/                 # refs Core + Microsoft.ClearScript.V8 (+ native packages for win-x64, linux-x64, osx-arm64).
+  Catcom.Core/                             # GAME-FREE. No KSA/Brutal/StarMap/Harmony/ImGui/purrTTY references.
+  Catcom.Ksa/                              # refs KSA DLLs + Lib.Harmony + Core. Readers, actuators, executor, patches, slots, bridge.
+  Catcom.GameMod/                          # StarMap entry. refs Ksa, Core, Runtime.Lua, Runtime.V8, purrTTY contract (vendored), StarMap.API, Lib.Harmony, KSA DLLs (ImGui).
+  Catcom.Runtime.Lua/                      # refs Core only. LibraryImport bindings to lua51 + adapter.
+  Catcom.Runtime.V8/                       # refs Core + Microsoft.ClearScript.V8 (+ native packages for win-x64, linux-x64, osx-arm64).
 tests/
-  KsaScripting.Core.Tests/                 # NUnit; refs Core
-  KsaScripting.Runtime.Lua.Tests/          # NUnit; refs Runtime.Lua + Core; needs runtimes/<rid>/native/<luajit lib> (tools/fetch-all.sh)
-  KsaScripting.Runtime.V8.Tests/           # NUnit; refs Runtime.V8 + Core
-  KsaScripting.Ksa.CompileCheck/           # class library, build-only: one Harmony stub per patched member (grows from spikes/HookCompileCheck)
+  Catcom.Core.Tests/                       # NUnit; refs Core
+  Catcom.Runtime.Lua.Tests/                # NUnit; refs Runtime.Lua + Core; needs runtimes/<rid>/native/<luajit lib> (tools/fetch-all.sh)
+  Catcom.Runtime.V8.Tests/                 # NUnit; refs Runtime.V8 + Core
+  Catcom.Ksa.CompileCheck/                 # class library, build-only: one Harmony stub per patched member (grows from spikes/HookCompileCheck)
 editor/
   config/ksa-editor/init.lua               # shipped nvim config (see §10.5)
   noshell / noshell.cmd                    # stub 'shell' that prints a message and exits 1
@@ -54,26 +54,26 @@ tools/
   fetch-nvim.sh  fetch-nvim.ps1  fetch-lsp.sh  fetch-lsp.ps1  fetch-ts.sh  fetch-ts.ps1  refresh-ts-queries.sh
   check-dist.py
 vendor/purrTTY/                            # pinned purrTTY.CustomShellContract.dll + purrTTY.Logging.dll — COMPILE-TIME ONLY, never shipped
-  KsaScripting.PurrTty/                    # the ONLY assembly that references purrTTY types; loaded by GameMod by path when purrTTY is a loaded mod
-  KsaScripting.Dist/                       # deploy project: references GameMod + PurrTty, owns the CopyCustomContent dist target
+  Catcom.PurrTty/                          # the ONLY assembly that references purrTTY types; loaded by GameMod by path when purrTTY is a loaded mod
+  Catcom.Dist/                             # deploy project: references GameMod + PurrTty, owns the CopyCustomContent dist target
 spikes/                                    # existing, keep building
 docs/research/                             # existing OKF bundle (update log.md when facts change)
 ```
 
-Project settings (all projects): `net10.0`, `LangVersion 13.0`, `Nullable enable`, `ImplicitUsings enable`, `TreatWarningsAsErrors true`, `WarningsNotAsErrors CS1591`, `GenerateDocumentationFile true` (test projects false). Game DLL references use `<Private>false</Private>` and `Condition="Exists('$(KSAFolder)/X.dll')"`. `Lib.Harmony 2.4.2` and `StarMap.API 0.3.6` with `PrivateAssets=all` (never shipped). Game-coupled source in `KsaScripting.Ksa` and `KsaScripting.GameMod` is compile-removed when `KSA.dll` is absent (`<Compile Remove="**/*.cs" />` guarded by `KsaAssembliesPresent`) so game-free CI still builds Core/runtimes/tests.
+Project settings (all projects): `net10.0`, `LangVersion 13.0`, `Nullable enable`, `ImplicitUsings enable`, `TreatWarningsAsErrors true`, `WarningsNotAsErrors CS1591`, `GenerateDocumentationFile true` (test projects false). Game DLL references use `<Private>false</Private>` and `Condition="Exists('$(KSAFolder)/X.dll')"`. `Lib.Harmony 2.4.2` and `StarMap.API 0.3.6` with `PrivateAssets=all` (never shipped). Game-coupled source in `Catcom.Ksa` and `Catcom.GameMod` is compile-removed when `KSA.dll` is absent (`<Compile Remove="**/*.cs" />` guarded by `KsaAssembliesPresent`) so game-free CI still builds Core/runtimes/tests.
 
-Dist (`CopyCustomContent` in `KsaScripting.GameMod.csproj`, after build): wipe `$(DistDir)*` except `ksa-scripting.toml`, `scripts/`, `bindings.toml`, `terminals.toml`, `editor/`; copy `mod.toml`, `$(ProjectDepsFilePath)`, all `$(TargetDir)*.dll` except `0Harmony.dll;StarMap.API.dll`; copy `runtimes/**` (natives), `scripts-lib/**` → `scripts-lib/`, `editor/config/**`, `editor/noshell*`, `LICENSE`, `THIRD-PARTY-NOTICES.md`, `third-party-licenses/*`; copy `editor/<rid>/**` (fetched blobs) with `SkipUnchangedFiles` and no wipe.
+Dist (`CopyCustomContent` in `Catcom.GameMod.csproj`, after build): wipe `$(DistDir)*` except `catcom.toml`, `scripts/`, `bindings.toml`, `terminals.toml`, `editor/`; copy `mod.toml`, `$(ProjectDepsFilePath)`, all `$(TargetDir)*.dll` except `0Harmony.dll;StarMap.API.dll`; copy `runtimes/**` (natives), `scripts-lib/**` → `scripts-lib/`, `editor/config/**`, `editor/noshell*`, `LICENSE`, `THIRD-PARTY-NOTICES.md`, `third-party-licenses/*`; copy `editor/<rid>/**` (fetched blobs) with `SkipUnchangedFiles` and no wipe.
 
 `mod.toml`:
 
 ```toml
-name = "ksa-scripting"
+name = "catcom"
 description = "In-band Lua (LuaJIT) and TypeScript scripting for KSA: game-loop hooks, terminal scripts on purrTTY surfaces, and a shipped Neovim editor."
 version = "0.1.0"
 author = "meow sci"
 
 [StarMap]
-EntryAssembly = "KsaScripting.GameMod"
+EntryAssembly = "Catcom.GameMod"
 
 [[StarMap.ModDependencies]]
 ModId = "purrTTY"
@@ -86,11 +86,11 @@ ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 ## 2. Conventions
 
 - **File-scoped namespaces**; one public type per file; `sealed` by default; records for DTOs; `readonly record struct` for small values.
-- **No KSA types** (nor Brutal, Harmony, ImGui, purrTTY) in `KsaScripting.Core`, `Runtime.Lua`, `Runtime.V8`. Only handles (strings) and `ScriptValue` cross runtime boundaries.
+- **No KSA types** (nor Brutal, Harmony, ImGui, purrTTY) in `Catcom.Core`, `Runtime.Lua`, `Runtime.V8`. Only handles (strings) and `ScriptValue` cross runtime boundaries.
 - **Every member that touches a KSA type** carries `[KsaAnchor("<Type.Member> …", SourceFile = "KSA/X.cs", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low|Medium|High)]` (ported from gatOS `Game/Ksa/KsaAnchor.cs`).
 - **Nothing on the sim path may throw.** Harmony patch bodies and slot bodies are `try/catch` with log-once + self-disable (`_faulted` flag). Executors return `CommandResult.Fault(message)` instead of throwing.
 - **Game thread only:** all script execution, all `Vehicle`/`PartTree`/`FlightComputer` access, all purrTTY window/registry calls. Off-thread entry points (purrTTY tick-thread input, nvim RPC thread, file watcher, PTY exit callbacks) go through `GameThreadQueue.Post(...)`.
-- **Logging:** `KsaScripting.Core.Logging.Log` static with a pluggable `ILogSink`; GameMod installs a sink that writes `Console.WriteLine` (stdout) **and** `Program.ConsoleWindow.Print` (in-game, thread-safe). Format `[ksa-scripting] <level>: <message>`. Log once for repeated faults (`LogOnce(key, …)`).
+- **Logging:** `Catcom.Core.Logging.Log` static with a pluggable `ILogSink`; GameMod installs a sink that writes `Console.WriteLine` (stdout) **and** `Program.ConsoleWindow.Print` (in-game, thread-safe). Format `[catcom] <level>: <message>`. Log once for repeated faults (`LogOnce(key, …)`).
 - **Config:** Tomlyn 2.10.1, snake_case keys, clamp-and-log, atomic temp+rename save (`AtomicFile` ported from gatOS). Keys and defaults in §9.
 - **Tests:** NUnit 4, `dotnet test --nologo -v quiet` must print nothing on pass, **no fixed sleeps** (use `TaskCompletionSource`/`SemaphoreSlim`/polling with deadlines), no Console output from passing tests, deterministic.
 - **Commits:** conventional commits (`feat(core): …`, `feat(ksa): …`, `feat(lua): …`, `feat(v8): …`, `feat(gamemod): …`, `feat(purrtty): …`, `test(...)`, `build(...)`, `docs(...)`, `chore(...)`); commit only your own paths (`git add <paths>`); retry on `index.lock`; never rewrite history; end every commit message with the two attribution trailer lines used in this repo's first commit (`Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>` and `Claude-Session: https://claude.ai/code/session_014EZSZCFHBbCrMjM7L1WBMM`).
@@ -98,14 +98,14 @@ ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 
 ---
 
-## 3. Core contracts (`KsaScripting.Core`) — exact shapes
+## 3. Core contracts (`Catcom.Core`) — exact shapes
 
-Namespaces: `KsaScripting.Core.Values`, `.Runtime`, `.Hosting`, `.Hooks`, `.Scheduling`, `.Catalog`, `.Terminals`, `.Snapshots` (ported gatOS DTOs), `.Commands` (ported gatOS command model), `.Api` (schema + generators), `.Editor` (nvim RPC client), `.Config`, `.Logging`, `.Persistence`.
+Namespaces: `Catcom.Core.Values`, `.Runtime`, `.Hosting`, `.Hooks`, `.Scheduling`, `.Catalog`, `.Terminals`, `.Snapshots` (ported gatOS DTOs), `.Commands` (ported gatOS command model), `.Api` (schema + generators), `.Editor` (nvim RPC client), `.Config`, `.Logging`, `.Persistence`.
 
 ### 3.1 Values
 
 ```csharp
-namespace KsaScripting.Core.Values;
+namespace Catcom.Core.Values;
 public enum ScriptValueKind { Null, Bool, Number, String, Bytes, List, Map, Function, Handle }
 public sealed class ScriptValue
 {
@@ -133,7 +133,7 @@ public sealed class ScriptCallable : IDisposable           // opaque runtime-own
 ### 3.2 Runtime abstraction
 
 ```csharp
-namespace KsaScripting.Core.Runtime;
+namespace Catcom.Core.Runtime;
 public sealed record ScriptSource(string Name, string Path, string Code, string Language);   // Language: "lua" | "typescript"
 public sealed record ScriptModule(string RuntimeId, string Name, long Token);                   // opaque
 public sealed record RuntimeStats(long HeapBytes, double LastCallMs, long CallsTotal, bool JitEnabled, string Version);
@@ -164,7 +164,7 @@ Rules every runtime implements: `Invoke` of an async function returns immediatel
 ### 3.3 Host facade (what runtimes bind) and the game bridge (what Ksa implements)
 
 ```csharp
-namespace KsaScripting.Core.Hosting;
+namespace Catcom.Core.Hosting;
 public sealed class HostWait { public long Id { get; } public string Kind { get; } public Task<ScriptValue> Task { get; } internal TaskCompletionSource<ScriptValue> Source { get; } }
 public sealed record ActResult(CommandResult? Immediate, HostWait? Pending);
 public sealed record BindingOptions(bool Sync = false, string? Vessel = null, string Clock = "ut", double IntervalSeconds = 0);
@@ -193,7 +193,7 @@ public interface IHostFacade
     string CurrentScript { get; }
 }
 
-public interface IGameBridge                                // implemented by KsaScripting.Ksa.KsaBridge; game thread only
+public interface IGameBridge                                // implemented by Catcom.Ksa.KsaBridge; game thread only
 {
     ScriptValue Read(string handle, string path);
     ScriptValue Snapshot(string handle);
@@ -212,7 +212,7 @@ public sealed record EventDescriptor(string Name, string Description, IReadOnlyL
 ### 3.4 Events, hooks, scheduler
 
 ```csharp
-namespace KsaScripting.Core.Hooks;
+namespace Catcom.Core.Hooks;
 public sealed record ScriptEvent(double Ut, string Type, string? VesselId, IReadOnlyDictionary<string, ScriptValue> Payload);
 public enum BindingKind { Event, Tick, Service, Command }
 public sealed record Binding(Guid Id, string Script, string Export, BindingKind Kind, string Key, BindingOptions Options, bool FromCode, bool Enabled);
@@ -237,7 +237,7 @@ public sealed class EventBus
     public IReadOnlyDictionary<string, long> Counters { get; }   // per type, for the UI
 }
 
-namespace KsaScripting.Core.Scheduling;
+namespace Catcom.Core.Scheduling;
 public sealed record StepInfo(double Ut, double Dt, long StepIndex, ulong Frame, bool StepLanded);
 public sealed class Scheduler
 {
@@ -254,7 +254,7 @@ public sealed class Scheduler
 ### 3.5 Catalog, terminals, persistence
 
 ```csharp
-namespace KsaScripting.Core.Catalog;
+namespace Catcom.Core.Catalog;
 public enum ScriptState { Idle, Loading, Running, Service, Error, Disabled }
 public sealed record ScriptInfo(string Name, string Path, string Language, ScriptState State, string? LastError, IReadOnlyList<string> Exports, bool HasTerminal, bool Autostart);
 public sealed class ScriptCatalog
@@ -271,7 +271,7 @@ public sealed class ScriptCatalog
 }
 public sealed class ScriptWatcher : IDisposable { public ScriptWatcher(string dir, Action<string> onChanged /* debounced 150 ms, content-hash checked, posted to game thread by caller */); }
 
-namespace KsaScripting.Core.Terminals;
+namespace Catcom.Core.Terminals;
 public interface ITerminalSink { void Write(ReadOnlySpan<byte> bytes); void Terminate(string message); }
 public sealed class ScriptTerminal
 {
@@ -287,14 +287,14 @@ public sealed class ScriptTerminal
 }
 public sealed class TerminalRegistry { public ScriptTerminal Create(string script); public ScriptTerminal? Get(int id); public ScriptTerminal? ForScript(string script); public void Remove(int id); }
 
-namespace KsaScripting.Core.Persistence;
+namespace Catcom.Core.Persistence;
 public sealed class ScriptStateStore { public ScriptValue Get(string script, string key); public void Set(string script, string key, ScriptValue v); public string SerializeToml(); public void LoadToml(string toml); }
 ```
 
 ### 3.6 API schema and generators
 
 ```csharp
-namespace KsaScripting.Core.Api;
+namespace Catcom.Core.Api;
 public enum ApiKind { Property, Method, Event }
 public sealed record ApiType(string TsType, string LuaType);
 public sealed record ApiParam(string Name, ApiType Type, bool Optional, string Doc);
@@ -309,11 +309,11 @@ public static class StubGenerators
 }
 ```
 
-Snapshot tests pin the generated text (`tests/KsaScripting.Core.Tests/Golden/host.d.ts`, `ksa.lua`).
+Snapshot tests pin the generated text (`tests/Catcom.Core.Tests/Golden/host.d.ts`, `ksa.lua`).
 
 ### 3.7 Runtime ↔ prelude ↔ host conventions (pinned 2026-10-16 by Manager A; binding for WP2, WP3, WP5, WP6)
 
-These close gaps between §3.3, §5 and §6 so the preludes (WP3, `src/KsaScripting.Core/Api/Preludes/ksa.{js,lua}`), the host (WP2) and the runtimes (WP5/WP6) agree without further negotiation.
+These close gaps between §3.3, §5 and §6 so the preludes (WP3, `src/Catcom.Core/Api/Preludes/ksa.{js,lua}`), the host (WP2) and the runtimes (WP5/WP6) agree without further negotiation.
 
 **Contract additions (Core, WP1):**
 
@@ -341,15 +341,15 @@ These close gaps between §3.3, §5 and §6 so the preludes (WP3, `src/KsaScript
 
 ---
 
-## 4. Game side (`KsaScripting.Ksa`)
+## 4. Game side (`Catcom.Ksa`)
 
-Namespaces `KsaScripting.Ksa.{Readers,Actuators,Commands,Events,Slots,Bridge}`.
+Namespaces `Catcom.Ksa.{Readers,Actuators,Commands,Events,Slots,Bridge}`.
 
 - **Ports from gatOS (copy, re-namespace, keep behaviour, keep `[KsaAnchor]`s):**
   - Core (game-free): `gatOS.SimFs/Snapshots/SimSnapshot.cs` (all DTO records), `gatOS.SimFs/Telemetry/{Sanitize,EnumText,EventDiffer,SampleClock}.cs`, `gatOS.SimFs/Commands/{SimCommand,SimActions,CommandResult,ICommandExecutor,TranslateRules,RotateRules,ImpulseRules,ScaleRules}.cs`, plus `CommandQueue.cs` as `GameThreadQueue` (phases Frame/Solver, TCS with `RunContinuationsAsynchronously`, 2 s timeout, 64 per drain).
-  - Ksa: `gatOS.GameMod/Game/Ksa/{KsaAnchor,KsaHealth,KsaCatalog}.cs` → `ActionExecutor : ICommandExecutor` (keep only the vessel/module/debug/`camera.focus` routes; remove audio/schedule/paint/fx/welds/thug_life/iva/camera-director branches and return `Unsupported("not available in ksa-scripting v1")` for those keys), `Readers/{VesselReader,PartsReader,BodyReader,AnimationLinks}.cs`, `Actuators/{Engine,Throttle,Staging,Rcs,Translate,Rotate,FlightComputer,Light,Animation,Decoupler,Docking,Scale,Debug}Actuator.cs` and `CameraActuator.Focus` only, `Render/VesselForceRender.cs` (for `vessel.always_render`), `TelemetrySampler.cs` → `VesselCache` (sample on demand, cached per step).
-- **`SlotHost`:** Harmony id `ksa-scripting.slots`; postfix `Universe.ApplyVehicleSolvers()` → `StepSlot` (builds `StepInfo` from `Universe.GetElapsedSeconds()`, `Universe.GetLastSimStep().DeltaTime`, `Program.FrameNumber`; `StepLanded = dt > 0 && step index advanced`), then runs `EventDiffer` over the per-step snapshot and publishes; `Priority.First` prefix `Universe.ExecuteNextVehicleSolvers(double, SimStep)` → drains the Solver queue (`GameThreadQueue.Drain(Solver, executor, 64)`). A `[StarMapAfterOnFrame]` latch re-runs `StepSlot` with `StepLanded=false` on frames where the postfix did not fire (paused/loading).
-- **`EventPatches`:** Harmony id `ksa-scripting.events`; one static class per row of `docs/research/ksa-host/event-hook-points.md` (engine.activate via `EngineController.SetIsActive` postfix, `rcs.activate`, `stage`, `decouple`, `split`, `dock`, `undock`, `vessel.spawn/remove` via `CelestialSystem.Register/Deregister`, `vessel.launch`, `impact`, `vessel.destroy`, `part.failure`, `control.change` via `Program.set_ControlledVehicle` (diffed), `editor.enter/exit`, `save.write` (postfix `UncompressedSave.Write` → persist state sidecar), `save.load` (postfix `Program.OnGameLoaded` → restore), `system.load`, `warp.change` (diffed), `burn.complete/fuel_out` via `FlightComputer.RaisePendingAlerts` prefix). Each publishes `ScriptEvent` via `EventBus.PublishSync`. Install with `CreateClassProcessor(type).Patch()` per class in try/catch so a missing target darkens one event, not all.
+  - Ksa: `gatOS.GameMod/Game/Ksa/{KsaAnchor,KsaHealth,KsaCatalog}.cs` → `ActionExecutor : ICommandExecutor` (keep only the vessel/module/debug/`camera.focus` routes; remove audio/schedule/paint/fx/welds/thug_life/iva/camera-director branches and return `Unsupported("not available in catcom v1")` for those keys), `Readers/{VesselReader,PartsReader,BodyReader,AnimationLinks}.cs`, `Actuators/{Engine,Throttle,Staging,Rcs,Translate,Rotate,FlightComputer,Light,Animation,Decoupler,Docking,Scale,Debug}Actuator.cs` and `CameraActuator.Focus` only, `Render/VesselForceRender.cs` (for `vessel.always_render`), `TelemetrySampler.cs` → `VesselCache` (sample on demand, cached per step).
+- **`SlotHost`:** Harmony id `catcom.slots`; postfix `Universe.ApplyVehicleSolvers()` → `StepSlot` (builds `StepInfo` from `Universe.GetElapsedSeconds()`, `Universe.GetLastSimStep().DeltaTime`, `Program.FrameNumber`; `StepLanded = dt > 0 && step index advanced`), then runs `EventDiffer` over the per-step snapshot and publishes; `Priority.First` prefix `Universe.ExecuteNextVehicleSolvers(double, SimStep)` → drains the Solver queue (`GameThreadQueue.Drain(Solver, executor, 64)`). A `[StarMapAfterOnFrame]` latch re-runs `StepSlot` with `StepLanded=false` on frames where the postfix did not fire (paused/loading).
+- **`EventPatches`:** Harmony id `catcom.events`; one static class per row of `docs/research/ksa-host/event-hook-points.md` (engine.activate via `EngineController.SetIsActive` postfix, `rcs.activate`, `stage`, `decouple`, `split`, `dock`, `undock`, `vessel.spawn/remove` via `CelestialSystem.Register/Deregister`, `vessel.launch`, `impact`, `vessel.destroy`, `part.failure`, `control.change` via `Program.set_ControlledVehicle` (diffed), `editor.enter/exit`, `save.write` (postfix `UncompressedSave.Write` → persist state sidecar), `save.load` (postfix `Program.OnGameLoaded` → restore), `system.load`, `warp.change` (diffed), `burn.complete/fuel_out` via `FlightComputer.RaisePendingAlerts` prefix). Each publishes `ScriptEvent` via `EventBus.PublishSync`. Install with `CreateClassProcessor(type).Patch()` per class in try/catch so a missing target darkens one event, not all.
 - **`KsaBridge : IGameBridge`:** `Read/Snapshot/List` over `VesselCache` (`vessel:<id>`), `BodyReader` (`body:<id>`), time/system; `Execute` → `ActionExecutor`; `QueueSolver` → `GameThreadQueue.Post(cmd, observer)`; `EventCatalog` static list.
 - **`Watchdog`:** background thread; `Arm(IScriptRuntime rt, TimeSpan budget)` / `Disarm()`; on expiry `rt.Interrupt()` and sets a flag the scheduler reads.
 - **Snapshot path grammar:** `SnapshotPath.Resolve(object record, string path)`: dotted segments; camelCase or snake_case accepted (`position.cci`, `engines.0.active`, `battery.fraction`); lists by index; unknown → `ScriptValue.Null`. Reflection cached per (type, segment).
@@ -388,26 +388,26 @@ Event names (v1): `engine.activate`, `engine.deactivate`, `engine.ignite`, `engi
 
 ## 6. Runtime adapters
 
-### 6.1 LuaJIT (`KsaScripting.Runtime.Lua`) — see `plans/01-luajit-runtime-plan.md`
+### 6.1 LuaJIT (`Catcom.Runtime.Lua`) — see `plans/01-luajit-runtime-plan.md`
 
-- Native: `tools/build-natives.sh` cross-compiles LuaJIT `v2.1` at `tools/luajit.pin` for all three platforms on one Linux/macOS host with the pinned zig (`tools/zig.pin`; `zig cc -target x86_64-windows-gnu | x86_64-linux-gnu.2.17 | aarch64-macos.11.0`), `XCFLAGS="-DLUAJIT_DISABLE_FFI -DLUAJIT_ENABLE_CHECKHOOK"`, `tools/host_shim.c` compiled into the amalgamation, `-g0`; on Linux zig's bundled LLVM libunwind is linked statically (`-lunwind`) in place of libgcc_s. Each library is verified by `tools/natives-verify.py` (format, arch, exports, dependency allow-list, glibc <= 2.17 / macOS >= 11.0) and the CLI is run where the host can (natively, docker, wine). CI publishes the result as the `natives-v*` GitHub release; every host installs it with `tools/fetch-natives.*` into `src/KsaScripting.Runtime.Lua/runtimes/<rid>/native/` (gitignored). The csproj copies `runtimes/**` to output.
+- Native: `tools/build-natives.sh` cross-compiles LuaJIT `v2.1` at `tools/luajit.pin` for all three platforms on one Linux/macOS host with the pinned zig (`tools/zig.pin`; `zig cc -target x86_64-windows-gnu | x86_64-linux-gnu.2.17 | aarch64-macos.11.0`), `XCFLAGS="-DLUAJIT_DISABLE_FFI -DLUAJIT_ENABLE_CHECKHOOK"`, `tools/host_shim.c` compiled into the amalgamation, `-g0`; on Linux zig's bundled LLVM libunwind is linked statically (`-lunwind`) in place of libgcc_s. Each library is verified by `tools/natives-verify.py` (format, arch, exports, dependency allow-list, glibc <= 2.17 / macOS >= 11.0) and the CLI is run where the host can (natively, docker, wine). CI publishes the result as the `natives-v*` GitHub release; every host installs it with `tools/fetch-natives.*` into `src/Catcom.Runtime.Lua/runtimes/<rid>/native/` (gitignored). The csproj copies `runtimes/**` to output.
 - `LuaNative` (`[LibraryImport("lua51")]`, `[ModuleInitializer]` resolver loading `<asmDir>/runtimes/<rid>/native/<file>` by absolute path with os-arch fallback; never `Free`).
 - Shim exports: `host_timeout_hook(lua_State*, lua_Debug*)`, `host_raise(lua_State*)`, `host_traceback(lua_State*)`.
 - Rules: host functions are `[UnmanagedCallersOnly(CallConvs=[typeof(CallConvCdecl)])] static int F(nint L)`, body in try/catch, **only non-raising API calls**, errors returned as `(false, message)`; raising happens in the Lua prelude (`error(msg, 2)`) or via `host_raise`.
 - One `lua_State` per runtime; sandbox env per script (§3.6 of the LuaJIT research page); each hook invocation runs in a coroutine (`lua_newthread` + `lua_resume`); `IHostFacade.Wait` → the host function stores `(thread, wait)` and `return lua_yield(L, 0)`; `Advance` resumes threads whose waits completed. Watchdog: `lua_sethook(L, &host_timeout_hook, LUA_MASKCOUNT, 1)` from the watchdog thread.
 - Prelude `ksa.lua` embedded resource; stub `ksa.lua` (LuaCATS) generated.
 
-### 6.2 V8 (`KsaScripting.Runtime.V8`) — see `plans/02-v8-clearscript-typescript-runtime-plan.md`
+### 6.2 V8 (`Catcom.Runtime.V8`) — see `plans/02-v8-clearscript-typescript-runtime-plan.md`
 
 - Packages: `Microsoft.ClearScript.V8 7.5.1.1`, natives `win-x64`, `linux-x64`, `osx-arm64`. Dist copies `ClearScriptV8.<rid>.<ext>` under `runtimes/<rid>/native/`; set `HostSettings.AuxiliarySearchPath` to the mod dir before the first engine.
-- One `V8Runtime` (constraints `MaxOldSpaceSize=256, MaxNewSpaceSize=16`), one **compiler engine** with `typescript.js` (TS 6; `tools/fetch-ts.sh` downloads the npm tarball and copies `lib/typescript.js` + LICENSE into `src/KsaScripting.Runtime.V8/assets/`, gitignored) and the `sucrase` bundle (`spikes/assets/sucrase.bundle.js` copied), code cache persisted under the user data dir; one script engine per script with `EnableTaskPromiseConversion | UseSynchronizationContexts | EnableDynamicModuleImports | EnableStringifyEnhancements` (+ debugging flags when `DebugPort` set), `DocumentAccessFlags.None`, custom `TsDocumentLoader` restricted to the scripts dir, `ksa` prelude as a system document, `__host` = the facade wrapper via `AddHostObject("__host", HostItemFlags.DirectAccess, …)`.
+- One `V8Runtime` (constraints `MaxOldSpaceSize=256, MaxNewSpaceSize=16`), one **compiler engine** with `typescript.js` (TS 6; `tools/fetch-ts.sh` downloads the npm tarball and copies `lib/typescript.js` + LICENSE into `src/Catcom.Runtime.V8/assets/`, gitignored) and the `sucrase` bundle (`spikes/assets/sucrase.bundle.js` copied), code cache persisted under the user data dir; one script engine per script with `EnableTaskPromiseConversion | UseSynchronizationContexts | EnableDynamicModuleImports | EnableStringifyEnhancements` (+ debugging flags when `DebugPort` set), `DocumentAccessFlags.None`, custom `TsDocumentLoader` restricted to the scripts dir, `ksa` prelude as a system document, `__host` = the facade wrapper via `AddHostObject("__host", HostItemFlags.DirectAccess, …)`.
 - Game-thread `SynchronizationContext` whose `Post` enqueues to a queue drained in `Advance`; `Invoke` of async exports returns `Null` and lets the promise run.
 - Watchdog → `engine.Interrupt()`; heap soft limit per engine; `ScriptInterruptedException` → `ScriptRuntimeException("interrupted")`.
 - Source-map VLQ decoder for `.ts` line numbers in errors.
 
 ---
 
-## 7. GameMod (`KsaScripting.GameMod`)
+## 7. GameMod (`Catcom.GameMod`)
 
 - `Mod.cs` `[StarMapMod]`: `[StarMapImmediateLoad] void OnImmediateLoad(KSA.Mod)`, `[StarMapAllModsLoaded] void OnAllModsLoaded()` (config, paths, log sink, stub generation, runtimes, bridge, slots, event patches, console commands, purrTTY shells + launcher subscription, catalog scan + autostart, UI), `[StarMapBeforeGui]`, `[StarMapAfterGui] void OnAfterGui(double dt)` (Script Manager window, editor session pump), `[StarMapAfterOnFrame]` (latch), `[StarMapUnload]` (reverse teardown).
 - `ScriptManagerWindow` per `docs/research/architecture/script-manager-ui.md` (panes, toolbar, tabs Overview/Bindings/Terminal/Output/Code, global Events/Runtimes/Settings; templates; `FilterCombo`-style pickers copied from purrTTY `ImGuiWidgets`; hotkey guard prefix on `GameSettings.OnKeyAll` gated by a mod-scoped `_wantsTextInput` flag; menu via `[ModMenuEntry("Scripting")]` with the `DrawProgramMenusHook` postfix fallback; toggle hotkey default F11, configurable).
@@ -415,22 +415,22 @@ Event names (v1): `engine.activate`, `engine.deactivate`, `engine.ignite`, `engi
 - `TerminalPlacer` (`terminals.toml`) using `TerminalLauncherRegistry.Current` (Plan 00b contract); graceful "purrTTY launcher unavailable" path.
 - `EditorLauncher` + `Core.Editor.NvimRpcClient` (MessagePack 3.1.12 over `TcpClient`) per `docs/research/editor/neovim-tcp-launch.md`.
 - `ScriptCommands` (`[TerminalAction]`: `script run|start|stop|reload|list|edit|stubs|events`), `ScriptReplShell : BaseLineBufferedShell` per runtime (`ksa-lua-repl`, `ksa-ts-repl`).
-- `ModLogSink`, `ModPaths` (install dir = `Path.GetDirectoryName(typeof(Mod).Assembly.Location)`, data dir = `<Documents>/My Games/Kitten Space Agency/mods/ksa-scripting`).
+- `ModLogSink`, `ModPaths` (install dir = `Path.GetDirectoryName(typeof(Mod).Assembly.Location)`, data dir = `<Documents>/My Games/Kitten Space Agency/mods/catcom`).
 
 ---
 
 ## 8. purrTTY side (Plan 00b), vendoring, and the cross-mod assembly rule
 
-Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting` in `/Users/asherwin/repos/meow-sci/purrtty`. Then `dotnet build purrTTY.CustomShellContract -c Release` and copy `purrTTY.CustomShellContract.dll` + `purrTTY.Logging.dll` into `ksa-scripting/vendor/purrTTY/` with a README noting the purrtty commit. These vendored DLLs are **compile-time references only** (`Private=false`) and are **never shipped** in the dist.
+Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting` in `/Users/asherwin/repos/meow-sci/purrtty`. Then `dotnet build purrTTY.CustomShellContract -c Release` and copy `purrTTY.CustomShellContract.dll` + `purrTTY.Logging.dll` into `catcom/vendor/purrTTY/` with a README noting the purrtty commit. These vendored DLLs are **compile-time references only** (`Private=false`) and are **never shipped** in the dist.
 
 **How StarMap actually shares assemblies** (real source: `/Users/asherwin/repos/meow-sci/StarMap`, see `docs/research/ksa-host/starmap-loader-and-assembly-load-context.md`): a mod's `ModAssemblyLoadContext.Load` resolves, in order, assemblies already in the default/core contexts, then the load contexts of the dependency mods named in `[[StarMap.ModDependencies]]` for the names in the *usable set* (the dependency's `ExportedAssemblies` ∩ the importer's `ImportedAssemblies` when both are non-empty; when the dependency loads later than the importer only `ImportedAssemblies` is used), then the mod's own `deps.json`. That dependency wiring is only attached to the load context *after* the entry assembly has been loaded. StarMap builds before PR #86 (2026-09-15) enumerate the entry assembly's types (`GetTypes()`) at that point, before the wiring exists, so a type **defined** in the entry assembly whose base class or interface is a purrTTY type resolves the contract through the local `deps.json` copy, splitting type identity (purrTTY's registries become invisible; and without a local copy the mod fails to load at all). Rules that follow, which hold on both old and new StarMap builds:
 
 1. Ship no purrTTY DLL. `tools/check-dist.py` treats them as forbidden.
-2. The entry assembly `KsaScripting.GameMod` contains no purrTTY type in any type definition, field, property, signature or attribute. Everything that touches the contract (`ScriptTerminalShell`, `ScriptReplShell`, launcher access, editor window launch) lives in `KsaScripting.PurrTty.dll`, which implements `KsaScripting.GameMod.Terminals.IPurrTtyBridge` and is loaded by `PurrTtyBridge.TryLoad` with `AssemblyLoadContext.GetLoadContext(entryAssembly).LoadFromAssemblyPath(...)` only when `KsaMods.IsLoaded("purrTTY")`; failures degrade to "purrTTY unavailable" with the reason logged.
-3. `KsaScripting.PurrTty.dll` is not in the entry assembly's `deps.json` (it is not a compile-time dependency), which is why it is loaded by explicit path into the mod's own context; its own references (contract, GameMod, Core) resolve through that context's `Load`.
+2. The entry assembly `Catcom.GameMod` contains no purrTTY type in any type definition, field, property, signature or attribute. Everything that touches the contract (`ScriptTerminalShell`, `ScriptReplShell`, launcher access, editor window launch) lives in `Catcom.PurrTty.dll`, which implements `Catcom.GameMod.Terminals.IPurrTtyBridge` and is loaded by `PurrTtyBridge.TryLoad` with `AssemblyLoadContext.GetLoadContext(entryAssembly).LoadFromAssemblyPath(...)` only when `KsaMods.IsLoaded("purrTTY")`; failures degrade to "purrTTY unavailable" with the reason logged.
+3. `Catcom.PurrTty.dll` is not in the entry assembly's `deps.json` (it is not a compile-time dependency), which is why it is loaded by explicit path into the mod's own context; its own references (contract, GameMod, Core) resolve through that context's `Load`.
 4. The data folder derives from `KSA.Constants.DocumentsFolderPath` so StarMap's `-InstancePath` / `STARMAP_INSTANCE_PATH` override is honoured.
 
-## 9. Config (`ksa-scripting.toml`, Tomlyn)
+## 9. Config (`catcom.toml`, Tomlyn)
 
 | key | default | meaning |
 |---|---|---|
@@ -458,7 +458,7 @@ Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting
 
 1. `tools/fetch-nvim.sh|.ps1 [rid...]` → `editor/<rid>/nvim/` from GitHub releases v0.12.6 (`nvim-win64.zip`, `nvim-linux-x86_64.tar.gz`, `nvim-macos-arm64.tar.gz`); delete `bin/xxd.exe`, `bin/win32yank.exe`; keep `LICENSE.txt`; print sizes. Idempotent (skip if present).
 2. `tools/fetch-lsp.sh|.ps1 [rid...]` → `editor/<rid>/lsp/lua-language-server/` (LuaLS 3.19.2 release assets) and `editor/<rid>/lsp/typescript/` (TypeScript 7.0.2 `typescript-<os>-<arch>.tgz` from the typescript-go GitHub release; keep `lib/tsc[.exe]` and `lib/*.d.ts`, LICENSE).
-3. `tools/fetch-ts.sh|.ps1` → `src/KsaScripting.Runtime.V8/assets/typescript.js` + `LICENSE.txt` from `https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz` (pin in `tools/typescript.pin`); copy `spikes/assets/sucrase.bundle.js` alongside.
+3. `tools/fetch-ts.sh|.ps1` → `src/Catcom.Runtime.V8/assets/typescript.js` + `LICENSE.txt` from `https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz` (pin in `tools/typescript.pin`); copy `spikes/assets/sucrase.bundle.js` alongside.
 4. `tools/build-natives.sh` → `editor/<rid>/nvim/lib/nvim/parser/typescript.{so,dylib,dll}` from `tree-sitter-typescript` v0.23.2 sources (`src/parser.c` + `src/scanner.c`, `zig cc -target <rid> -shared -O2 -g0`, all three platforms from one host; installed by `tools/fetch-natives.*`); queries from `nvim-treesitter` (`queries/typescript/{highlights,injections,locals}.scm`) into `editor/config/ksa-editor/queries/typescript/` by `tools/refresh-ts-queries.sh`.
 5. `editor/config/ksa-editor/init.lua`: the verified config (research page `editor/neovim-shipping.md` §Minimal init.lua) plus `vim.o.shell = vim.env.KSA_NOSHELL`, `shellcmdflag=''`, `mouse='a'`, `backupcopy='yes'`, LSP configs from `KSA_LSP_DIR`, completion, `BufWritePost → vim.rpcnotify(0,'ksa_saved', path, buf)`, `VimEnter` banner, `<C-z>` no-op.
 6. `scripts-lib/tui.ts` and `tui.lua`: **escape-code toolkit only** (first pass): `Screen` (enterApp/leaveApp with alt screen, cursor hide, mouse press/release SGR, optional kitty flags; `frame(fn)` wrapping DEC 2026; `clear`, `moveTo`, `write`, `style(fg,bg,bold…)`, `box(x,y,w,h,title)`, `hline/vline`, `fill`), `parseInput(term)` async-iterator / Lua yielding iterator producing `{kind:'key', name, mods, text}` | `{kind:'mouse', button, action:'press'|'release'|'motion'|'wheel', col, row, mods}` | `{kind:'reply', bytes}` | `{kind:'text', text}` with an incremental CSI/SS3/APC/OSC state machine handling legacy and kitty encodings exactly per `docs/research/existing-mods/purrtty-virtual-pty-bridge.md`, plus `Rect.contains(col,row)` and `Button` (draw + `hit(ev)`), `Toggle`, `ProgressBar`, `Label`. No widget framework, no layout engine.
@@ -469,11 +469,11 @@ Implement `plans/00b-purrtty-scripting-extensions-plan.md` on `feature/scripting
 ## 11. Tests and commands
 
 ```bash
-dotnet build ksa-scripting.slnx -nologo -v quiet                 # everything (game projects only when KSA_DLL_DIR / sibling checkout resolves)
+dotnet build catcom.slnx -nologo -v quiet                        # everything (game projects only when KSA_DLL_DIR / sibling checkout resolves)
 tools/fetch-all.sh                                               # once: every shipped binary, all platforms (Windows: tools/fetch-all.ps1)
-dotnet test  ksa-scripting.slnx --nologo -v quiet                # Core + runtime tests
-dotnet build src/KsaScripting.Dist -c Release                    # deploys the dist folder (builds GameMod + the purrTTY bridge)
-python3 tools/check-dist.py "$HOME/repos/meow-sci/mods/ksa-scripting"
+dotnet test  catcom.slnx --nologo -v quiet                       # Core + runtime tests
+dotnet build src/Catcom.Dist -c Release                          # deploys the dist folder (builds GameMod + the purrTTY bridge)
+python3 tools/check-dist.py "$HOME/repos/meow-sci/mods/catcom"
 cd /Users/asherwin/repos/meow-sci/purrtty && dotnet test purrtty.slnx --nologo -v quiet
 ```
 
@@ -487,12 +487,12 @@ Required test coverage per work package is listed in §12; tests must be quiet a
 |---|---|---|---|
 | **WP1 Scaffold + Core contracts** | solution, props, all csproj (empty where another WP fills), mod.toml, dist target, `Core.Values`, `Core.Runtime`, `Core.Hosting` interfaces, `Core.Logging`, `Core.Config`, ported gatOS DTOs/commands/sanitize/differ into `Core.Snapshots`/`Core.Commands`, `GameThreadQueue` (Core.Scheduling), `SnapshotPath` | builds game-free; tests for ScriptValue (json round trip, FromObject), SnapshotPath, SimCommand.PhaseFor, GameThreadQueue (timeout, batch, abandoned), EventDiffer (ported tests from gatOS if present) | `dotnet build` + `dotnet test` green on this Mac; committed |
 | **WP2 Core hooks/scheduler/catalog/terminals/persistence** | `HookRegistry`, `BindingStore`, `EventBus`, `Scheduler`, `Watchdog` (Core), `ScriptCatalog`, `ScriptWatcher`, `ScriptTerminal`/`TerminalRegistry`, `ScriptStateStore`, `HostFacade`, `NullRuntime` (test runtime driven by C# lambdas) | tests: scheduler ordering/budgets/waits on all clocks; event delivery sync vs async; bindings persistence round trip; catalog load/reload-keeps-old-on-failure; terminal ring-buffer replay, smallest-grid, DEC 2026 wrapping, input queue/termRead; state store toml | green; committed |
-| **WP3 ApiSchema + generators + preludes** | `Core.Api` schema for §5, generators, golden tests; `ksa.js` and `ksa.lua` preludes as embedded resources in the runtime projects (shared source under `src/KsaScripting.Core/Api/Preludes/` copied by MSBuild) | golden files match; preludes parse (checked by the runtime tests in WP5/WP6) | green; committed |
-| **WP4 Ksa facade** | ports listed in §4, `ActionExecutor`, `VesselCache`, `KsaBridge`, `SlotHost`, `EventPatches`, `Watchdog` wiring, CompileCheck project with one stub per patched member | `dotnet build src/KsaScripting.Ksa` and `tests/KsaScripting.Ksa.CompileCheck` succeed against the 5554 DLLs; zero warnings | green; committed |
+| **WP3 ApiSchema + generators + preludes** | `Core.Api` schema for §5, generators, golden tests; `ksa.js` and `ksa.lua` preludes as embedded resources in the runtime projects (shared source under `src/Catcom.Core/Api/Preludes/` copied by MSBuild) | golden files match; preludes parse (checked by the runtime tests in WP5/WP6) | green; committed |
+| **WP4 Ksa facade** | ports listed in §4, `ActionExecutor`, `VesselCache`, `KsaBridge`, `SlotHost`, `EventPatches`, `Watchdog` wiring, CompileCheck project with one stub per patched member | `dotnet build src/Catcom.Ksa` and `tests/Catcom.Ksa.CompileCheck` succeed against the 5554 DLLs; zero warnings | green; committed |
 | **WP5 LuaJIT runtime** | §6.1 + `tools/build-natives.sh` + shim + tests (state lifecycle, sandbox escapes fail, host error protocol, coroutine wait/resume via a fake host, watchdog interrupt JIT on/off with CHECKHOOK build, memory polling, exports discovery, prelude smoke: `ksa.vessel("x").throttle(0.5)` reaches a fake facade with the right action) | osx-arm64 native built locally; tests green | committed |
 | **WP6 V8 runtime** | §6.2 + `tools/fetch-ts.*` + tests (transpile fixtures incl. enums/imports, loader containment, async export → scheduler continuation via a fake host, interrupt, heap limit, exports discovery, source-map line mapping, prelude smoke identical to WP5) | tests green on osx-arm64 native | committed |
-| **WP7 purrTTY extension** | Plan 00b on `feature/scripting`; vendored DLLs refreshed in ksa-scripting | `dotnet build purrtty.slnx` + `dotnet test purrtty.slnx` green; purrtty commits; vendor commit in ksa-scripting | |
-| **WP8 GameMod** | §7 complete: Mod lifecycle, Script Manager window, console commands, REPL shells, ScriptTerminalShell, TerminalPlacer, EditorLauncher, NvimRpcClient (Core.Editor) + its tests (frame encode/decode, notification dispatch against an in-process fake server over TCP), templates | `dotnet build src/KsaScripting.Dist -c Release` deploys a dist that `tools/check-dist.py` accepts | committed |
+| **WP7 purrTTY extension** | Plan 00b on `feature/scripting`; vendored DLLs refreshed in catcom | `dotnet build purrtty.slnx` + `dotnet test purrtty.slnx` green; purrtty commits; vendor commit in catcom | |
+| **WP8 GameMod** | §7 complete: Mod lifecycle, Script Manager window, console commands, REPL shells, ScriptTerminalShell, TerminalPlacer, EditorLauncher, NvimRpcClient (Core.Editor) + its tests (frame encode/decode, notification dispatch against an in-process fake server over TCP), templates | `dotnet build src/Catcom.Dist -c Release` deploys a dist that `tools/check-dist.py` accepts | committed |
 | **WP9 Assets, tools, tui libs, docs, CI** | §10 scripts (run them here for osx-arm64 and verify), `scripts-lib/tui.*` with tests where possible (TS parser tested in V8 tests; Lua parser tested in Lua tests), `.github/workflows/build.yml`, `docs/VALIDATION.md` in-game checklist, README, bundle `log.md`, THIRD-PARTY-NOTICES | scripts run; tests green | committed |
 
 Dependency order: WP1 → {WP2, WP3, WP4, WP5, WP6, WP7, WP9-tools} in parallel → WP8 (needs WP2–WP7) → WP9 docs/CI last.

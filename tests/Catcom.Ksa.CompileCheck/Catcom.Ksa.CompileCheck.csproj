@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- Build-only class library (NOT a test project): one Harmony stub per member the Ksa facade
+         patches. It exists so a KSA game update that renames or re-signs a patched member breaks
+         THIS build loudly, before anyone launches the game. Grows from spikes/HookCompileCheck.
+         Nothing in it is ever executed or shipped. -->
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyName>Catcom.Ksa.CompileCheck</AssemblyName>
+        <RootNamespace>Catcom.Ksa.CompileCheck</RootNamespace>
+        <Description>Build-only compile check of the KSA members the Ksa facade patches with Harmony.</Description>
+        <IsPackable>false</IsPackable>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- Game-free CI has no KSA assemblies to check against: compile nothing. -->
+    <ItemGroup Condition="'$(KsaAssembliesPresent)' != 'true'">
+        <Compile Remove="**/*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Catcom.Ksa\Catcom.Ksa.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Lib.Harmony" Version="2.4.2">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="StarMap.API" Version="0.3.6">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="KSA" Condition="Exists('$(KSAFolder)KSA.dll')">
+            <HintPath>$(KSAFolder)KSA.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Common" Condition="Exists('$(KSAFolder)Brutal.Core.Common.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Common.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Logging" Condition="Exists('$(KSAFolder)Brutal.Core.Logging.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Logging.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Numerics" Condition="Exists('$(KSAFolder)Brutal.Core.Numerics.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Numerics.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Strings" Condition="Exists('$(KSAFolder)Brutal.Core.Strings.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Strings.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Concurrency" Condition="Exists('$(KSAFolder)Brutal.Concurrency.dll')">
+            <HintPath>$(KSAFolder)Brutal.Concurrency.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.ImGui" Condition="Exists('$(KSAFolder)Brutal.ImGui.dll')">
+            <HintPath>$(KSAFolder)Brutal.ImGui.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.ImGui.Abstractions" Condition="Exists('$(KSAFolder)Brutal.ImGui.Abstractions.dll')">
+            <HintPath>$(KSAFolder)Brutal.ImGui.Abstractions.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Core.Memory" Condition="Exists('$(KSAFolder)Brutal.Core.Memory.dll')">
+            <HintPath>$(KSAFolder)Brutal.Core.Memory.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Vulkan" Condition="Exists('$(KSAFolder)Brutal.Vulkan.dll')">
+            <HintPath>$(KSAFolder)Brutal.Vulkan.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Brutal.Vulkan.Abstractions" Condition="Exists('$(KSAFolder)Brutal.Vulkan.Abstractions.dll')">
+            <HintPath>$(KSAFolder)Brutal.Vulkan.Abstractions.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Planet.Render.Core" Condition="Exists('$(KSAFolder)Planet.Render.Core.dll')">
+            <HintPath>$(KSAFolder)Planet.Render.Core.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+</Project>

@@ -4,7 +4,7 @@ Status: proposed · Repo: `/Users/asherwin/repos/meow-sci/purrtty`, branch `feat
 
 ## 1. Goal
 
-Let another mod (ksa-scripting) open and manage purrTTY terminals from code — a 2D window or tab running either a registered custom shell (the script's virtual terminal) or a real process (the shipped nvim), and an in-world terminal on a vehicle part addressed by `Part.InstanceId` — with handles, lifecycle events and main-thread marshalling hidden inside purrTTY. Keep the ABI in the already-exported `purrTTY.CustomShellContract`; export nothing new.
+Let another mod (catcom) open and manage purrTTY terminals from code — a 2D window or tab running either a registered custom shell (the script's virtual terminal) or a real process (the shipped nvim), and an in-world terminal on a vehicle part addressed by `Part.InstanceId` — with handles, lifecycle events and main-thread marshalling hidden inside purrTTY. Keep the ABI in the already-exported `purrTTY.CustomShellContract`; export nothing new.
 
 ## 2. Work breakdown
 
@@ -38,7 +38,7 @@ POCOs and interfaces only (no `ProcessLaunchOptions`, ImGui or KSA types) so the
 
 - `TerminalWindowSettings.NoResize` + OR the ImGui flag in `TerminalWindow.Render`.
 - `public event Action<TerminalWindow>? Closed` raised in `TerminalWindow.Close()`/`Dispose`.
-- Forward `TerminalProgramSpec.Configuration` into `CustomShellStartOptions.Configuration` in `CustomShellPtyBridge.StartAsync` (one line) — or rely on env vars (ksa-scripting uses `KSA_SCRIPT` in env regardless).
+- Forward `TerminalProgramSpec.Configuration` into `CustomShellStartOptions.Configuration` in `CustomShellPtyBridge.StartAsync` (one line) — or rely on env vars (catcom uses `KSA_SCRIPT` in env regardless).
 - `InWorldTerminalRecord.TargetPartInstanceId` (`uint?`) + a branch in `InWorldQuad.ResolveTopLevelPart/ResolvePart` matching `p.InstanceId` (preferred over `TargetPartId` when set); persist it in `LayoutTomlFormat` as `part_instance_id`.
 - Optional: `public event Action<InWorldTerminalInstance, bool>? FocusChanged`.
 
@@ -47,7 +47,7 @@ POCOs and interfaces only (no `ProcessLaunchOptions`, ImGui or KSA types) so the
 - Pure mapping/state-machine class `TerminalLaunchMapper` in `purrTTY.Display` covered by `purrTTY.Display.Tests` (request → `ProcessLaunchOptions`/`InWorldTerminalRecord`, handle state transitions).
 - Existing `CustomShellPtyBridgeTests` extended for `Configuration` forwarding.
 - Docs: `docs/how-to.md` "Launch a terminal from another mod", `docs/code-navigation.md` (Launcher/), `docs/gotchas.md` (launcher main-thread pump; `IsVisible` ordering; in-world click-also-press), `AGENTS.md` contract list; fix the two stale notes found in research (`gotchas.md` §18 inbox size 24 MiB; `InWorldTerminalRenderer` class doc about input).
-- Refresh the vendored contract DLLs in gatOS and ksa-scripting (`vendor/purrTTY/`) after merge.
+- Refresh the vendored contract DLLs in gatOS and catcom (`vendor/purrTTY/`) after merge.
 
 ## 3. Acceptance
 
@@ -58,5 +58,5 @@ From a test mod calling the contract: open a 2D window running a custom shell wi
 | Risk | Mitigation |
 |---|---|
 | Contract version drift between purrTTY and consumers | additive-only types; minor version bump; consumers treat `TerminalLauncherRegistry.Current == null` as "feature unavailable" |
-| Launch requests before purrTTY initialised | `IsAvailable` + `Changed` event; ksa-scripting retries placements on `Changed` |
+| Launch requests before purrTTY initialised | `IsAvailable` + `Changed` event; catcom retries placements on `Changed` |
 | `IsVisible` ordering spawning a default shell | create the window first (documented gotcha) |

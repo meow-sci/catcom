@@ -28,7 +28,7 @@ status: draft
 A **terminal script** is a service (forever) script whose context carries a `term`: a virtual terminal the script draws into with ordinary escape sequences and reads keyboard/mouse bytes from, exactly like a TUI program on a pty — except there is no pty and no OS process. purrTTY renders it through its custom-shell "mock pty" path (verified identical to real pty sessions for every VT mode) in a 2D window, as a tab, or on an **in-world quad anchored to a vehicle part**, where clicks are ray-cast to cells and arrive as SGR mouse reports.[^bridge][^inworld]
 
 ```
-script (Lua/TS, game thread)              host (KsaScripting)                                purrTTY
+script (Lua/TS, game thread)              host (Catcom)                                purrTTY
 ──────────────────────────                ──────────────────────────────────                 ──────────────────────────
 term.write("\x1b[?1049h…")  ──────────▶   ScriptTerminal.ring buffer ──QueueOutput──▶  ScriptTerminalShell : BaseChannelOutputShell
                                                ▲ flushed once per Step slot                     │ OutputReceived → Surface.Write → libghostty-vt

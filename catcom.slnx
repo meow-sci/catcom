@@ -1,0 +1,22 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+        <Platform Name="x64" />
+        <Platform Name="x86" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/Catcom.Core/Catcom.Core.csproj" />
+        <Project Path="src/Catcom.Ksa/Catcom.Ksa.csproj" />
+        <Project Path="src/Catcom.Runtime.Lua/Catcom.Runtime.Lua.csproj" />
+        <Project Path="src/Catcom.Runtime.V8/Catcom.Runtime.V8.csproj" />
+        <Project Path="src/Catcom.GameMod/Catcom.GameMod.csproj" />
+        <Project Path="src/Catcom.PurrTty/Catcom.PurrTty.csproj" />
+        <Project Path="src/Catcom.Dist/Catcom.Dist.csproj" />
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/Catcom.Core.Tests/Catcom.Core.Tests.csproj" />
+        <Project Path="tests/Catcom.Runtime.Lua.Tests/Catcom.Runtime.Lua.Tests.csproj" />
+        <Project Path="tests/Catcom.Runtime.V8.Tests/Catcom.Runtime.V8.Tests.csproj" />
+        <Project Path="tests/Catcom.Ksa.CompileCheck/Catcom.Ksa.CompileCheck.csproj" />
+    </Folder>
+</Solution>

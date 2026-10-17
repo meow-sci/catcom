@@ -9,7 +9,7 @@ status: stable
 
 > Mirrored from the session scratchpad into the bundle so the cited source outlives the session. Scratchpad paths mentioned inside (e.g. harness locations) no longer exist.
 
-# gatOS internals — the game read/write model, extracted for `ksa-scripting`
+# gatOS internals — the game read/write model, extracted for `catcom`
 
 Source repo: `/Users/asherwin/repos/meow-sci/gatOS` (all paths below are relative to it unless absolute).
 Game baseline the code is anchored against: KSA `2026.10.10.5554` (179 `[KsaAnchor]` sites; `AGENTS.md:77-89`).
@@ -667,7 +667,7 @@ ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 
 ---
 
-## 12. What this implies for `ksa-scripting` (brief, derived from the above)
+## 12. What this implies for `catcom` (brief, derived from the above)
 
 1. **Tick scripts where gatOS drains**: expose a Frame-phase slot (viewport prefix or `[StarMapBeforeGui]` + `[StarMapAfterOnFrame]` F2-proof fallback with the same latch trick), a **Solver-phase** slot (`Priority.First` prefix on `Universe.ExecuteNextVehicleSolvers`) for FC setpoints/teleports/refills, and a **post-solver** slot (`JobSystems.VehicleSolver.Wait()` first) for per-frame re-posing. Keep `SimCommand.SolverActions` as the phase truth table.
 2. **Reads**: either hand scripts the immutable `SimSnapshot`-style records (cheap, consistent, warp-safe) or live KSA objects wrapped by the same reader functions (`VesselReader.*`, `BodyReader.*`, `PartsReader.Sample`) — the readers are already single-pass, cached and NaN-scrubbed.

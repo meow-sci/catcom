@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyName>Catcom.Runtime.V8</AssemblyName>
+        <RootNamespace>Catcom.Runtime.V8</RootNamespace>
+        <Description>V8 (ClearScript) TypeScript/JavaScript script runtime adapter.</Description>
+        <!-- A class library does not copy its NuGet dependencies to its own output by default. This project's
+             output (and anything that copies it, e.g. the GameMod dist target) must carry ClearScript.*.dll,
+             Newtonsoft.Json.dll and the runtimes/<rid>/native/ClearScriptV8.<rid>.* natives. -->
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Catcom.Core\Catcom.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.ClearScript.V8" Version="7.5.1.1" />
+        <PackageReference Include="Microsoft.ClearScript.V8.Native.win-x64" Version="7.5.1.1" />
+        <PackageReference Include="Microsoft.ClearScript.V8.Native.linux-x64" Version="7.5.1.1" />
+        <PackageReference Include="Microsoft.ClearScript.V8.Native.osx-arm64" Version="7.5.1.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Catcom.Runtime.V8.Tests" />
+    </ItemGroup>
+
+    <!-- The TypeScript transpiler assets (typescript.js, sucrase.bundle.js, licences) are downloaded into assets/ by
+         tools/fetch-ts.sh (gitignored). They are copied next to the assembly as <output>/assets/ and located at run
+         time through <assembly dir>/assets (override: env KSA_V8_ASSETS_DIR). Flows to referencing projects too. -->
+    <ItemGroup>
+        <None Include="assets/**"
+              Exclude="assets/.gitignore;assets/.typescript-version"
+              CopyToOutputDirectory="PreserveNewest"
+              Link="assets/%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <!-- The ksa prelude: the real one is written by the API/prelude team in Core (src/Catcom.Core/Api/Preludes/ksa.js);
+         until it exists a small placeholder over the same __host contract is embedded instead.
+         -p:KsaV8PlaceholderPrelude=true forces the placeholder (to check the runtime against the minimal contract). -->
+    <ItemGroup>
+        <EmbeddedResource Include="..\Catcom.Core\Api\Preludes\ksa.js"
+                          LogicalName="Catcom.Runtime.V8.ksa.js"
+                          Condition="'$(KsaV8PlaceholderPrelude)' != 'true' AND Exists('..\Catcom.Core\Api\Preludes\ksa.js')" />
+        <EmbeddedResource Include="Prelude\ksa.placeholder.js"
+                          LogicalName="Catcom.Runtime.V8.ksa.js"
+                          Condition="'$(KsaV8PlaceholderPrelude)' == 'true' OR !Exists('..\Catcom.Core\Api\Preludes\ksa.js')" />
+    </ItemGroup>
+
+</Project>

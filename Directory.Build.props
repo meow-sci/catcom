@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>13.0</LangVersion>
-        <!-- Keep in sync with src/KsaScripting.GameMod/mod.toml `version`. -->
+        <!-- Keep in sync with src/Catcom.GameMod/mod.toml `version`. -->
         <Version>0.1.0</Version>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -30,7 +30,7 @@
     <!--
         ===== KSA game paths =====
 
-        RepoRoot — this repo's root directory (trailing slash). Used by the KsaScripting.Dist deploy
+        RepoRoot — this repo's root directory (trailing slash). Used by the Catcom.Dist deploy
         target to reach editor/, scripts-lib/, vendor/ and the license files.
 
         KSAFolder — directory containing the KSA reference assemblies (KSA.dll,
@@ -43,15 +43,15 @@
           3. Per-OS developer defaults (game install on Windows; the
              ksa-game-assemblies checkout on macOS/Linux).
 
-        Only KsaScripting.Ksa, KsaScripting.GameMod and the Ksa.CompileCheck project reference
-        these assemblies (KsaScripting.PurrTty consumes GameMod, so it is compile-removed too): the references are condition-guarded and their sources are
+        Only Catcom.Ksa, Catcom.GameMod and the Ksa.CompileCheck project reference
+        these assemblies (Catcom.PurrTty consumes GameMod, so it is compile-removed too): the references are condition-guarded and their sources are
         compile-removed when KsaAssembliesPresent is not 'true', so every game-free project
         (Core, the runtimes, their tests) builds even when the KSA DLLs are absent.
 
-        KsaScriptingDistDir — the FULL folder the built mod is deployed to by the
-        KsaScripting.Dist project (nothing is appended to it). Override with KSA_SCRIPTING_DIST_DIR (CI zips that
-        folder); defaults to <KSAUserDir>mods/ksa-scripting/ (on macOS/Linux that is
-        $HOME/repos/meow-sci/mods/ksa-scripting/).
+        CatcomDistDir — the FULL folder the built mod is deployed to by the
+        Catcom.Dist project (nothing is appended to it). Override with CATCOM_DIST_DIR (CI zips that
+        folder); defaults to <KSAUserDir>mods/catcom/ (on macOS/Linux that is
+        $HOME/repos/meow-sci/mods/catcom/).
 
         NOTE: spikes/ has its own Directory.Build.props, which shadows this one for everything
         below spikes/ — it does not inherit any of the properties above.
@@ -71,7 +71,7 @@
         <KSAUserDir Condition="'$(KSAUserDir)' == '' AND '$(OS)' == 'Windows_NT'">$(USERPROFILE)\Documents\My Games\Kitten Space Agency\</KSAUserDir>
         <KSAUserDir Condition="'$(KSAUserDir)' == ''">$(HOME)/repos/meow-sci/</KSAUserDir>
         <KSAUserModDir>$(KSAUserDir)mods/</KSAUserModDir>
-        <KsaScriptingDistDir Condition="'$(KsaScriptingDistDir)' == '' AND '$(KSA_SCRIPTING_DIST_DIR)' != ''">$([MSBuild]::EnsureTrailingSlash('$(KSA_SCRIPTING_DIST_DIR)'))</KsaScriptingDistDir>
-        <KsaScriptingDistDir Condition="'$(KsaScriptingDistDir)' == ''">$(KSAUserModDir)ksa-scripting/</KsaScriptingDistDir>
+        <CatcomDistDir Condition="'$(CatcomDistDir)' == '' AND '$(CATCOM_DIST_DIR)' != ''">$([MSBuild]::EnsureTrailingSlash('$(CATCOM_DIST_DIR)'))</CatcomDistDir>
+        <CatcomDistDir Condition="'$(CatcomDistDir)' == ''">$(KSAUserModDir)catcom/</CatcomDistDir>
     </PropertyGroup>
 </Project>

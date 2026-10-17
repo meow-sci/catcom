@@ -1,7 +1,7 @@
 ---
 type: Platform Analysis
 title: KSA runtime facts and mod packaging layout
-description: The game's .NET runtime, how a mod folder is laid out and deployed, the deny-list DLL glob, what must never be shipped, and the dist conventions gatOS and purrTTY already follow that ksa-scripting should copy.
+description: The game's .NET runtime, how a mod folder is laid out and deployed, the deny-list DLL glob, what must never be shipped, and the dist conventions gatOS and purrTTY already follow that catcom should copy.
 tags: [packaging, dotnet, net10, deploy, mod-folder]
 sources:
   - id: runtimeconfig
@@ -54,7 +54,7 @@ gatOS also keeps large content-stable blobs (guest image, QEMU) outside the wipe
 
 # Persistence paths
 
-Per the `ksa` skill convention, mod data goes under `<Documents>/My Games/Kitten Space Agency/mods/<mod-kebab-name>/`. On Windows the install dir and data dir coincide, so a deploy wipe must exclude the live config (gatOS excludes `gatos.toml`). For ksa-scripting this is where the user's script tree should live so that nvim edits and the loader see the same files.
+Per the `ksa` skill convention, mod data goes under `<Documents>/My Games/Kitten Space Agency/mods/<mod-kebab-name>/`. On Windows the install dir and data dir coincide, so a deploy wipe must exclude the live config (gatOS excludes `gatos.toml`). For catcom this is where the user's script tree should live so that nvim edits and the loader see the same files.
 
 [^runtimeconfig]: KSA.runtimeconfig.json (Linux install 2026.10.10.5554)
 [^gatos-csproj]: gatOS.GameMod.csproj

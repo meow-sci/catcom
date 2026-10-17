@@ -1,7 +1,7 @@
 ---
 type: Runtime Evaluation
 title: Jint (pure C# JavaScript engine)
-description: Evaluation of Jint 4.17.0 as a zero-native-dependency JavaScript runtime for ksa-scripting, with its constraint model, module and Task interop support, debugging, measured TypeScript-transpile cost, and the trade-off against V8.
+description: Evaluation of Jint 4.17.0 as a zero-native-dependency JavaScript runtime for catcom, with its constraint model, module and Task interop support, debugging, measured TypeScript-transpile cost, and the trade-off against V8.
 resource: https://github.com/sebastienros/jint
 tags: [runtime, javascript, jint, managed, fallback]
 sources:
@@ -21,7 +21,7 @@ generated: { by: claude-fable-5.1/ksa-scripting-research, at: 2026-10-16T21:00:0
 status: stable
 ---
 
-> **Decision (2026-10-16):** Jint is not pursued for ksa-scripting; this page remains as reference evidence. See the [recommendation](/decisions/recommendation.md).
+> **Decision (2026-10-16):** Jint is not pursued for catcom; this page remains as reference evidence. See the [recommendation](/decisions/recommendation.md).
 
 # Status (2026-10-16)
 

@@ -18,7 +18,7 @@
 #   before it is pinned. `--from` archives are checked against DIR/SHA256SUMS only and never pinned.
 #
 # Installs (per rid):
-#   src/KsaScripting.Runtime.Lua/runtimes/<rid>/native/<luajit lib>, .luajit-commit, .ksa-natives
+#   src/Catcom.Runtime.Lua/runtimes/<rid>/native/<luajit lib>, .luajit-commit, .ksa-natives
 #   editor/<rid>/nvim/lib/nvim/parser/typescript.<ext>, .typescript.ksa-version, .ksa-natives
 #       (needs that rid's Neovim: tools/fetch-nvim.sh runs first in tools/fetch-all.sh)
 #   tools/.cache/bin/<rid>/luajit[.exe]  (the CLI, for manual checks; not shipped)
@@ -29,7 +29,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TOOLS="$REPO_ROOT/tools"
 LOCK="$TOOLS/assets.lock"
-RUNTIMES_DIR="${KSA_RUNTIMES_DIR:-$REPO_ROOT/src/KsaScripting.Runtime.Lua/runtimes}"   # override for test copies
+RUNTIMES_DIR="${KSA_RUNTIMES_DIR:-$REPO_ROOT/src/Catcom.Runtime.Lua/runtimes}"   # override for test copies
 EDITOR_DIR="${KSA_EDITOR_DIR:-$REPO_ROOT/editor}"
 BIN_DIR="$TOOLS/.cache/bin"
 ALL_RIDS="win-x64 linux-x64 osx-arm64"

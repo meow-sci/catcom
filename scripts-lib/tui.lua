@@ -1,4 +1,4 @@
---- tui.lua - escape-code toolkit for terminal scripts (ksa-scripting).
+--- tui.lua - escape-code toolkit for terminal scripts (catcom).
 --
 -- Dependency-free (LuaJIT 2.1 / Lua 5.1 dialect, sandbox-safe: uses only
 -- type, tostring, tonumber, setmetatable, pcall, error, unpack, ipairs, pairs,

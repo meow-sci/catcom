@@ -47,7 +47,7 @@ All `ConsoleWindow.Print*` overloads are thread-safe (lock-guarded double buffer
 
 purrTTY's Game Console shell already bridges this surface (synchronous `Execute` + a postfix on the three-argument `Print`); see [purrTTY game console shell](/existing-mods/purrtty-game-console-shell.md).
 
-# Use in ksa-scripting
+# Use in catcom
 
 - Register `script run <file>`, `script reload`, `script list`, `script edit <file>` (opens nvim), `lua <expr>` / `ts <expr>` one-liners.
 - Route script `print()` / `console.log` to `ConsoleWindow.Print` (thread-safe) and to the REPL shell when one is attached.

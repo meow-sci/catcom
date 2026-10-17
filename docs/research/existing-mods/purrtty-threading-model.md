@@ -23,6 +23,6 @@ status: stable
 | Session close | must be on the tick thread; process teardown backgrounded |
 | Registry / windows / dialogs | main thread only, lock-free |
 
-Rules for ksa-scripting: a REPL shell's command handler is already on the game thread (no marshalling, but must be fast); anything that reacts to `Terminated`/`Exited` (e.g. "nvim exited → reload script") must post to the mod's own game-thread queue; never call purrTTY window APIs off-thread.[^report]
+Rules for catcom: a REPL shell's command handler is already on the game thread (no marshalling, but must be fast); anything that reacts to `Terminated`/`Exited` (e.g. "nvim exited → reload script") must post to the mod's own game-thread queue; never call purrTTY window APIs off-thread.[^report]
 
 [^report]: purrTTY internals research report (2026-10-16)

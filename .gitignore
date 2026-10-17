@@ -16,9 +16,9 @@ imgui.ini
 # cross-build cache (tools/build-natives.sh): never committed. Note that vendor/purrTTY/*.dll ARE committed (pinned contract assemblies).
 
 # LuaJIT natives for every platform (tools/fetch-natives.*)
-src/KsaScripting.Runtime.Lua/runtimes/
+src/Catcom.Runtime.Lua/runtimes/
 # Fetched TypeScript compiler/transpiler assets (tools/fetch-ts.sh)
-src/KsaScripting.Runtime.V8/assets/
+src/Catcom.Runtime.V8/assets/
 # Fetched Neovim/LSP blobs and the tree-sitter parser per runtime id (tools/fetch-nvim.*, fetch-lsp.*, fetch-natives.*)
 editor/win-x64/
 editor/linux-x64/

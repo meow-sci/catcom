@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify a native shared library built for one of the ksa-scripting runtime ids.
+"""Verify a native shared library built for one of the catcom runtime ids.
 
     tools/natives-verify.py --rid <win-x64|linux-x64|osx-arm64> --lib <path>
         [--require-export NAME]... [--forbid-export NAME]...

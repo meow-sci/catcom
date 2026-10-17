@@ -1,6 +1,6 @@
 # Third-party notices
 
-ksa-scripting is released under the MIT License. The mod folder it produces also ships, or is derived from, the third-party components listed below. The full license text for each component is in [`third-party-licenses/`](third-party-licenses/). The License file column gives the file name and the exact URL the text was downloaded from. Versions are pinned by this project, except where the Version column says "resolved", which marks a version picked from a dependency range by a bundled package.
+catcom is released under the MIT License. The mod folder it produces also ships, or is derived from, the third-party components listed below. The full license text for each component is in [`third-party-licenses/`](third-party-licenses/). The License file column gives the file name and the exact URL the text was downloaded from. Versions are pinned by this project, except where the Version column says "resolved", which marks a version picked from a dependency range by a bundled package.
 
 ## Shipped or redistributed components
 
@@ -25,11 +25,11 @@ ksa-scripting is released under the MIT License. The mod folder it produces also
 | purrTTY custom-shell contract | purrTTY checkout at `790a82b4cd3e5a31886adfdb19843bda72d0419f` when the license was copied | MIT | `vendor/purrTTY/` (`purrTTY.CustomShellContract.dll`, `purrTTY.Logging.dll`): compile-time contract assemblies. The mod consumes them from the purrTTY mod at runtime, so they are not expected in the dist. | https://github.com/meow-sci/purrtty | [`purrTTY-LICENSE.txt`](third-party-licenses/purrTTY-LICENSE.txt): copy of the purrTTY repository's `LICENSE` |
 | LLVM compiler-rt builtins and libunwind (bundled with zig) | zig 0.17.0 (`tools/zig.pin`) | Apache-2.0 with LLVM exceptions | Statically linked into the cross-compiled natives: compiler-rt builtins in all three LuaJIT libraries and parsers; libunwind in `libluajit-5.1.so.2` (linux-x64), where it replaces libgcc_s for LuaJIT's external unwinding | https://github.com/llvm/llvm-project | [`LLVM-LICENSE.txt`](third-party-licenses/LLVM-LICENSE.txt): https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-21.1.0/llvm/LICENSE.TXT |
 | mingw-w64 runtime (bundled with zig) | zig 0.17.0 (`tools/zig.pin`) | mingw-w64 runtime license (permissive; see file) | Startup and CRT glue statically linked into `lua51.dll` and `typescript.dll` (win-x64), which otherwise import only the Windows UCRT (`api-ms-win-crt-*`) and `KERNEL32.dll` | https://www.mingw-w64.org | [`mingw-w64-runtime-COPYING.txt`](third-party-licenses/mingw-w64-runtime-COPYING.txt): https://raw.githubusercontent.com/mingw-w64/mingw-w64/master/COPYING.MinGW-w64-runtime/COPYING.MinGW-w64-runtime.txt |
-| gatOS-derived code (snapshot DTOs, command model, actuators, `KsaAnchor`) | gatOS checkout at `bc87e29a7670a5d46b7ef0e241fc4ce60834db39` when the license was copied | MIT | `KsaScripting.Core` (`Snapshots`, `Commands`) and `KsaScripting.Ksa`, compiled into the shipped `KsaScripting.Core.dll` and `KsaScripting.Ksa.dll` | https://github.com/meow-sci/gatOS | [`gatOS-LICENSE.txt`](third-party-licenses/gatOS-LICENSE.txt): copy of the gatOS repository's `LICENSE` |
+| gatOS-derived code (snapshot DTOs, command model, actuators, `KsaAnchor`) | gatOS checkout at `bc87e29a7670a5d46b7ef0e241fc4ce60834db39` when the license was copied | MIT | `Catcom.Core` (`Snapshots`, `Commands`) and `Catcom.Ksa`, compiled into the shipped `Catcom.Core.dll` and `Catcom.Ksa.dll` | https://github.com/meow-sci/gatOS | [`gatOS-LICENSE.txt`](third-party-licenses/gatOS-LICENSE.txt): copy of the gatOS repository's `LICENSE` |
 
 ## Build-time only, not redistributed
 
-These are used to build or test ksa-scripting. None of them is copied into the dist folder (`tools/check-dist.py` reports an error if `0Harmony.dll` or `StarMap.API.dll` is found there).
+These are used to build or test catcom. None of them is copied into the dist folder (`tools/check-dist.py` reports an error if `0Harmony.dll` or `StarMap.API.dll` is found there).
 
 | Component | Version | License | Used for |
 |---|---|---|---|
