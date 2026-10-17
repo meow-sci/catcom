@@ -27,13 +27,18 @@
         <ProjectReference Include="..\Catcom.Runtime.V8\Catcom.Runtime.V8.csproj" />
     </ItemGroup>
 
+    <!-- Harmony and StarMap.API are supplied by StarMap at runtime (0Harmony in the default ALC, StarMap.API in
+         the game's ALC, both found before a mod's own deps.json is consulted), so they are compile-only:
+         ExcludeAssets=runtime keeps them out of the build output and out of Catcom.GameMod.deps.json. -->
     <ItemGroup>
         <PackageReference Include="ModMenu.Attributes" Version="1.0.1" />
         <PackageReference Include="Lib.Harmony" Version="2.4.2">
             <PrivateAssets>all</PrivateAssets>
+            <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
         <PackageReference Include="StarMap.API" Version="0.3.6">
             <PrivateAssets>all</PrivateAssets>
+            <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
     </ItemGroup>
 

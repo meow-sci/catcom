@@ -56,7 +56,8 @@ REQUIRED_MANAGED = (
     "MessagePack.dll",
 )
 
-# Runtime assets with these file names are never required and must not be present.
+# Supplied by StarMap at runtime: never shipped, and never a runtime asset in the deps.json (the package
+# references are compile-only, ExcludeAssets=runtime).
 HARMONY_LIKE = ("0Harmony.dll", "StarMap.API.dll")
 
 NATIVES = {
@@ -411,6 +412,7 @@ def check_deps(dist):
 
     checked = []
     missing = []
+    loader_supplied = []
     for lib_key, entry in targets[target_name].items():
         ltype = (libraries.get(lib_key) or {}).get("type")
         if ltype not in ("package", "project"):
@@ -419,14 +421,19 @@ def check_deps(dist):
         for asset in runtime or {}:
             fname = posixpath.basename(asset)
             if fname in HARMONY_LIKE:
-                continue  # never shipped; check_forbidden reports them if present
+                loader_supplied.append((lib_key, fname))
+                continue
             checked.append(fname)
             if not os.path.isfile(os.path.join(dist, fname)):
                 missing.append((lib_key, fname))
 
-    if missing:
-        return [("ERROR", "runtime asset %s (from %s) is not in the dist root" % (fname, lib_key))
-                for lib_key, fname in missing]
+    out = [("ERROR", "%s lists %s (from %s) as a runtime asset; StarMap supplies it, so its package reference "
+            "must be compile-only (ExcludeAssets=runtime)" % (DEPS_FILE, fname, lib_key))
+           for lib_key, fname in loader_supplied]
+    out += [("ERROR", "runtime asset %s (from %s) is not in the dist root" % (fname, lib_key))
+            for lib_key, fname in missing]
+    if out:
+        return out
     return [("OK", "deps.json (%s): %d runtime assets from packages and projects are present"
              % (target_name, len(checked)))]
 
@@ -784,14 +791,12 @@ def make_complete_tree(root):
             ".NETCoreApp,Version=v10.0/osx-arm64": {
                 "Catcom.GameMod/0.1.0": {"runtime": {"Catcom.GameMod.dll": {}}},
                 "Newtonsoft.Json/13.0.3": {"runtime": {"lib/net6.0/Newtonsoft.Json.dll": {}}},
-                "Lib.Harmony/2.4.2": {"runtime": {"lib/net8.0/0Harmony.dll": {}}},
                 "Some.Reference/1.0.0": {"runtime": {"lib/net10.0/NotShipped.dll": {}}},
             }
         },
         "libraries": {
             "Catcom.GameMod/0.1.0": {"type": "project"},
             "Newtonsoft.Json/13.0.3": {"type": "package"},
-            "Lib.Harmony/2.4.2": {"type": "package"},
             "Some.Reference/1.0.0": {"type": "reference"},
         },
     }
@@ -876,6 +881,19 @@ class CheckDistTests(unittest.TestCase):
     def test_harmony_in_dist_is_error(self):
         _write(self._path("0Harmony.dll"), b"harmony")
         self.assertTrue(_levels(check_forbidden(self.dist), "ERROR"))
+
+    def test_loader_supplied_runtime_asset_in_deps_is_error(self):
+        with open(self._path(DEPS_FILE), encoding="utf-8") as fh:
+            deps = json.load(fh)
+        target = deps["runtimeTarget"]["name"]
+        deps["targets"][target]["Lib.Harmony/2.4.2"] = {"runtime": {"lib/net10.0/0Harmony.dll": {}}}
+        deps["targets"][target]["StarMap.API/0.3.6"] = {"runtime": {"lib/net10.0/StarMap.API.dll": {}}}
+        deps["libraries"]["Lib.Harmony/2.4.2"] = {"type": "package"}
+        deps["libraries"]["StarMap.API/0.3.6"] = {"type": "package"}
+        _write(self._path(DEPS_FILE), json.dumps(deps).encode("utf-8"))
+        errors = _levels(check_deps(self.dist), "ERROR")
+        self.assertEqual(len(errors), 2)
+        self.assertTrue(all("ExcludeAssets=runtime" in e for e in errors))
 
     def test_purrtty_local_copy_is_error(self):
         _write(self._path("purrTTY.Logging.dll"), b"local copy")

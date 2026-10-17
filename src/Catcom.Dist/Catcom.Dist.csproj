@@ -115,7 +115,9 @@
 
         <!-- Managed payload: everything in the build output EXCEPT the loader-supplied
              assemblies (StarMap provides 0Harmony + StarMap.API to every mod ALC; shipping a
-             second copy risks type-identity splits). The KSA reference assemblies never reach
+             second copy risks type-identity splits). Their package references are compile-only
+             (ExcludeAssets=runtime), so they never reach the output; the deny-list entries are a
+             backstop against a future reference that brings them in. The KSA reference assemblies never reach
              the output (Private=false). A glob with a deny-list — rather than an allow-list —
              means a newly added NuGet dependency ships automatically instead of failing at
              runtime in-game. Includes Catcom.GameMod.dll and Catcom.PurrTty.dll.

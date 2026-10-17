@@ -19,9 +19,11 @@
         <ProjectReference Include="..\Catcom.Core\Catcom.Core.csproj" />
     </ItemGroup>
 
+    <!-- Compile-only: StarMap supplies 0Harmony at runtime (see Catcom.GameMod.csproj). -->
     <ItemGroup>
         <PackageReference Include="Lib.Harmony" Version="2.4.2">
             <PrivateAssets>all</PrivateAssets>
+            <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
     </ItemGroup>
 
