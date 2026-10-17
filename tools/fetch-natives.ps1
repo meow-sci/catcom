@@ -10,8 +10,8 @@
 #   -From   install from locally built archives (tools/build-natives.sh output:
 #           DIR/natives-<rid>.tar.gz + DIR/SHA256SUMS) instead of the release
 #
-# Release access: the repository is private, so downloads need GitHub credentials: the gh CLI
-#   (`gh auth login`), or a token in GH_TOKEN / GITHUB_TOKEN. A public repository needs neither.
+# Release access: the natives repository (tools/natives.pin) is public, so no credentials are needed.
+#   A logged-in gh CLI, or a token in GH_TOKEN / GITHUB_TOKEN, is used when present.
 #
 # Integrity: each archive is SHA-256 checked against tools/assets.lock (key "<tag>/<asset>"). A
 #   first download is cross-checked against the release's SHA256SUMS asset and the GitHub API digest
@@ -360,7 +360,7 @@ function Get-ReleaseAsset([string]$Asset, [string]$Dest) {
             Get-AssetByToken $Asset $id $Dest
         }
         default {
-            Get-Remote "https://github.com/$Repo/releases/download/$Tag/$Asset" $Dest "could not download $Asset anonymously from https://github.com/$Repo/releases/tag/$Tag. The repository is private: install the GitHub CLI and run 'gh auth login', or set GH_TOKEN to a token that can read the repository, then rerun"
+            Get-Remote "https://github.com/$Repo/releases/download/$Tag/$Asset" $Dest "could not download $Asset anonymously from https://github.com/$Repo/releases/tag/$Tag (does the release exist? is the repo/tag in tools/natives.pin right?)"
         }
     }
 }
@@ -447,7 +447,7 @@ function Install-Rid([string]$RidName) {
     if (-not (Test-Path -LiteralPath $srcParserLib -PathType Leaf)) { Fail "$asset does not contain parser/typescript.$ext" }
     $commit = Get-MarkerText (Join-Path $srcLuajit '.luajit-commit')
     if ($commit -ne $LuaJitCommit) {
-        Fail "$asset was built from LuaJIT $commit but tools/luajit.pin says ${LuaJitCommit}: the natives release is stale. Push a new natives-v* tag (CI builds and publishes it), then update tools/natives.pin."
+        Fail "$asset was built from LuaJIT $commit but tools/luajit.pin says ${LuaJitCommit}: the natives release is stale. Publish a new natives-vN release (run the Build and test workflow with publish_tag; CI builds it), then update tools/natives.pin."
     }
 
     $markerTag = $Tag

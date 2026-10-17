@@ -1,10 +1,13 @@
 # The GitHub release that holds the cross-built natives every host downloads (tools/fetch-natives.sh / .ps1):
 # LuaJIT (tools/luajit.pin + tools/host_shim.c) and the tree-sitter TypeScript parser (tools/ts-parser.pin)
 # for win-x64, linux-x64 and osx-arm64, built by tools/build-natives.sh on the Linux CI job
-# (.github/workflows/build.yml) and published when a `natives-v*` tag is pushed.
+# (.github/workflows/build.yml) and published to `repo` when that workflow is run by hand with `publish_tag`.
+# `repo` is a public, release-only companion repository: catcom's own releases are only mod releases,
+# because the KSA mod manager can't handle a repo whose releases mix artifacts. Downloads need no credentials.
 #
 # Bump `tag` after publishing a new release (needed whenever luajit.pin, ts-parser.pin, zig.pin,
-# host_shim.c or build-natives.sh change): push the tag, wait for the workflow, update this file,
+# host_shim.c or build-natives.sh change): run the workflow with publish_tag=natives-vN
+# (gh workflow run build.yml --ref main -f publish_tag=natives-vN), wait for it, update this file,
 # then run tools/fetch-all.sh once so tools/assets.lock gets the new pins.
-repo=meow-sci/catcom
+repo=meow-sci/catcom-native
 tag=natives-v1

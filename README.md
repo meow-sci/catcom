@@ -30,7 +30,7 @@ dotnet build catcom.slnx -nologo -v quiet
 dotnet test  catcom.slnx --nologo -v quiet
 ```
 
-`tools/fetch-all.*` downloads, never compiles: the TypeScript assets, Neovim and the language servers from their upstream releases, and the LuaJIT library plus the tree-sitter TypeScript parser from this repo's `natives-v*` GitHub release (cross-built by the Linux CI job with zig, `tools/build-natives.sh`; the repo is private, so that step needs `gh auth login` or a `GH_TOKEN`). Everything lands in gitignored folders (`editor/<rid>/`, `src/*/runtimes/`, `src/*/assets/`, `tools/.cache/`); nothing downloaded is ever committed. The game-coupled projects resolve the KSA reference assemblies from `KSA_DLL_DIR` or a sibling `ksa-game-assemblies/current/dll/` checkout; without them their sources are compile-removed, no dist is deployed, and everything else still builds and tests.
+`tools/fetch-all.*` downloads, never compiles: the TypeScript assets, Neovim and the language servers from their upstream releases, and the LuaJIT library plus the tree-sitter TypeScript parser from a `natives-v*` release of [meow-sci/catcom-native](https://github.com/meow-sci/catcom-native) (cross-built by the Linux CI job with zig, `tools/build-natives.sh`; that repo is public and holds only these releases, so this repo's releases stay mod releases). Everything lands in gitignored folders (`editor/<rid>/`, `src/*/runtimes/`, `src/*/assets/`, `tools/.cache/`); nothing downloaded is ever committed. The game-coupled projects resolve the KSA reference assemblies from `KSA_DLL_DIR` or a sibling `ksa-game-assemblies/current/dll/` checkout; without them their sources are compile-removed, no dist is deployed, and everything else still builds and tests.
 
 ## Deploy
 

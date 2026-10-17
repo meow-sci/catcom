@@ -49,7 +49,7 @@ scripts-lib/                               # shipped script libraries, copied to
   tui.ts  tui.lua  README.md
 tools/
   fetch-all.sh  fetch-all.ps1                # ONE command: every shipped binary for all three platforms, from any host (never compiles)
-  fetch-natives.sh  fetch-natives.ps1  natives.pin   # LuaJIT + tree-sitter parser from the natives-v* GitHub release (assets.lock pins)
+  fetch-natives.sh  fetch-natives.ps1  natives.pin   # LuaJIT + tree-sitter parser from the natives-v* release of meow-sci/catcom-native (assets.lock pins)
   build-natives.sh  zig.pin  luajit.pin  ts-parser.pin  host_shim.c  natives-verify.py   # the zig cross-build CI runs (Linux/macOS host)
   fetch-nvim.sh  fetch-nvim.ps1  fetch-lsp.sh  fetch-lsp.ps1  fetch-ts.sh  fetch-ts.ps1  refresh-ts-queries.sh
   check-dist.py
@@ -390,7 +390,7 @@ Event names (v1): `engine.activate`, `engine.deactivate`, `engine.ignite`, `engi
 
 ### 6.1 LuaJIT (`Catcom.Runtime.Lua`) — see `plans/01-luajit-runtime-plan.md`
 
-- Native: `tools/build-natives.sh` cross-compiles LuaJIT `v2.1` at `tools/luajit.pin` for all three platforms on one Linux/macOS host with the pinned zig (`tools/zig.pin`; `zig cc -target x86_64-windows-gnu | x86_64-linux-gnu.2.17 | aarch64-macos.11.0`), `XCFLAGS="-DLUAJIT_DISABLE_FFI -DLUAJIT_ENABLE_CHECKHOOK"`, `tools/host_shim.c` compiled into the amalgamation, `-g0`; on Linux zig's bundled LLVM libunwind is linked statically (`-lunwind`) in place of libgcc_s. Each library is verified by `tools/natives-verify.py` (format, arch, exports, dependency allow-list, glibc <= 2.17 / macOS >= 11.0) and the CLI is run where the host can (natively, docker, wine). CI publishes the result as the `natives-v*` GitHub release; every host installs it with `tools/fetch-natives.*` into `src/Catcom.Runtime.Lua/runtimes/<rid>/native/` (gitignored). The csproj copies `runtimes/**` to output.
+- Native: `tools/build-natives.sh` cross-compiles LuaJIT `v2.1` at `tools/luajit.pin` for all three platforms on one Linux/macOS host with the pinned zig (`tools/zig.pin`; `zig cc -target x86_64-windows-gnu | x86_64-linux-gnu.2.17 | aarch64-macos.11.0`), `XCFLAGS="-DLUAJIT_DISABLE_FFI -DLUAJIT_ENABLE_CHECKHOOK"`, `tools/host_shim.c` compiled into the amalgamation, `-g0`; on Linux zig's bundled LLVM libunwind is linked statically (`-lunwind`) in place of libgcc_s. Each library is verified by `tools/natives-verify.py` (format, arch, exports, dependency allow-list, glibc <= 2.17 / macOS >= 11.0) and the CLI is run where the host can (natively, docker, wine). CI publishes the result as a `natives-v*` release of the public, release-only repo meow-sci/catcom-native (workflow run with `publish_tag`; the `CATCOM_NATIVE_RELEASE_TOKEN` PAT); every host installs it with `tools/fetch-natives.*` into `src/Catcom.Runtime.Lua/runtimes/<rid>/native/` (gitignored). The csproj copies `runtimes/**` to output.
 - `LuaNative` (`[LibraryImport("lua51")]`, `[ModuleInitializer]` resolver loading `<asmDir>/runtimes/<rid>/native/<file>` by absolute path with os-arch fallback; never `Free`).
 - Shim exports: `host_timeout_hook(lua_State*, lua_Debug*)`, `host_raise(lua_State*)`, `host_traceback(lua_State*)`.
 - Rules: host functions are `[UnmanagedCallersOnly(CallConvs=[typeof(CallConvCdecl)])] static int F(nint L)`, body in try/catch, **only non-raising API calls**, errors returned as `(false, message)`; raising happens in the Lua prelude (`error(msg, 2)`) or via `host_raise`.

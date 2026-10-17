@@ -20,9 +20,14 @@ name: Build and test
 # gatOS). Without the secret the game-coupled projects drop out, no dist is deployed, and the
 # build and tests stay green.
 #
-# Natives release: pushing a `natives-v*` tag (or running this workflow by hand with
-# `publish_tag`) publishes the natives built by that run as a GitHub release. Every developer
-# host downloads them from there (tools/fetch-natives.*; tools/natives.pin names the tag).
+# Natives release: running this workflow by hand with `publish_tag` (natives-vN) publishes the
+# natives built by that run as a GitHub release of the repo named by tools/natives.pin `repo=`
+# (meow-sci/catcom-native: public, release-only). They live there, not here, so that this repo's
+# releases are only mod releases; the KSA mod manager can't handle a repo whose releases mix
+# artifacts. This run's GITHUB_TOKEN can't write to another repo, so publishing uses the
+# CATCOM_NATIVE_RELEASE_TOKEN secret: a fine-grained PAT with Contents read/write on
+# meow-sci/catcom-native only. Every developer host downloads the natives from that release
+# (tools/fetch-natives.*), anonymously.
 
 on:
   push:
@@ -32,18 +37,16 @@ on:
       - 'fix/**'
       - 'chore/**'
       - 'release/**'
-    tags:
-      - 'natives-v*'
   pull_request:
   workflow_dispatch:
     inputs:
       publish_tag:
-        description: 'Publish the natives built by this run as a GitHub release with this tag (natives-vN). Leave empty to only build.'
+        description: 'Publish the natives built by this run as a release of meow-sci/catcom-native with this tag (natives-vN). Leave empty to only build.'
         required: false
         default: ''
 
 permissions:
-  contents: write  # creating the natives release; everything else only reads
+  contents: read
   checks: write    # test-reporter publishes results as a check run
 
 concurrency:
@@ -62,12 +65,23 @@ jobs:
       CATCOM_DIST_DIR: ${{ github.workspace }}/.tmp/dist/catcom
       # secrets.* is not allowed directly in step `if:`; surface it via env.
       KSA_PAT: ${{ secrets.KSA_GAME_ASSEMBLIES_PAT }}
-      # The natives release tag to publish, if any (tag push or manual input).
-      PUBLISH_TAG: ${{ startsWith(github.ref, 'refs/tags/natives-v') && github.ref_name || inputs.publish_tag }}
+      # The natives release tag to publish, if any (manual runs only).
+      PUBLISH_TAG: ${{ inputs.publish_tag || '' }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout catcom
         uses: actions/checkout@v6
+
+      # A publishing run fails here, before the build, rather than after it.
+      - name: Check the natives publish request
+        if: env.PUBLISH_TAG != ''
+        env:
+          RELEASE_TOKEN: ${{ secrets.CATCOM_NATIVE_RELEASE_TOKEN }}
+        run: |
+          case "$PUBLISH_TAG" in natives-v*) ;; *) echo "publish_tag must look like natives-vN, got '$PUBLISH_TAG'" >&2; exit 1 ;; esac
+          repo="$(sed -n 's/^repo=//p' tools/natives.pin | tr -d '\r')"
+          [ -n "$repo" ] || { echo "tools/natives.pin has no repo= line" >&2; exit 1; }
+          [ -n "$RELEASE_TOKEN" ] || { echo "the CATCOM_NATIVE_RELEASE_TOKEN secret is not set: publishing to $repo needs a fine-grained PAT with Contents read/write on that repo" >&2; exit 1; }
 
       - name: Checkout private KSA assemblies
         if: env.KSA_PAT != ''
@@ -127,15 +141,19 @@ jobs:
           retention-days: 3
           compression-level: 1
 
+      # Into the release-only repo named by tools/natives.pin, with the PAT (see the header).
+      # A new release's tag is created on that repo's default branch.
       - name: Publish natives release
         if: env.PUBLISH_TAG != ''
+        env:
+          GH_TOKEN: ${{ secrets.CATCOM_NATIVE_RELEASE_TOKEN }}
         run: |
           set -euo pipefail
           tag="$PUBLISH_TAG"
-          case "$tag" in natives-v*) ;; *) echo "publish tag must look like natives-vN, got '$tag'" >&2; exit 1 ;; esac
+          repo="$(sed -n 's/^repo=//p' tools/natives.pin | tr -d '\r')"
           cd tools/.cache/natives-out
           {
-            echo "Cross-built natives for catcom (tools/build-natives.sh, run ${{ github.run_id }} on ${{ github.sha }})."
+            echo "Cross-built natives for catcom (tools/build-natives.sh, run ${{ github.run_id }} of ${{ github.repository }} on ${{ github.sha }})."
             echo
             echo '```'
             cat NATIVES.txt
@@ -145,11 +163,11 @@ jobs:
             echo
             echo "Downloaded by tools/fetch-natives.sh / .ps1 when tools/natives.pin names this tag."
           } > release-notes.md
-          if gh release view "$tag" -R "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release upload "$tag" -R "${{ github.repository }}" --clobber natives-*.tar.gz SHA256SUMS NATIVES.txt
-            gh release edit "$tag" -R "${{ github.repository }}" --notes-file release-notes.md
+          if gh release view "$tag" -R "$repo" >/dev/null 2>&1; then
+            gh release upload "$tag" -R "$repo" --clobber natives-*.tar.gz SHA256SUMS NATIVES.txt
+            gh release edit "$tag" -R "$repo" --notes-file release-notes.md
           else
-            gh release create "$tag" -R "${{ github.repository }}" --target "${{ github.sha }}" \
+            gh release create "$tag" -R "$repo" \
               --title "Natives $tag" --notes-file release-notes.md natives-*.tar.gz SHA256SUMS NATIVES.txt
           fi
 

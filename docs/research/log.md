@@ -1,6 +1,9 @@
 # Research bundle update log
 
 ## 2026-10-17
+* **Update** (maintainer decision): the project is renamed ksa-scripting → catcom (repository `meow-sci/catcom`, `Catcom.*` projects and namespaces, mod name `catcom`). The `natives-v*` releases move to the public, release-only repository `meow-sci/catcom-native` (`tools/natives.pin`), because the KSA mod manager can't handle a repository whose releases mix mod packages with other artifacts. CI publishes there only when run by hand with `publish_tag`, using the `CATCOM_NATIVE_RELEASE_TOKEN` PAT; `natives-v1` was copied there byte-for-byte, so the `tools/assets.lock` pins are unchanged. Downloads are anonymous.
+
+## 2026-10-17
 * **Update** (build pipeline, maintainer decision): no per-platform build hosts and no OS matrix in CI. All natives (LuaJIT with the host shim for win-x64/linux-x64/osx-arm64, and the tree-sitter TypeScript parser) are cross-compiled from one Linux or macOS host with a pinned zig (`tools/build-natives.sh`; verified by `tools/natives-verify.py`, which parses ELF/PE/Mach-O directly) and published by the single Linux CI job as a `natives-v*` GitHub release; `tools/fetch-all.sh` / `.ps1` download every shipped binary for all three platforms on any host, nothing downloaded is committed, and the dist build fails when anything is missing. Facts learned: LuaJIT builds with `zig cc` for all three targets through its own Makefile (`HOST_CC="zig cc"`, `CC="zig cc -target …"`, `TARGET_AR="zig ar rcus"`); on Linux the external unwinder needs zig's bundled libunwind (`-lunwind`) in place of libgcc_s, giving a self-contained library with a glibc 2.14 floor; the macOS minimum version comes from the target triple (`aarch64-macos.11.0`), not from `-mmacos-version-min`; zig's Windows DLLs import only the UCRT `api-ms-win-crt-*` set and KERNEL32.
 
 ## 2026-10-17
