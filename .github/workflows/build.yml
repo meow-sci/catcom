@@ -9,16 +9,26 @@ name: Build and test
 #      (tools/fetch-all.sh, with the natives from step 1);
 #   3. builds the solution, runs the game-free test suites (on Linux);
 #   4. deploys the complete mod folder (Catcom.Dist refuses to build without every binary)
-#      and validates it for all three platforms with tools/check-dist.py; the folder is uploaded
-#      as the `catcom-dist` artifact.
+#      and validates it for all three platforms with tools/check-dist.py; a publishing run zips
+#      it into a mod release, any other run uploads it as the `catcom-dist` artifact.
+#
+# Mod releases (tools/release-metadata.sh; the same scheme as meow-sci/unscience):
+#   push to main             → release    "catcom 1.<run number>.0", tag v1.<run number>.0 (newest 10 kept)
+#   push to any other branch → prerelease "catcom 1.<run number>.0-beta"                  (newest 5 kept, shared)
+#   pull requests, natives runs (publish_tag) → build only
+# A manual run without publish_tag publishes like a push to its branch. The run number only grows,
+# so every release is newer than the last; reruns keep their number and never replace a release.
+# mod.toml and the assembly version are stamped with the version before the build, and the
+# release asset is catcom-<version>.zip holding the catcom/ mod folder. This repo's releases are
+# mod releases only (the natives live in meow-sci/catcom-native, see below).
 #
 # The KSA reference assemblies are licensed game files in the private repo
 # meow-sci/ksa-game-assemblies (DLLs under current/dll/). Only Catcom.Ksa,
 # Catcom.GameMod, Catcom.PurrTty and the Ksa.CompileCheck project reference them;
 # their sources are compile-removed when KSA.dll is absent (see Directory.Build.props). Access
-# uses the KSA_GAME_ASSEMBLIES_PAT repo secret (a fine-grained read-only PAT, same pattern as
-# gatOS). Without the secret the game-coupled projects drop out, no dist is deployed, and the
-# build and tests stay green.
+# uses the KSA_GAME_ASSEMBLIES_PAT secret (a fine-grained read-only PAT, same pattern as
+# gatOS). Without the secret the game-coupled projects drop out, no dist is deployed, the
+# build and tests stay green, and a run that would publish a mod release fails instead.
 #
 # Natives release: running this workflow by hand with `publish_tag` (natives-vN) publishes the
 # natives built by that run as a GitHub release of the repo named by tools/natives.pin `repo=`
@@ -41,12 +51,12 @@ on:
   workflow_dispatch:
     inputs:
       publish_tag:
-        description: 'Publish the natives built by this run as a release of meow-sci/catcom-native with this tag (natives-vN). Leave empty to only build.'
+        description: 'Publish ONLY the natives built by this run, as a release of meow-sci/catcom-native with this tag (natives-vN). Leave empty to build and publish a mod release like a push.'
         required: false
         default: ''
 
 permissions:
-  contents: read
+  contents: write  # this repo's mod releases (create, prune)
   checks: write    # test-reporter publishes results as a check run
 
 concurrency:
@@ -57,6 +67,9 @@ jobs:
   build:
     name: build (linux host, all platforms)
     runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.meta.outputs.publish }}
+      channel: ${{ steps.meta.outputs.channel }}
     env:
       # Directory.Build.props resolves this before any per-OS default. When the
       # PAT is missing the dir simply doesn't exist and the guarded references drop out.
@@ -82,6 +95,23 @@ jobs:
           repo="$(sed -n 's/^repo=//p' tools/natives.pin | tr -d '\r')"
           [ -n "$repo" ] || { echo "tools/natives.pin has no repo= line" >&2; exit 1; }
           [ -n "$RELEASE_TOKEN" ] || { echo "the CATCOM_NATIVE_RELEASE_TOKEN secret is not set: publishing to $repo needs a fine-grained PAT with Contents read/write on that repo" >&2; exit 1; }
+
+      - name: Verify release policy
+        run: python3 tools/check-release-policy.py
+
+      # Branch-derived values are validated here and consumed by later steps via env:, never
+      # interpolated raw into run scripts (a ref name can contain shell/sed metacharacters).
+      - name: Compute release metadata
+        id: meta
+        run: bash tools/release-metadata.sh
+
+      - name: Check the release request
+        if: steps.meta.outputs.publish == 'true' && env.KSA_PAT == ''
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          echo "this run would publish $TAG, but KSA_GAME_ASSEMBLIES_PAT is not available to this repo: without the KSA assemblies there is no dist to release" >&2
+          exit 1
 
       - name: Checkout private KSA assemblies
         if: env.KSA_PAT != ''
@@ -121,6 +151,19 @@ jobs:
       - name: Fetch every shipped binary for all platforms
         run: bash tools/fetch-all.sh --natives-from tools/.cache/natives-out
 
+      # The version users see in-game (mod.toml) and the assembly version match the release.
+      # MODVERSION is 1.<digits>.0 or 1.<digits>.0-beta (tools/release-metadata.sh), so it cannot
+      # contain sed delimiters or replacement metacharacters.
+      - name: Stamp mod version
+        if: steps.meta.outputs.publish == 'true'
+        env:
+          MODVERSION: ${{ steps.meta.outputs.modversion }}
+        run: |
+          sed -i -E "s/^version = \".*\"/version = \"$MODVERSION\"/" src/Catcom.GameMod/mod.toml
+          sed -i -E "s#<Version>[^<]*</Version>#<Version>$MODVERSION</Version>#" Directory.Build.props
+          grep '^version' src/Catcom.GameMod/mod.toml
+          grep '<Version>' Directory.Build.props
+
       - name: Build
         run: dotnet build catcom.slnx -c Release --nologo -v quiet
 
@@ -133,13 +176,35 @@ jobs:
         run: python3 tools/check-dist.py .tmp/dist/catcom
 
       - name: Upload dist artifact
-        if: env.KSA_PAT != '' && github.event_name != 'pull_request'
+        if: env.KSA_PAT != '' && github.event_name != 'pull_request' && steps.meta.outputs.publish != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: catcom-dist
           path: .tmp/dist/catcom
           retention-days: 3
           compression-level: 1
+
+      - name: Package mod release
+        if: steps.meta.outputs.publish == 'true'
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          cd "$(dirname "$CATCOM_DIST_DIR")"
+          test -f catcom/Catcom.GameMod.dll
+          grep -qx "version = \"$VERSION\"" catcom/mod.toml
+          zip -q -r -X "catcom-$VERSION.zip" catcom
+          unzip -l "catcom-$VERSION.zip" | tail -1
+          ls -l "catcom-$VERSION.zip"
+
+      - name: Publish mod release
+        if: steps.meta.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIP: ${{ github.workspace }}/.tmp/dist/catcom-${{ steps.meta.outputs.version }}.zip
+          TAG: ${{ steps.meta.outputs.tag }}
+          TITLE: ${{ steps.meta.outputs.title }}
+          PRERELEASE: ${{ steps.meta.outputs.prerelease }}
+        run: bash tools/publish-release.sh
 
       # Into the release-only repo named by tools/natives.pin, with the PAT (see the header).
       # A new release's tag is created on that repo's default branch.
@@ -185,3 +250,36 @@ jobs:
         with:
           name: test-results
           path: .tmp/test-results
+
+  prune:
+    needs: build
+    if: needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Cleanup is serialized per channel; all non-main branches share one beta pool.
+    concurrency:
+      group: rolling-release-cleanup-${{ needs.build.outputs.channel }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout retention policy
+        uses: actions/checkout@v6
+
+      # Keep 10 main releases and 5 beta releases. Only v1.<n>.0 / v1.<n>.0-beta tags are
+      # candidates; every page is fetched so retention is not capped at 100 entries.
+      - name: Prune old releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ needs.build.outputs.channel }}
+        run: |
+          case "$CHANNEL" in
+            main) KEEP=10 ;;
+            beta) KEEP=5 ;;
+            *) echo "Unknown release channel: $CHANNEL" >&2; exit 1 ;;
+          esac
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            | python3 tools/release-retention.py --channel "$CHANNEL" --keep "$KEEP" \
+            > "$RUNNER_TEMP/catcom-stale-releases.txt"
+          while IFS= read -r tag; do
+            echo "Pruning $tag"
+            gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          done < "$RUNNER_TEMP/catcom-stale-releases.txt"

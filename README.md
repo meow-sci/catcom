@@ -40,6 +40,10 @@ dotnet build src/Catcom.Dist -c Release               # deploys to $CATCOM_DIST_
 python3 tools/check-dist.py "$HOME/repos/meow-sci/mods/catcom"
 ```
 
-The dist always contains every binary for all three platforms; the build **fails** (before touching the old dist) if any fetched binary is missing, so a mod folder is never produced incomplete. CI (`.github/workflows/build.yml`, one Linux job) does the same end to end and uploads the folder as the `catcom-dist` artifact.
+The dist always contains every binary for all three platforms; the build **fails** (before touching the old dist) if any fetched binary is missing, so a mod folder is never produced incomplete. Neovim and the language servers ship under `editor/<rid>/` (`nvim/`, `lsp/`), and the in-game editor always runs that copy; LuaJIT and the V8 engine ship under `runtimes/<rid>/native/`. CI (`.github/workflows/build.yml`, one Linux job) does the same end to end.
 
 Install purrTTY (with the launcher contract) for terminals, REPL shells and the editor (catcom never ships purrTTY's DLLs; it imports them from purrTTY through StarMap); ModMenu is optional (a fallback "Scripting" menu is injected without it). User scripts live in `<Documents>/My Games/Kitten Space Agency/mods/catcom/scripts/`; open the Script Manager with F11 (configurable).
+
+## Releases
+
+Every CI run on a branch push publishes the mod as a GitHub release of this repo, versioned by the workflow's run number (the same scheme as meow-sci/unscience): a push to `main` publishes `catcom 1.<run>.0` (tag `v1.<run>.0`, the newest 10 are kept), a push to any other branch publishes the prerelease `1.<run>.0-beta` (all branches share the newest 5). Pull requests only build. The asset is `catcom-<version>.zip` with the `catcom/` mod folder; `mod.toml` and the assembly version carry the release version. Release logic: `tools/release-metadata.sh`, `tools/publish-release.sh`, `tools/release-retention.py`, tested offline by `tools/check-release-policy.py`. The natives are released separately, from [meow-sci/catcom-native](https://github.com/meow-sci/catcom-native), so this repo's releases are mod releases only.

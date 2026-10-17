@@ -2,7 +2,8 @@
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>13.0</LangVersion>
-        <!-- Keep in sync with src/Catcom.GameMod/mod.toml `version`. -->
+        <!-- Keep in sync with src/Catcom.GameMod/mod.toml `version`. Release builds stamp both with the
+             release version (.github/workflows/build.yml, tools/release-metadata.sh). -->
         <Version>0.1.0</Version>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
