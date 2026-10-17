@@ -143,12 +143,12 @@ public sealed class ScriptWatcherTests
     [Test]
     public void FilesInSubfolders_AndTypeScriptFiles_AreReported_ButOtherExtensionsAreNot()
     {
-        // The folders exist before the watcher starts: on Linux, inotify only watches a new
-        // subdirectory once the watcher has processed its creation, so a file written into a
-        // just-created folder can be missed. That race is not what this test is about.
-        Directory.CreateDirectory(Path.Combine(_dir, "sub", "deeper"));
         var collector = new Collector();
         using var watcher = new ScriptWatcher(_dir, collector.Callback, Debounce);
+        // The folders appear after the watcher started: a script written into a just-created folder
+        // must still be reported (on Linux the new folder's inotify watch arrives late; the watcher
+        // scans new folders to cover that).
+        Directory.CreateDirectory(Path.Combine(_dir, "sub", "deeper"));
 
         File.WriteAllText(Path.Combine(_dir, "notes.txt"), "ignored");
         File.WriteAllText(Path.Combine(_dir, "sub", "readme.md"), "ignored");

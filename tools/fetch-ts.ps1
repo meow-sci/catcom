@@ -109,6 +109,6 @@ foreach ($name in @('typescript.js', 'typescript.LICENSE.txt', 'typescript.Third
                     'sucrase.bundle.js', 'sucrase.LICENSE', '.typescript-version', '.gitignore')) {
     $p = Join-Path $Assets $name
     if (Test-Path -LiteralPath $p) {
-        '{0,10} bytes  {1}' -f (Get-Item -LiteralPath $p).Length, $p | Write-Output
+        '{0,10} bytes  {1}' -f (Get-Item -LiteralPath $p -Force).Length, $p | Write-Output   # -Force: dot-files are hidden on macOS/Linux
     }
 }

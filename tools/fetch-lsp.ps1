@@ -7,13 +7,15 @@
 #   TypeScript 7.0.2 native tsc: GitHub release typescript/v7.0.2 of microsoft/typescript-go
 #
 # Usage: tools/fetch-lsp.ps1 [-Rid] <win-x64|linux-x64|osx-arm64> ... [-Force]
-#   -Rid    one or more rids (default: win-x64 on Windows, otherwise the host platform)
+#   -Rid    one or more rids (default: all three; any host fetches every platform)
 #   -Force  replace existing installs even when the pinned versions are already present
 # Env: KSA_EDITOR_DIR overrides the editor root (default <repo>/editor), for test copies.
 #
 # Works on Windows PowerShell 5.1 and PowerShell 7. Archives: Expand-Archive for .zip,
 # tar.exe for .tar.gz / .tgz (ships with Windows 10 1803+).
+[CmdletBinding()]
 param(
+    [Parameter(Position = 0, ValueFromRemainingArguments = $true)]
     [string[]]$Rid,
     [switch]$Force
 )
@@ -41,17 +43,13 @@ $Utf8NoBom    = New-Object System.Text.UTF8Encoding($false)
 
 # Windows PowerShell 5.1 may run on .NET Framework without RuntimeInformation, so only the
 # non-Windows branch (PowerShell 6+) touches it.
-$HostOs   = 'other'
-$HostArch = ''
+$HostOs = 'other'
 if ($env:OS -eq 'Windows_NT') {
     $HostOs = 'windows'
-} else {
-    $HostArch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
-    if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::OSX)) {
-        $HostOs = 'mac'
-    } elseif ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Linux)) {
-        $HostOs = 'linux'
-    }
+} elseif ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::OSX)) {
+    $HostOs = 'mac'
+} elseif ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Linux)) {
+    $HostOs = 'linux'
 }
 $OnWindows = ($HostOs -eq 'windows')
 $OnMac     = ($HostOs -eq 'mac')
@@ -84,13 +82,6 @@ function Fail([string]$Message, [int]$Code = 1) {
 
 function Warn([string]$Message) {
     Write-Warning $Message
-}
-
-function Get-HostRid {
-    if ($HostOs -eq 'windows') { return 'win-x64' }
-    if ($HostOs -eq 'mac' -and $HostArch -eq 'Arm64') { return 'osx-arm64' }
-    if ($HostOs -eq 'linux' -and $HostArch -eq 'X64') { return 'linux-x64' }
-    Fail "cannot detect a supported host platform ($HostOs/$HostArch); pass -Rid explicitly: win-x64, linux-x64, osx-arm64"
 }
 
 function Get-Sha256([string]$Path) {
@@ -350,7 +341,7 @@ $known = @('win-x64', 'linux-x64', 'osx-arm64')
 foreach ($r in $requested) {
     if ($known -notcontains $r) { Fail "unknown rid '$r' (expected: win-x64 linux-x64 osx-arm64)" 2 }
 }
-if ($requested.Count -eq 0) { $requested = @(Get-HostRid) }
+if ($requested.Count -eq 0) { $requested = $known }
 
 $script:WorkRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('ksa-fetch-lsp-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Force -Path $script:WorkRoot | Out-Null
@@ -363,3 +354,5 @@ Remove-WorkDir
 Write-Host ''
 Write-Host 'sizes (compressed = downloaded archive, unpacked = installed folder):'
 foreach ($line in $script:Sizes) { Write-Host $line }
+# Explicit, so a caller (tools/fetch-all.ps1) never sees the exit code of the last native command.
+exit 0

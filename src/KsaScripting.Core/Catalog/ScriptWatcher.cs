@@ -18,6 +18,7 @@ public sealed class ScriptWatcher : IDisposable
     private readonly Action<string> _onChanged;
     private readonly TimeSpan _debounce;
     private readonly FileSystemWatcher _watcher;
+    private readonly FileSystemWatcher _dirWatcher;
     private readonly object _gate = new();
     private readonly Dictionary<string, Timer> _timers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _hashes = new(StringComparer.Ordinal);
@@ -49,7 +50,21 @@ public sealed class ScriptWatcher : IDisposable
         _watcher.Deleted += OnEvent;
         _watcher.Renamed += OnRenamed;
         _watcher.Error += OnError;
+
+        // A new subfolder only gets its own watch once the creation event has been processed (inotify on
+        // Linux), so a script written into a just-created folder can be missed by the watcher above. This
+        // second watcher sees folder creations and arrivals, and reports any script the folder already holds.
+        _dirWatcher = new FileSystemWatcher(dir)
+        {
+            IncludeSubdirectories = true,
+            NotifyFilter = NotifyFilters.DirectoryName,
+        };
+        _dirWatcher.Created += OnDirectoryArrived;
+        _dirWatcher.Renamed += OnDirectoryArrived;
+        _dirWatcher.Error += OnError;
+
         _watcher.EnableRaisingEvents = true;
+        _dirWatcher.EnableRaisingEvents = true;
     }
 
     /// <summary>Stops watching and cancels the pending debounce timers.</summary>
@@ -67,7 +82,9 @@ public sealed class ScriptWatcher : IDisposable
         }
 
         _watcher.EnableRaisingEvents = false;
+        _dirWatcher.EnableRaisingEvents = false;
         _watcher.Dispose();
+        _dirWatcher.Dispose();
         foreach (var timer in timers)
             timer.Dispose();
     }
@@ -78,6 +95,31 @@ public sealed class ScriptWatcher : IDisposable
     {
         Schedule(e.OldFullPath);
         Schedule(e.FullPath);
+    }
+
+    private void OnDirectoryArrived(object sender, FileSystemEventArgs e)
+    {
+        try
+        {
+            if (!Directory.Exists(e.FullPath))
+                return;
+
+            foreach (var file in Directory.EnumerateFiles(e.FullPath, "*", SearchOption.AllDirectories))
+            {
+                if (IsScriptFile(file))
+                    Schedule(file);   // a second report of a file the main watcher also saw is coalesced by the debounce and the hash
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.LogOnce("watcher.scan:" + e.FullPath, LogLevel.Warn, $"Could not scan the new script folder '{e.FullPath}': {ex.Message}");
+        }
+    }
+
+    private static bool IsScriptFile(string path)
+    {
+        var ext = Path.GetExtension(path);
+        return ext.Equals(".lua", StringComparison.OrdinalIgnoreCase) || ext.Equals(".ts", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void OnError(object sender, ErrorEventArgs e)
