@@ -1269,8 +1269,8 @@ declare namespace ksa {
     "warp.change": { from: unknown; to: unknown };
     /** The flight computer finished an automatic burn. */
     "burn.complete": Record<string, never>;
-    /** The flight computer stopped an automatic burn because propellant ran out. */
-    "burn.fuel_out": Record<string, never>;
+    /** The flight computer stopped an automatic burn because propellant ran out; payload.stageRanDry is true when only the current stage ran dry and the burn stays planned for the next stage. */
+    "burn.fuel_out": { stageRanDry: unknown };
     /** An engine physically ignited (differ; alias of engine-state on). */
     "engine.ignite": { engine: unknown };
     /** An engine physically shut down (differ; alias of engine-state off). */

@@ -43,7 +43,7 @@ public static class EventCatalog
         E("system.load", "A planetary system was loaded.", "harmony", "system"),
         E("warp.change", "The simulation speed (time warp) changed.", "harmony", "from", "to"),
         E("burn.complete", "The flight computer finished an automatic burn.", "harmony"),
-        E("burn.fuel_out", "The flight computer stopped an automatic burn because propellant ran out.", "harmony"),
+        E("burn.fuel_out", "The flight computer stopped an automatic burn because propellant ran out; payload.stageRanDry is true when only the current stage ran dry and the burn stays planned for the next stage.", "harmony", "stageRanDry"),
 
         // ---- Snapshot differ (gatOS /sim/events parity; evaluated ~10 times per second) -----
         E("engine.ignite", "An engine physically ignited (differ; alias of engine-state on).", "differ", "engine"),

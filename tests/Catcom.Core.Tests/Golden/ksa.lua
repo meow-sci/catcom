@@ -113,7 +113,7 @@ function ksa.export(name, fn) end
 ---| "system.load" # A planetary system was loaded. Payload: system.
 ---| "warp.change" # The simulation speed (time warp) changed. Payload: from, to.
 ---| "burn.complete" # The flight computer finished an automatic burn.
----| "burn.fuel_out" # The flight computer stopped an automatic burn because propellant ran out.
+---| "burn.fuel_out" # The flight computer stopped an automatic burn because propellant ran out; payload.stage_ran_dry is true when only the current stage ran dry and the burn stays planned for the next stage. Payload: stage_ran_dry.
 ---| "engine.ignite" # An engine physically ignited (differ; alias of engine-state on). Payload: engine.
 ---| "engine.shutdown" # An engine physically shut down (differ; alias of engine-state off). Payload: engine.
 ---| "soi.change" # The vessel's parent body (sphere of influence) changed. Payload: from, to.

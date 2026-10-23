@@ -122,7 +122,8 @@ Events come from Harmony hooks (intent and transitions, delivered at the call) a
 - [ ] `system.load`: start or load a game in another planetary system. Expected: `system.load` fires with `payload.system`.
 - [ ] `warp.change`: change time warp with the game's control or `ksa.time:set_warp(f)`. Expected: `warp.change` fires with `payload.from` and `payload.to`.
 - [ ] `burn.complete`: run a burn (section 5). Expected: `burn.complete` fires once, when the burn finishes.
-- [ ] `burn.fuel_out`: plan a burn far larger than the propellant on board, for example 5000 m/s. Expected: `burn.fuel_out` fires when the flight computer stops for lack of propellant, and `burn.complete` does not fire.
+- [ ] `burn.fuel_out`: plan a burn far larger than the propellant on board, for example 5000 m/s. Expected: `burn.fuel_out` fires when the flight computer stops for lack of propellant, and `burn.complete` does not fire `payload.stageRanDry` is `false`.
+- [ ] `burn.fuel_out` (staged burn): on a vessel with two engine stages, plan an automatic burn larger than the first stage's delta-v (the game splits it across the stages). Expected: when the first stage runs dry, `burn.fuel_out` fires with `payload.stageRanDry` set to `true`, time warp stops, and the burn stays planned.
 
 ### Snapshot differ events
 

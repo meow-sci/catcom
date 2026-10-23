@@ -378,6 +378,7 @@ internal static class StubBurnAlerts
     {
         _ = __instance.AutoBurnCompleted;
         _ = __instance.AutoBurnStoppedOutOfPropellant;
+        _ = __instance.AutoBurnStageRanDry;
         _ = vehicle.Id;
     }
 

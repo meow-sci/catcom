@@ -299,13 +299,13 @@ internal static class BurnAlertsPatch
     private static bool _faulted;
 
     [KsaAnchor("FlightComputer.RaisePendingAlerts(Vehicle vehicle) instance prefix; "
-            + "FlightComputer.{AutoBurnCompleted, AutoBurnStoppedOutOfPropellant} (public bool fields)",
+            + "FlightComputer.{AutoBurnCompleted, AutoBurnStoppedOutOfPropellant, AutoBurnStageRanDry} (public bool fields)",
         SourceFile = "KSA/FlightComputer.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "FlightComputer.cs:542. Reads the two pending flags before RaisePendingAlerts clears them. Called only for "
             + "vehicles in frame (Program.PrepareFrame), so an off-screen vehicle's burn end is not seen. "
             + "Neither event carries a payload."
-            + " 5638: FlightComputer.cs:663. New branch: when an auto-burn stage runs dry and the staged burn has a later stage, AutoBurnStageRanDry is set alongside AutoBurnStoppedOutOfPropellant and the game stops warp and warns but keeps the burn planned (no EndAutoBurn). burn.fuel_out still fires and does not tell the two cases apart.")]
+            + " 5638: FlightComputer.cs:663. New branch: when an auto-burn stage runs dry and the staged burn has a later stage, AutoBurnStageRanDry is set alongside AutoBurnStoppedOutOfPropellant and the game stops warp and warns but keeps the burn planned (no EndAutoBurn). burn.fuel_out carries payload.stageRanDry = AutoBurnStageRanDry (read before RaisePendingAlerts clears it), so scripts can stage and re-arm instead of treating the burn as over.")]
     private static void Prefix(FlightComputer __instance, Vehicle vehicle)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -315,7 +315,8 @@ internal static class BurnAlertsPatch
             if (__instance.AutoBurnCompleted)
                 EventPatches.Emit("burn.complete", vehicle.Id, EventPatches.Payload());
             if (__instance.AutoBurnStoppedOutOfPropellant)
-                EventPatches.Emit("burn.fuel_out", vehicle.Id, EventPatches.Payload());
+                EventPatches.Emit("burn.fuel_out", vehicle.Id, EventPatches.Payload(
+                    ("stageRanDry", ScriptValue.From(__instance.AutoBurnStageRanDry))));
         }
         catch (Exception ex)
         {
