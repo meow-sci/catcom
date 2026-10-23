@@ -10,4 +10,4 @@
 # (gh workflow run build.yml --ref main -f publish_tag=natives-vN), wait for it, update this file,
 # then run tools/fetch-all.sh once so tools/assets.lock gets the new pins.
 repo=meow-sci/catcom-native
-tag=natives-v1
+tag=natives-v2
