@@ -43,10 +43,11 @@ public sealed class ActionExecutor(KsaHealth health, bool allVessels, bool debug
 
     /// <inheritdoc />
     [KsaAnchor("Program.ControlledVehicle?.Id; Vehicle.Id", SourceFile = "KSA/Program.cs / KSA/Vehicle.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "The authority gate (control_all_vessels=false): only the controlled vehicle is commandable. "
             + "debug.* and AnyVesselActions are exempt. Program.ControlledVehicle is a static property (:502); "
-            + "its setter now ClearHeldPlayerInput()s the previous vehicle on change.")]
+            + "its setter now ClearHeldPlayerInput()s the previous vehicle on change."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public CommandResult Execute(SimCommand command)
     {
         var accessor = $"actuator.{command.Action}";
@@ -155,9 +156,10 @@ public sealed class ActionExecutor(KsaHealth health, bool allVessels, bool debug
     [KsaAnchor("Vehicle (parameter) → EngineActuator / ThrottleActuator / StagingActuator / RcsActuator / "
             + "TranslateActuator / RotateActuator / FlightComputerActuator / LightActuator / AnimationActuator / "
             + "DecouplerActuator / DockingActuator / ScaleActuator / DebugActuator / VesselForceRender",
-        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Pure routing table over the individually anchored actuators; it touches the KSA Vehicle type only "
-            + "to pass it through.")]
+            + "to pass it through."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private CommandResult Dispatch(Vehicle vehicle, SimCommand c) => c.Action switch
     {
         // Engines / vessel-level
@@ -217,10 +219,11 @@ public sealed class ActionExecutor(KsaHealth health, bool allVessels, bool debug
     ///     <see cref="SimCommand.VesselId"/>) and names any <see cref="Astronomical"/>; only the view moves.
     /// </summary>
     [KsaAnchor("CameraActuator.Focus(Astronomical) via ResolveAstronomical(Token ?? VesselId)",
-        SourceFile = "KSA/CelestialSystem.cs / KSA/Camera.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/CelestialSystem.cs / KSA/Camera.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "The only surviving camera route (the gatOS camera director is not part of v1). Routes before vehicle "
-            + "resolution and before the authority gate, exactly as gatOS did.")]
+            + "resolution and before the authority gate, exactly as gatOS did."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static CommandResult Focus(SimCommand c)
     {
         var focusId = c.Token ?? c.VesselId;
@@ -233,10 +236,11 @@ public sealed class ActionExecutor(KsaHealth health, bool allVessels, bool debug
     /// <param name="id">The vehicle id.</param>
     /// <returns>The vehicle, or <see langword="null"/>.</returns>
     [KsaAnchor("Universe.CurrentSystem.All.UnsafeAsList(); Vehicle.Id", SourceFile = "KSA/Universe.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Same enumeration the vessel cache uses to find vessels by id. Universe.CurrentSystem is a public "
             + "static property (:114); CelestialSystem.All is LookupCollection<Astronomical>. Fragment/debris "
-            + "vehicles ('<id>_N') are ordinary Vehicles in All, so they resolve like any other id.")]
+            + "vehicles ('<id>_N') are ordinary Vehicles in All, so they resolve like any other id."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static Vehicle? ResolveVehicle(string id)
     {
         if (Universe.CurrentSystem is not { } system)
@@ -251,16 +255,18 @@ public sealed class ActionExecutor(KsaHealth health, bool allVessels, bool debug
     /// <param name="id">The object id.</param>
     /// <returns>The object, or <see langword="null"/>.</returns>
     [KsaAnchor("Universe.CurrentSystem.Get(id) → Astronomical (vehicle or celestial)",
-        SourceFile = "KSA/CelestialSystem.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/CelestialSystem.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "Same id lookup the game's follow/control terminal actions use (CelestialSystem.Get(string) :298, "
-            + "a keyed LookupCollection read); returns null when absent.")]
+            + "a keyed LookupCollection read); returns null when absent."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static Astronomical? ResolveAstronomical(string id)
         => Universe.CurrentSystem?.Get(id);
 
-    [KsaAnchor("Universe.GetElapsedSeconds()", SourceFile = "KSA/Universe.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
-        Notes = "UT stamp for a degraded-accessor record; never throws (0 on any failure).")]
+    [KsaAnchor("Universe.GetElapsedSeconds()", SourceFile = "KSA/Universe.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "UT stamp for a degraded-accessor record; never throws (0 on any failure)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static double SafeUt()
     {
         try

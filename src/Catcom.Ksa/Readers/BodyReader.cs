@@ -54,11 +54,12 @@ internal static class BodyReader
     [KsaAnchor("CelestialSystem.{All,HomeBody,GetWorldSun()}; Celestial/"
             + "StellarBody/Barycenter type dispatch",
         SourceFile = "KSA/CelestialSystem.cs / KSA/Universe.cs / KSA/Barycenter.cs / KSA/OrbitingStar.cs",
-        Verified = "2026-10-11", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "5493/5515: enumerate all celestial body types, including multiple stars and the "
             + "Alpha Centauri barycenter. GetWorldSun() is the stable primary star and preserves "
             + "the existing star-named system/name contract. Universe.WorldSun changes with the "
-            + "camera's nearest star and must not be cached in the system summary.")]
+            + "camera's nearest star and must not be cached in the system summary."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static (IReadOnlyList<BodySnapshot> Bodies, SystemSnapshot? System) Sample(CelestialSystem system)
     {
         var all = system.All.UnsafeAsList();
@@ -87,15 +88,16 @@ internal static class BodyReader
 
     [KsaAnchor("Celestial.{Id,Class,Parent,Children,Mass,MeanRadius,SphereOfInfluence,GetAngularVelocity,Orbit}; "
                + "IParentBody.{Mu,GetAtmosphereReference,GetOceanReference}; Orbit.IsBound()",
-        SourceFile = "KSA/Celestial.cs / KSA/Orbit.cs", Verified = "2026-10-11",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Celestial.cs / KSA/Orbit.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "The session-constant catalog members (everything but GetPositionEcl/GetVelocityEcl) are "
             + "read once per body instance and cached (GP3); bodies are on rails, so the orbit elements "
             + "are constants too. 5482: apoapsis is gated on Orbit.IsBound() (0 when unbound), the gate "
             + "KSA's own Universe Manifest adopted at rev 5439. 5554: children are filtered to "
             + "IParentBody before caching so runtime vehicles do not enter the static body catalog; "
             + "rev 5512's TwoBody/CentralMass orbital options change period for some companion "
-            + "bodies, but the Orbit members and units used here are unchanged.")]
+            + "bodies, but the Orbit members and units used here are unchanged."
+               + " 5638: unchanged (decompiler reshaping only).")]
     private static BodySnapshot FromCelestial(Celestial c)
     {
         var statics = CelestialCache.GetValue(c, BuildCelestialStatics);
@@ -124,9 +126,10 @@ internal static class BodyReader
     [KsaAnchor("StellarBody.{Id,Mass,MeanRadius,SphereOfInfluence,Children}; "
             + "OrbitingStar.{Parent,Orbit}; IParentBody.Mu",
         SourceFile = "KSA/StellarBody.cs / KSA/FixedStar.cs / KSA/OrbitingStar.cs",
-        Verified = "2026-10-11", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "5493/5515: fixed root stars and orbiting companion stars are both StellarBody. "
-            + "Only OrbitingStar has a parent/orbit. Children exclude runtime vehicles.")]
+            + "Only OrbitingStar has a parent/orbit. Children exclude runtime vehicles."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static BodySnapshot FromStar(StellarBody s)
         => Assemble(StarCache.GetValue(s, BuildStarStatics), s.GetPositionEcl(), s.GetVelocityEcl());
 
@@ -150,11 +153,12 @@ internal static class BodyReader
 
     [KsaAnchor("Barycenter.{Id,Children,Mass,MeanRadius,SphereOfInfluence,GetPositionEcl,"
             + "GetVelocityEcl}; IParentBody.Mu",
-        SourceFile = "KSA/Barycenter.cs", Verified = "2026-10-11",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Barycenter.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "5515: Alpha Centauri's independent root is a barycenter. It has no orbit or "
             + "surface radius; its children are orbiting stars. Its infinite SoI is sanitized to 0 "
-            + "under the published finite-number convention.")]
+            + "under the published finite-number convention."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static BodySnapshot FromBarycenter(Barycenter b)
         => Assemble(BarycenterCache.GetValue(b, BuildBarycenterStatics), b.GetPositionEcl(), b.GetVelocityEcl());
 

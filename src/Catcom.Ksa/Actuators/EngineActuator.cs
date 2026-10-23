@@ -13,8 +13,9 @@ namespace Catcom.Ksa.Actuators;
 internal static class EngineActuator
 {
     [KsaAnchor("Vehicle.SetEnum(VehicleEngine.MainIgnite)", SourceFile = "KSA/Vehicle.cs",
-        Verified = "2026-06-12", Risk = ChurnRisk.Medium,
-        Notes = "Sets _manualControlInputs.EngineOn = true (ignites the active stage's engines).")]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
+        Notes = "Sets _manualControlInputs.EngineOn = true (ignites the active stage's engines)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult Ignite(Vehicle vehicle)
     {
         vehicle.SetEnum(VehicleEngine.MainIgnite);
@@ -22,7 +23,7 @@ internal static class EngineActuator
     }
 
     [KsaAnchor("Vehicle.SetEnum(VehicleEngine.MainShutdown)", SourceFile = "KSA/Vehicle.cs",
-        Verified = "2026-06-12", Risk = ChurnRisk.Medium)]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium, Notes = "5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult Shutdown(Vehicle vehicle)
     {
         vehicle.SetEnum(VehicleEngine.MainShutdown);
@@ -34,8 +35,9 @@ internal static class EngineActuator
         => on ? Ignite(vehicle) : Shutdown(vehicle);
 
     [KsaAnchor("EngineController.SetIsActive(Vehicle, bool)", SourceFile = "KSA/EngineController.cs",
-        Verified = "2026-06-12", Risk = ChurnRisk.Low,
-        Notes = "Ordinal is the vessel-level engine index from VesselReader.SampleEngines.")]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "Ordinal is the vessel-level engine index from VesselReader.SampleEngines."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetActive(Vehicle vehicle, int ordinal, bool active)
     {
         var engines = vehicle.Parts.Modules.Get<EngineController>();
@@ -47,7 +49,7 @@ internal static class EngineActuator
 
     [KsaAnchor("EngineController.MinimumThrottle (float, settable); PartTree.MarkDerivedDirty(DerivedData.RocketControls)",
         SourceFile = "KSA/EngineController.cs / KSA/PartTree.cs:480,993-1017 / KSA/Vehicle.cs:1264,2411",
-        Verified = "2026-09-25", GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Deep-throttle floor 0..1. 5348 (rev 5317 era): EngineController.MinimumThrottle itself "
             + "is unchanged and this write still lands, but FlightComputer."
             + "ComputeActiveEnginePerformance flipped its fold over the active engines — seed 1f -> 0f "
@@ -59,7 +61,8 @@ internal static class EngineActuator
             + "MinimumThrottle recomputed only by RecomputeRocketControls. The write alone left that cache stale "
             + "(pre-existing: 5438 also only recomputed it on structural change), so the write now marks "
             + "DerivedData.RocketControls dirty; KSA flushes it in PrepareFrame before the next solve, and the "
-            + "EngineThrottleMin getter also ensures it lazily.")]
+            + "EngineThrottleMin getter also ensures it lazily."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetMinThrottle(Vehicle vehicle, int ordinal, double fraction)
     {
         var engines = vehicle.Parts.Modules.Get<EngineController>();

@@ -1,6 +1,6 @@
 # catcom in-game validation checklist
 
-This checklist is the in-game pass that CI and the development Mac cannot run. Work through it on Windows x64 and on Linux x64 with KSA build 2026.10.10.5554 and purrTTY (with the launcher contract) installed. Each item is an action followed by its expected result. Run the sections in order, because later sections assume the earlier ones pass. All features listed here are implemented as of 2026-10-16 and proven by builds, unit tests and off-game harnesses on macOS; none of them has run inside the game yet, so record every deviation precisely (what you did, what happened, the log lines).
+This checklist is the in-game pass that CI and the development Mac cannot run. Work through it on Windows x64 and on Linux x64 with KSA build 2026.10.19.5638 and purrTTY (with the launcher contract) installed. Each item is an action followed by its expected result. Run the sections in order, because later sections assume the earlier ones pass. All features listed here are implemented as of 2026-10-16 and proven by builds, unit tests and off-game harnesses on macOS; none of them has run inside the game yet, so record every deviation precisely (what you did, what happened, the log lines).
 
 ## Setup
 

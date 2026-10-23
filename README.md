@@ -2,7 +2,7 @@
 
 In-band scripting for Kitten Space Agency: Lua (LuaJIT) and TypeScript (V8 via ClearScript) scripts that run inside the game process on the game thread, with a gatOS-style read/write API (`ksa.vessel(id).setThrottle(0.5)`), game-loop event hooks (`ksa.on("engine.activate", …)`, `ksa.every("step", …)`), awaitable waits on the sim clock, script-owned virtual terminals rendered by purrTTY in 2D windows or on vehicle parts, and a shipped Neovim editor inside purrTTY with LSP completion from generated stubs.
 
-Status: v0.1.0 implemented and verified by builds, unit tests and off-game harnesses on macOS; in-game validation is pending (see [docs/VALIDATION.md](docs/VALIDATION.md)). Built against KSA 2026.10.10.5554.
+Status: v0.1.0 implemented and verified by builds, unit tests and off-game harnesses on macOS; in-game validation is pending (see [docs/VALIDATION.md](docs/VALIDATION.md)). Built against KSA 2026.10.19.5638.
 
 ## Layout
 

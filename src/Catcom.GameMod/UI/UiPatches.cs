@@ -45,11 +45,12 @@ public static class UiPatches
 internal static class HotkeyGuardPatch
 {
     [KsaAnchor("GameSettings.OnKeyAll(GlfwKeyEvent); Program.ConsoleWindow.IsOpen",
-        SourceFile = "KSA/GameSettings.cs / KSA/Program.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/GameSettings.cs / KSA/Program.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "OnKeyAll heads the input chain (GameSettings.OnKeyAll -> Popup.OnKeyAll -> ConsoleWindow.OnKey -> ...): "
             + "returning true from this prefix (with __result = true) swallows the key before every game handler, "
-            + "which is also why the open console must be excluded. Runs on the GLFW poll thread: the flag is volatile.")]
+            + "which is also why the open console must be excluded. Runs on the GLFW poll thread: the flag is volatile."
+            + " 5638: GameSettings.cs:3579 byte-identical; the input chain head (Program.cs:1880) is unchanged.")]
     [HarmonyPrefix]
     private static bool Prefix(ref bool __result)
     {
@@ -84,11 +85,12 @@ internal static class MenuFallbackPatch
     private static bool? s_modMenuPresent;
 
     [KsaAnchor("Program.DrawProgramMenusHook(); Program.MainViewport; IGameViewportLifecycle.SetMenuBarInUse(bool)",
-        SourceFile = "KSA/Program.cs / KSA/IGameViewportLifecycle.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Program.cs / KSA/IGameViewportLifecycle.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "DrawProgramMenusHook is an empty instance hook called inside the open menu bar after the View/HUD menus. "
             + "Since 5402 IGameViewport.MenuBarInUse is read-only; the setter is the explicit IGameViewportLifecycle.SetMenuBarInUse "
-            + "(the call DrawMenuBar itself makes). Same pattern as purrTTY's Patch02.")]
+            + "(the call DrawMenuBar itself makes). Same pattern as purrTTY's Patch02."
+            + " 5638: Program.cs:4182 byte-identical; DrawMenuBar has decompiler reshaping only (plus one new debug menu item).")]
     [HarmonyPostfix]
     private static void Postfix()
     {

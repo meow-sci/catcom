@@ -62,5 +62,12 @@ foreach (var q in queries)
     var members = parts.Length == 1 ? type.GetMembers(All) : type.GetMember(parts[1], All);
     if (members.Length == 0) Console.WriteLine("  MEMBER NOT FOUND");
     foreach (var m in members.OrderBy(m => m.MemberType).ThenBy(m => m.Name))
-        Console.WriteLine($"  {Sig(m)}");
+        Console.WriteLine($"  {SafeSig(m)}");
+}
+
+// A member whose signature names a type from an assembly missing from dllDir (e.g. MathNet) can't be decoded.
+string SafeSig(MemberInfo m)
+{
+    try { return Sig(m); }
+    catch (FileNotFoundException e) { return $"{m.MemberType} {m.Name} <unresolved: {e.Message.Split('\'')[1]}>"; }
 }

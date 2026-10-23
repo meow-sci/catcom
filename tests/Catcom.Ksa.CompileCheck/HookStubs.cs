@@ -272,7 +272,7 @@ internal static class StubDestroyFromEvent
 [HarmonyPatch(typeof(Universe), nameof(Universe.DestroyVehicle))]
 internal static class StubDestroyRemoved
 {
-    private static void Prefix(Vehicle vehicle) => _ = vehicle.IsDisposed;
+    private static void Prefix(Vehicle vehicle, CrewDisposition crew) => _ = vehicle.IsDisposed || crew == CrewDisposition.Boarded;
 
     private static void Sig(Vehicle v) => Universe.DestroyVehicle(vehicle: v, crew: CrewDisposition.Kill);
 }

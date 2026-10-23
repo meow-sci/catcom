@@ -24,13 +24,14 @@ internal static class DockingActuator
 {
     [KsaAnchor("DockingPort.Docked; InputEvents.VehicleDockingInputData{Undock=true} → DockingPort.Undock "
             + "→ Vehicle.Split(Connector, PushoffImpulse)",
-        SourceFile = "KSA/DockingPort.cs / KSA/InputEvents.cs", Verified = "2026-08-01",
-        GameVersion = "2026.7.10.5056", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/DockingPort.cs / KSA/InputEvents.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Mirrors the UnDock context-menu enqueue. Undocking a port that is not docked is rejected "
             + "(EBUSY) rather than handing Split a null connection. 4750 (rev 4683): Undock now hands "
             + "Vehicle.Split an impulse (PushoffImpulse, N·s) — Undock itself enqueues, never calls Split. "
             + "4980 (rev 4943): OldMeanRadius removed from VehicleDockingInputData (Apply() reads "
-            + "Vehicle.MeanRadius itself) — the enqueue is just {Vehicle, DockingPort, Undock}.")]
+            + "Vehicle.MeanRadius itself) — the enqueue is just {Vehicle, DockingPort, Undock}."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult Undock(Vehicle vehicle, int ordinal)
     {
         var ports = vehicle.Parts.Modules.Get<DockingPort>();
@@ -49,11 +50,12 @@ internal static class DockingActuator
     }
 
     [KsaAnchor("DockingPort.PushoffImpulse (public required float, seeded from DockingPortTemplate.PushoffImpulse)",
-        SourceFile = "KSA/DockingPort.cs", Verified = "2026-06-27", GameVersion = "2026.6.9.4750",
+        SourceFile = "KSA/DockingPort.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "The separation impulse Undock's Vehicle.Split applies; stock parts seed 7000 N·s from XML. "
             + "Negative values are rejected (EINVAL). 4750 (rev 4683): renamed PushoffForce→PushoffImpulse, "
-            + "force (N)→impulse (N·s).")]
+            + "force (N)→impulse (N·s)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetPushoffImpulse(Vehicle vehicle, int ordinal, double impulse)
     {
         if (impulse < 0)

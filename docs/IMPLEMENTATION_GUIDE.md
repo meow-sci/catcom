@@ -10,7 +10,7 @@ Research bundle: [`docs/research/index.md`](research/index.md). Plans: [`plans/R
 
 | Item | Value |
 |---|---|
-| Game | Kitten Space Agency build 2026.10.10.5554, `net10.0`, self-contained .NET 10.0.10 |
+| Game | Kitten Space Agency build 2026.10.19.5638, `net10.0`, self-contained .NET 10.0.10 |
 | Reference DLLs (compile only) | `/Users/asherwin/repos/meow-sci/ksa-game-assemblies/current/dll/` (also `KSA_DLL_DIR` env) |
 | Decompiled sources | `/Users/asherwin/repos/meow-sci/ksa-game-assemblies/current/decomp/` |
 | purrTTY repo (branch `feature/scripting`) | `/Users/asherwin/repos/meow-sci/purrtty` |
@@ -87,7 +87,7 @@ ImportedAssemblies = ["purrTTY.CustomShellContract", "purrTTY.Logging"]
 
 - **File-scoped namespaces**; one public type per file; `sealed` by default; records for DTOs; `readonly record struct` for small values.
 - **No KSA types** (nor Brutal, Harmony, ImGui, purrTTY) in `Catcom.Core`, `Runtime.Lua`, `Runtime.V8`. Only handles (strings) and `ScriptValue` cross runtime boundaries.
-- **Every member that touches a KSA type** carries `[KsaAnchor("<Type.Member> …", SourceFile = "KSA/X.cs", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low|Medium|High)]` (ported from gatOS `Game/Ksa/KsaAnchor.cs`).
+- **Every member that touches a KSA type** carries `[KsaAnchor("<Type.Member> …", SourceFile = "KSA/X.cs", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low|Medium|High)]` (ported from gatOS `Game/Ksa/KsaAnchor.cs`).
 - **Nothing on the sim path may throw.** Harmony patch bodies and slot bodies are `try/catch` with log-once + self-disable (`_faulted` flag). Executors return `CommandResult.Fault(message)` instead of throwing.
 - **Game thread only:** all script execution, all `Vehicle`/`PartTree`/`FlightComputer` access, all purrTTY window/registry calls. Off-thread entry points (purrTTY tick-thread input, nvim RPC thread, file watcher, PTY exit callbacks) go through `GameThreadQueue.Post(...)`.
 - **Logging:** `Catcom.Core.Logging.Log` static with a pluggable `ILogSink`; GameMod installs a sink that writes `Console.WriteLine` (stdout) **and** `Program.ConsoleWindow.Print` (in-game, thread-safe). Format `[catcom] <level>: <message>`. Log once for repeated faults (`LogOnce(key, …)`).

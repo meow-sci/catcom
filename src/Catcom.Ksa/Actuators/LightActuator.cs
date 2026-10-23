@@ -29,9 +29,10 @@ internal static class LightActuator
     private static readonly object Marker = new();
 
     [KsaAnchor("Vehicle.LightsOn; PowerConsumer.LightSwitch/.LightIsActive", SourceFile = "KSA/Vehicle.cs",
-        Verified = "2026-06-12", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Replicates ToggleLights() as a set. PowerConsumer.UpdateModules reads LightIsActive "
-                + "into state.Active each tick when LightSwitch is set.")]
+                + "into state.Active each tick when LightSwitch is set."
+                + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetMaster(Vehicle vehicle, bool on)
     {
         vehicle.LightsOn = on;
@@ -42,7 +43,8 @@ internal static class LightActuator
     }
 
     [KsaAnchor("LightModule.Parent.FullPart.LightSwitch.LightIsActive", SourceFile = "KSA/LightModule.cs",
-        Verified = "2026-06-12", Risk = ChurnRisk.Medium, Notes = "Per-light on/off via the part's power switch.")]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium, Notes = "Per-light on/off via the part's power switch."
+                + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetOn(Vehicle vehicle, int ordinal, bool on)
     {
         if (GetLight(vehicle, ordinal) is not { } light)
@@ -54,8 +56,9 @@ internal static class LightActuator
     }
 
     [KsaAnchor("LightModule.Template.Intensity.Value (per-instance, after template clone)",
-        SourceFile = "KSA/LightModule.cs / KSA/FloatReference.cs", Verified = "2026-06-12", Risk = ChurnRisk.High,
-        Notes = "Template is shared; EnsureUnshared clones it (red-alert ConditionalWeakTable pattern) first.")]
+        SourceFile = "KSA/LightModule.cs / KSA/FloatReference.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
+        Notes = "Template is shared; EnsureUnshared clones it (red-alert ConditionalWeakTable pattern) first."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetBrightness(Vehicle vehicle, int ordinal, double value)
     {
         if (GetLight(vehicle, ordinal) is not { } light)
@@ -66,8 +69,9 @@ internal static class LightActuator
     }
 
     [KsaAnchor("LightModule.Template.ColorRgb.{R,G,B} + OnDataLoad (per-instance, after template clone)",
-        SourceFile = "KSA/LightModule.cs / KSA/ColorRgbReference.cs", Verified = "2026-06-12", Risk = ChurnRisk.High,
-        Notes = "OnDataLoad recomputes the rendered Value from R/G/B (zippo pattern).")]
+        SourceFile = "KSA/LightModule.cs / KSA/ColorRgbReference.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
+        Notes = "OnDataLoad recomputes the rendered Value from R/G/B (zippo pattern)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetColor(Vehicle vehicle, int ordinal, IReadOnlyList<double> rgb)
     {
         if (rgb.Count != 3)
@@ -84,12 +88,13 @@ internal static class LightActuator
     }
 
     [KsaAnchor("LightModule.Template.OuterAngle.Value (per-instance, after template clone)",
-        SourceFile = "KSA/LightModule.cs / KSA/FloatReference.cs", Verified = "2026-06-23", Risk = ChurnRisk.High,
+        SourceFile = "KSA/LightModule.cs / KSA/FloatReference.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
         Notes = "Spotlight outer-cone half-angle. Argument is degrees; stored as radians, clamped to KSA's "
                 + "render range [1E-05, 1.5697963] rad (~0..89.94 deg, see Light.CreateSpotLight). Also pulls "
                 + "InnerAngle down to <= the new outer so the rendered cone actually narrows — CreateSpotLight "
                 + "SWAPS the two if inner > outer, which is why a small outer alone never produced a pinpoint. "
-                + "Template is shared; EnsureUnshared clones both angles (red-alert pattern).")]
+                + "Template is shared; EnsureUnshared clones both angles (red-alert pattern)."
+                + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetOuterAngle(Vehicle vehicle, int ordinal, double degrees)
     {
         if (GetLight(vehicle, ordinal) is not { } light)
@@ -105,10 +110,11 @@ internal static class LightActuator
     }
 
     [KsaAnchor("LightModule.Template.InnerAngle.Value (per-instance, after template clone)",
-        SourceFile = "KSA/LightModule.cs / KSA/FloatReference.cs", Verified = "2026-06-23", Risk = ChurnRisk.High,
+        SourceFile = "KSA/LightModule.cs / KSA/FloatReference.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
         Notes = "Spotlight inner-cone half-angle (full-brightness core). Argument is degrees; stored as "
                 + "radians, clamped to [0, current OuterAngle] (KSA clamps inner to [0, outer] and swaps if "
-                + "inner > outer). Template is shared; EnsureUnshared clones both angles (red-alert pattern).")]
+                + "inner > outer). Template is shared; EnsureUnshared clones both angles (red-alert pattern)."
+                + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetInnerAngle(Vehicle vehicle, int ordinal, double degrees)
     {
         if (GetLight(vehicle, ordinal) is not { } light)

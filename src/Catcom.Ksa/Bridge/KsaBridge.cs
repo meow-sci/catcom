@@ -171,10 +171,11 @@ public sealed class KsaBridge(VesselCache cache, ActionExecutor executor, GameTh
 
     /// <inheritdoc />
     [KsaAnchor("Program.TerminalInterface.Execute(string)", SourceFile = "KSA/Program.cs / Brutal.ImGuiApi.Abstractions/TerminalInterface.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Program.TerminalInterface => ConsoleWindow.Terminal (:500); Execute(string) -> bool splits on ';' outside "
             + "quotes and runs each command synchronously on the caller's thread, so it must be the game thread. "
-            + "Errors surface through TerminalInterface.OnOutput, not exceptions.")]
+            + "Errors surface through TerminalInterface.OnOutput, not exceptions."
+            + " 5638: TerminalInterface (Brutal.ImGui.Abstractions) byte-identical.")]
     public void ConsoleExec(string command)
     {
         try
@@ -189,10 +190,11 @@ public sealed class KsaBridge(VesselCache cache, ActionExecutor executor, GameTh
 
     [KsaAnchor("Universe.GetElapsedSeconds(); Universe.SimulationSpeed; Universe.GetLastSimStep().DeltaTime; "
             + "Universe.IsPaused(); Program.ControlledVehicle?.Id; Program.FrameNumber",
-        SourceFile = "KSA/Universe.cs / KSA/Program.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/Universe.cs / KSA/Program.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "The time handle. IsPaused() is `_simulationSpeed == 0.0` (Universe.cs:1799); FrameNumber is a public "
-            + "static ulong field incremented in PostRender (Program.cs:301). All doubles are sanitized (NaN/Inf -> 0).")]
+            + "static ulong field incremented in PostRender (Program.cs:301). All doubles are sanitized (NaN/Inf -> 0)."
+            + " 5638: Universe.GetJobSimStep now caps each step at max(2x the previous step, dtPlayer), so after a warp increase sim_dt ramps up over a few frames while Warp already reports the new SimulationSpeed.")]
     private TimeView CurrentTime() => new(
         Ut: Sanitize.Finite(Universe.GetElapsedSeconds()),
         Warp: Sanitize.Finite(Universe.SimulationSpeed),
@@ -211,8 +213,9 @@ public sealed class KsaBridge(VesselCache cache, ActionExecutor executor, GameTh
            && (path.Length == 5 || path[5] == '.');
 
     [KsaAnchor("Universe / Program time reads (see CurrentTime)", SourceFile = "KSA/Universe.cs / KSA/Program.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
-        Notes = "try/catch wrapper for the live scalar properties: a throwing getter reads as the fallback.")]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "try/catch wrapper for the live scalar properties: a throwing getter reads as the fallback."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static T Guard<T>(T fallback, Func<T> read, string name)
     {
         try

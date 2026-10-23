@@ -16,9 +16,10 @@ internal static class ControlChangePatch
     private static bool _faulted;
 
     [KsaAnchor("Program.ControlledVehicle getter (static, Vehicle?)", SourceFile = "KSA/Program.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Captures the previous controlled vehicle id before the setter runs; the setter is called with the "
-            + "same value often, so the postfix publishes only when the id changed.")]
+            + "same value often, so the postfix publishes only when the id changed."
+            + " 5638: Program.cs:529, unchanged.")]
     private static void Prefix(out string? __state)
     {
         __state = Unset;
@@ -36,10 +37,11 @@ internal static class ControlChangePatch
     }
 
     [KsaAnchor("Program.ControlledVehicle setter set_ControlledVehicle(Vehicle? value) static postfix",
-        SourceFile = "KSA/Program.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Program.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Program.cs:502 (static property; the setter ClearHeldPlayerInput()s the previous vehicle on change). "
             + "payload.from / payload.to are vehicle ids or null for \"no vessel\"; vesselId is the newly controlled "
-            + "vessel (null when control was released).")]
+            + "vessel (null when control was released)."
+            + " 5638: unchanged, but kitten boarding now nulls ControlledVehicle (inside Universe.DestroyVehicle) before setting the host, so boarding publishes two events (kitten → null, null → host) where 5554 published one.")]
     private static void Postfix(string? __state)
     {
         if (_faulted || ReferenceEquals(__state, Unset) || EventPatches.Sink is null)
@@ -68,9 +70,10 @@ internal static class EditorEnterPatch
     private static bool _faulted;
 
     [KsaAnchor("VehicleEditor..ctor(Vehicle? inEditingVehicle, bool newVehicle) postfix", SourceFile = "KSA/VehicleEditor.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "VehicleEditor.cs:895. Constructed by Program.OnFrameEditor when EditorFlag is set. vesselId is the vehicle "
-            + "being edited (null for a new vehicle), payload.newVehicle the constructor flag.")]
+            + "being edited (null for a new vehicle), payload.newVehicle the constructor flag."
+            + " 5638: VehicleEditor.cs:963, byte-identical.")]
     private static void Postfix(Vehicle? inEditingVehicle, bool newVehicle)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -96,10 +99,11 @@ internal static class EditorExitPatch
     private static bool _faulted;
 
     [KsaAnchor("VehicleEditor.Dispose() instance prefix; VehicleEditor.ExistingVehicle?.Id", SourceFile = "KSA/VehicleEditor.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "VehicleEditor.cs:2256. Dispose runs the launch/exit finalisation, so the prefix sees the editor still intact. "
             + "A repeated Dispose of the same editor instance publishes once. vesselId is the edited vehicle "
-            + "(ExistingVehicle) when there is one.")]
+            + "(ExistingVehicle) when there is one."
+            + " 5638: VehicleEditor.cs:505, decompiler reshaping only.")]
     private static void Prefix(VehicleEditor __instance)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -126,11 +130,12 @@ internal static class SaveWritePatch
     private static bool _faulted;
 
     [KsaAnchor("UncompressedSave.Write() → bool instance postfix; UncompressedSave.Directory (DirectoryInfo)",
-        SourceFile = "KSA/UncompressedSave.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/UncompressedSave.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "UncompressedSave.cs:108 (override of GameSave.Write). Published only when the write succeeded; "
             + "payload.directory is the save folder. The script event is published first (handlers may update script "
-            + "state), then KsaSaveHooks.SaveWritten lets the GameMod persist the state sidecar into the folder.")]
+            + "state), then KsaSaveHooks.SaveWritten lets the GameMod persist the state sidecar into the folder."
+            + " 5638: UncompressedSave.cs:108, decompiler reshaping only.")]
     private static void Postfix(UncompressedSave __instance, bool __result)
     {
         if (!__result)
@@ -165,11 +170,12 @@ internal static class SaveLoadDirectoryPatch
     internal static string? Loading { get; private set; }
 
     [KsaAnchor("UncompressedSave.Load() instance prefix; UncompressedSave.Directory (DirectoryInfo)",
-        SourceFile = "KSA/UncompressedSave.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/UncompressedSave.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "UncompressedSave.cs:45. Load() is the only caller of Universe.DeserializeSave and Program.OnGameLoaded, "
             + "and the game keeps no 'current save' field, so this prefix is the only place the loaded directory is "
-            + "known. A finalizer clears it again, also when Load() throws.")]
+            + "known. A finalizer clears it again, also when Load() throws."
+            + " 5638: UncompressedSave.cs:45, decompiler reshaping only. Vehicles using removed parts are now left out of the load (rev 5633), so they never Register.")]
     private static void Prefix(UncompressedSave __instance)
     {
         try
@@ -182,9 +188,10 @@ internal static class SaveLoadDirectoryPatch
         }
     }
 
-    [KsaAnchor("UncompressedSave.Load() instance finalizer", SourceFile = "KSA/UncompressedSave.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
-        Notes = "Harmony finalizer: runs after Load() returns or throws, after Program.OnGameLoaded's postfix.")]
+    [KsaAnchor("UncompressedSave.Load() instance finalizer", SourceFile = "KSA/UncompressedSave.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "Harmony finalizer: runs after Load() returns or throws, after Program.OnGameLoaded's postfix."
+            + " 5638: unchanged.")]
     private static void Finalizer() => Loading = null;
 }
 
@@ -194,12 +201,13 @@ internal static class SaveLoadPatch
 {
     private static bool _faulted;
 
-    [KsaAnchor("Program.OnGameLoaded() static postfix", SourceFile = "KSA/Program.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+    [KsaAnchor("Program.OnGameLoaded() static postfix", SourceFile = "KSA/Program.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Program.cs:2599; called once by UncompressedSave.Load() after Universe.DeserializeSave. KsaSaveHooks.GameLoaded "
             + "is raised first (the GameMod restores the script state sidecar), then the save.load script event is "
             + "published, so handlers see the restored state. payload.directory comes from SaveLoadDirectoryPatch "
-            + "(null if that patch is dark).")]
+            + "(null if that patch is dark)."
+            + " 5638: Program.cs:2728, byte-identical.")]
     private static void Postfix()
     {
         var directory = SaveLoadDirectoryPatch.Loading;
@@ -225,10 +233,11 @@ internal static class SystemLoadPatch
 {
     private static bool _faulted;
 
-    [KsaAnchor("Universe.LoadSystem(string id) static postfix", SourceFile = "KSA/Universe.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+    [KsaAnchor("Universe.LoadSystem(string id) static postfix", SourceFile = "KSA/Universe.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Universe.cs:232. Builds a new CelestialSystem and runs Universe.OnLoaded(); payload.system is the system "
-            + "template id passed in. Not raised for a save load (the system was already loaded).")]
+            + "template id passed in. Not raised for a save load (the system was already loaded)."
+            + " 5638: Universe.cs:236; now also calls Program.MaskStars after loading, which does not affect the postfix.")]
     private static void Postfix(string id)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -256,11 +265,12 @@ internal static class WarpChangePatch
 
     [KsaAnchor("Universe.SetSimulationSpeed(double simulationSpeed, bool alert = true) static prefix; "
             + "Universe.GetSimulationSpeed()",
-        SourceFile = "KSA/Universe.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Universe.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Universe.cs:2288, the single funnel for the warp factor (the private SimulationSpeed setter, auto-warp, menu "
             + "pause and the console all end here, often every frame with the same value). Published only when the "
             + "value moves by more than 0.001 (the game's own threshold). payload.from / payload.to are the old and "
-            + "new warp factors. The SetSimulationSpeed(SimSpeed) overload forwards to this one.")]
+            + "new warp factors. The SetSimulationSpeed(SimSpeed) overload forwards to this one."
+            + " 5638: Universe.cs:698, byte-identical.")]
     private static void Prefix(double simulationSpeed)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -290,11 +300,12 @@ internal static class BurnAlertsPatch
 
     [KsaAnchor("FlightComputer.RaisePendingAlerts(Vehicle vehicle) instance prefix; "
             + "FlightComputer.{AutoBurnCompleted, AutoBurnStoppedOutOfPropellant} (public bool fields)",
-        SourceFile = "KSA/FlightComputer.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/FlightComputer.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "FlightComputer.cs:542. Reads the two pending flags before RaisePendingAlerts clears them. Called only for "
             + "vehicles in frame (Program.PrepareFrame), so an off-screen vehicle's burn end is not seen. "
-            + "Neither event carries a payload.")]
+            + "Neither event carries a payload."
+            + " 5638: FlightComputer.cs:663. New branch: when an auto-burn stage runs dry and the staged burn has a later stage, AutoBurnStageRanDry is set alongside AutoBurnStoppedOutOfPropellant and the game stops warp and warns but keeps the burn planned (no EndAutoBurn). burn.fuel_out still fires and does not tell the two cases apart.")]
     private static void Prefix(FlightComputer __instance, Vehicle vehicle)
     {
         if (_faulted || EventPatches.Sink is null)

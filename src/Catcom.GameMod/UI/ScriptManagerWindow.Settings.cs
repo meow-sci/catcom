@@ -12,7 +12,7 @@ namespace Catcom.GameMod.UI;
 public sealed partial class ScriptManagerWindow
 {
     /// <summary>The KSA build this mod was verified against (the KsaAnchor sites carry the same version).</summary>
-    private const string VerifiedKsaVersion = "2026.10.10.5554";
+    private const string VerifiedKsaVersion = "2026.10.19.5638";
 
     private static readonly string[] HotkeyChoices =
     [

@@ -30,7 +30,7 @@ internal static class ScaleActuator
     [KsaAnchor("Vehicle.Parts.Parts; Part.{Scale(set),SubParts}; "
             + "KittenEva._renderable._characterAvatar.Core.Scale (reflected)",
         SourceFile = "KSA/Vehicle.cs / KSA/PartTree.cs / KSA/Part.cs / KSA/KittenEva.cs",
-        Verified = "2026-09-14", GameVersion = "2026.9.10.5438", Risk = ChurnRisk.High,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
         Notes = "Uniform recursive Part.Scale write (double3; public setter, invalidates cached transform "
             + "matrices). KittenEva avatar scaled via reflected Core.Scale = factor*0.01f (0.01 == 1:1); "
             + "the GetType().Name gate is a brittle string check. Ported from unscience "
@@ -45,7 +45,8 @@ internal static class ScaleActuator
             + "divergence that no longer means what the in-game gizmo means. "
             + "5438: GetReferenceWithChildren saves top-level Scale; RegenerateFromPartInstance now "
             + "calls RefreshScale for non-root parts too (rev 5434). Reloading saved scale can therefore "
-            + "change colliders, mass, tanks and nozzle geometry. Staging/undocking need not reset Scale.")]
+            + "change colliders, mass, tanks and nozzle geometry. Staging/undocking need not reset Scale."
+            + " 5638: Part.Scale unchanged; the reflected KittenEva._renderable -> KittenRenderable._characterAvatar -> Core.Scale chain resolves as before.")]
     private static void Apply(Vehicle vehicle, double factor)
     {
         foreach (var part in vehicle.Parts.Parts)
@@ -69,11 +70,12 @@ internal static class ScaleActuator
     ///     read must never fail the file. Reports the live value after rebuilds too; no reset or persistence is promised.
     /// </summary>
     [KsaAnchor("Part.Scale (get); KittenEva avatar Core.Scale (reflected)",
-        SourceFile = "KSA/Part.cs / KSA/KittenEva.cs", Verified = "2026-08-23",
-        GameVersion = "2026.8.22.5348", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Part.cs / KSA/KittenEva.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Representative-part readback for vessels/by-id/<id>/scale; falls back to 1.0. 5348: "
             + "Part.Scale (get) is unchanged — only ScaleTotal's composition moved, and this readback "
-            + "does not use it.")]
+            + "does not use it."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static double Read(Vehicle vehicle)
     {
         try

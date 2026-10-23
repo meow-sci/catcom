@@ -47,10 +47,11 @@ internal static class AnimationLinks
     [KsaAnchor("KeyframeAnimationModule.Parent.SubtreeModules.HasAny<SolarPanel>(); SolarPanel.KeyframeAnimationModule; "
             + "LightModule.Parent.FullPart.SubtreeModules.Get<KeyframeAnimationModule>()",
         SourceFile = "KSA/KeyframeAnimationModule.cs / KSA/SolarPanel.cs / KSA/LightModule.cs",
-        Verified = "2026-06-12", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "The structural animation↔module links (IsSolar flag + solar/light AnimationIndex), moved "
             + "here from the per-tick reader passes (GP3): cached per vehicle, rebuilt on module-count "
-            + "change or every 10 s. Same subtree scans SolarPanel.OnPartCreated uses.")]
+            + "change or every 10 s. Same subtree scans SolarPanel.OnPartCreated uses."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public static Entry Get(Vehicle vehicle, double utSeconds)
     {
         var entry = Cache.GetOrCreateValue(vehicle);

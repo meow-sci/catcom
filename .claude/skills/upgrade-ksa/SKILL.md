@@ -189,7 +189,16 @@ diff <(probe "$SCRATCH/ksa-base/current/dll") <(probe $KSA_REPO/current/dll)   #
 ```
 
 KsaProbe queries types in `KSA.dll` only (`Type`, `Type::Member`, `grep:<substr>`, `events`). For
-Brutal types, diff `current/decomp/Brutal.*` or read `../BRUTAL`.
+Brutal types, diff `current/decomp/Brutal.*` or read `../BRUTAL`. Passing whole type names (no `::`)
+dumps every member, so probing every anchored/patched type in both builds and diffing the dumps
+gives the complete signature delta in one pass. `ConsoleWindow`, `TerminalInterface` and
+`TerminalActionAttribute` live in `Brutal.ImGui.Abstractions`, not `KSA.dll`; diff their decomp.
+
+**Decompiler noise (from 5638 on).** Rev 5630 switched the shipped KSA build to full compiler
+optimisations, so the 5554→5638 decomp diff is mostly reshaping: ternaries became if/else, temp
+locals were inlined or renamed, and log call sites lost a `logCategory` alias. Diff the **body of each
+bound member** with `diff -w` (extract it by brace matching) and ignore `LogString`/`Append*` lines,
+instead of reading the per-file diff. Later builds diffed against ≥ 5638 should be quiet again.
 
 Work in priority order: **Harmony targets (§3) → reflection (§4) → `ChurnRisk.High` anchors →
 `Medium` → `Low`**. Also re-check any anchor whose `GameVersion` is older than BASE. Those were ported
@@ -234,7 +243,8 @@ These are not KSA, but check them on every game upgrade, since they often move a
   runtime; see `Catcom.GameMod.csproj`). If the user's StarMap is newer, bump both in GameMod, Ksa and
   CompileCheck together. The `Mod` skeleton in `HookStubs.cs` checks the lifecycle attribute
   signatures (`[StarMapImmediateLoad]`, `AllModsLoaded`, `BeforeGui`, `AfterGui`, `AfterOnFrame`,
-  `Unload`).
+  `Unload`). Check `../StarMap` for a commit or release naming the new build: StarMap often needs its
+  own hotfix (5638 needs StarMap ≥ 0.4.8), which the in-game pass then depends on.
 - `vendor/purrTTY/*.dll` are the pinned contract assemblies. A purrTTY upgrade for the same game build
   is purrtty's own job (it has its own `upgrade-ksa`). Re-vendor only if its contract changed (see
   `vendor/purrTTY/README.md`).
@@ -258,7 +268,7 @@ mirrors the patch.
 | `VesselSpawnPatch` / `VesselRemovePatch` | `CelestialSystem.Register(Astronomical)` / `Deregister(Astronomical)` postfix | ✓ | `vessel.spawn` / `vessel.remove` |
 | `VesselLaunchPatch` | `Vehicle.MarkLaunched()` postfix; `HasLaunched` | ✓ | `vessel.launch` |
 | `ImpactGroundPatch` / `ImpactWaterPatch` | `Celestial.TrySpawnGroundImpact(GroundImpactEvent)` / `TrySpawnWaterSplash(WaterSplashEvent)` prefix | ✓ | `impact` |
-| `DestroyFromEventPatch` / `DestroyRemovedPatch` | `Universe.DestroyVehicleFromEvent(Vehicle, VehicleDestructionEvent)` / `Universe.DestroyVehicle(Vehicle, CrewDisposition = EndMission)` static prefix | ✓ | `vessel.destroy` (cause / removed) |
+| `DestroyFromEventPatch` / `DestroyRemovedPatch` | `Universe.DestroyVehicleFromEvent(Vehicle, VehicleDestructionEvent)` / `Universe.DestroyVehicle(Vehicle, CrewDisposition crew = EndMission)` static prefix | ✓ | `vessel.destroy` (cause / removed). Since 5638 kitten boarding also ends in `DestroyVehicle(…, CrewDisposition.Boarded)`; the prefix skips `Boarded`. Re-check `CrewDisposition` for new values on every upgrade. |
 | `PartFailurePatch` | `PartFailureEvent.Apply(Vehicle)` prefix; `FailedParts`, `DestroyWholeVehicle` | ✓ | `part.failure` |
 | `ControlChangePatch` (`Events/SessionPatches.cs`) | `Program.ControlledVehicle` **setter** static postfix | ✓ | `control.change` |
 | `EditorEnterPatch` / `EditorExitPatch` | `VehicleEditor..ctor(Vehicle?, bool)` postfix / `VehicleEditor.Dispose()` prefix | ✓ | `editor.enter` / `editor.exit` |

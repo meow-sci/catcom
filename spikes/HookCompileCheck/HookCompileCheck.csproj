@@ -10,8 +10,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="KSA"><HintPath>$(KSAFolder)KSA.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Brutal.Core.Numerics"><HintPath>$(KSAFolder)Brutal.Core.Numerics.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Brutal.Core.Common"><HintPath>$(KSAFolder)Brutal.Core.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Brutal.Numerics"><HintPath>$(KSAFolder)Brutal.Numerics.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Brutal.Core"><HintPath>$(KSAFolder)Brutal.Core.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Brutal.Concurrency"><HintPath>$(KSAFolder)Brutal.Concurrency.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Brutal.ImGui"><HintPath>$(KSAFolder)Brutal.ImGui.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Brutal.ImGui.Abstractions"><HintPath>$(KSAFolder)Brutal.ImGui.Abstractions.dll</HintPath><Private>false</Private></Reference>

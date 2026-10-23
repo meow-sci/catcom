@@ -158,11 +158,12 @@ public sealed class SlotHost
     /// </summary>
     /// <param name="dtPlayer">The wall-clock (player) frame time in seconds.</param>
     [KsaAnchor("Universe.GetElapsedSeconds(); Program.FrameNumber", SourceFile = "KSA/Universe.cs / KSA/Program.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "The latch for frames where Universe.ApplyVehicleSolvers did not run (it is skipped while "
             + "Universe.CurrentSystem is null, e.g. on the main menu or during a load). StarMap invokes it from "
             + "a Program.OnFrame postfix (after GPU submit, this frame's solver still running), so only reads "
-            + "and InputEvents enqueues are safe.")]
+            + "and InputEvents enqueues are safe."
+            + " 5638: Universe.GetElapsedSeconds (Universe.cs:2382) and Program.FrameNumber unchanged.")]
     public void OnAfterFrame(double dtPlayer)
     {
         if (Faulted)
@@ -198,10 +199,11 @@ public sealed class SlotHost
 
     /// <summary>The Step slot body (called by the <c>ApplyVehicleSolvers</c> postfix). Never throws.</summary>
     [KsaAnchor("Universe.GetElapsedSeconds(); Universe.GetLastSimStep() (DeltaTime, NextTime); Program.FrameNumber",
-        SourceFile = "KSA/Universe.cs / KSA/SimStep.cs / KSA/Program.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Universe.cs / KSA/SimStep.cs / KSA/Program.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "StepLanded = dt > 0 && SimStep.NextTime moved since the previous slot (NextTime advances only when a "
-            + "vehicle step lands, and is equal across frames when paused). UniverseTime has value equality.")]
+            + "vehicle step lands, and is equal across frames when paused). UniverseTime has value equality."
+            + " 5638: GetElapsedSeconds (Universe.cs:2382) and GetLastSimStep (:2370) unchanged.")]
     internal void OnStep()
     {
         if (Faulted)
@@ -284,11 +286,12 @@ public sealed class SlotHost
     private static class StepSlotPatch
     {
         [KsaAnchor("Universe.ApplyVehicleSolvers() static postfix", SourceFile = "KSA/Universe.cs",
-            Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+            Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
             Notes = "Universe.cs:1922. Runs inside Program.PrepareFrame right after JobSystems.VehicleSolver.Wait(): "
                 + "fresh results are applied, the solver is idle, InputEvents enqueued here are applied this frame. "
                 + "Called once per frame while Universe.CurrentSystem != null (also when paused). A throw here "
-                + "propagates out of Program.OnFrame, so the body is wrapped in OnStep.")]
+                + "propagates out of Program.OnFrame, so the body is wrapped in OnStep."
+                + " 5638: Universe.cs:1914; the Program.PrepareFrame call order is byte-identical. ApplyVehicleSolvers now also computes a step-growth cap (_maxStepSimSeconds) before ApplyResultsToMainThread; the postfix still runs after the results are applied.")]
         private static void Postfix() => Current?.OnStep();
     }
 
@@ -297,11 +300,12 @@ public sealed class SlotHost
     private static class SolverSlotPatch
     {
         [KsaAnchor("Universe.ExecuteNextVehicleSolvers(double dtPlayer, SimStep simStep) static prefix",
-            SourceFile = "KSA/Universe.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+            SourceFile = "KSA/Universe.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
             Risk = ChurnRisk.Medium,
             Notes = "Universe.cs:2126. Solvers idle, inputs applied, derived data flushed: the only sim-safe window for "
                 + "direct Vehicle/Part/Module/FlightComputer writes (FlightComputer writes made elsewhere are "
-                + "clobbered by CopyFrom). Priority.First so the drain happens before other mods' prefixes.")]
+                + "clobbered by CopyFrom). Priority.First so the drain happens before other mods' prefixes."
+                + " 5638: Universe.cs:2125, byte-identical. FlightComputer.CopyFrom only gained copies of new fields (Tnm2Asmb, ActiveControlFrame, staged burn), so it still clobbers writes made outside this slot.")]
         [HarmonyPriority(Priority.First)]
         private static void Prefix(double dtPlayer, SimStep simStep)
         {

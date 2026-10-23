@@ -185,9 +185,10 @@ public static class EventPatches
 
     /// <summary>The current universal time in seconds; 0 on any failure.</summary>
     /// <returns>The UT.</returns>
-    [KsaAnchor("Universe.GetElapsedSeconds()", SourceFile = "KSA/Universe.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
-        Notes = "UT stamp for every Harmony-produced event (= _lastSimStep.NextTime, Universe.cs:2393).")]
+    [KsaAnchor("Universe.GetElapsedSeconds()", SourceFile = "KSA/Universe.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "UT stamp for every Harmony-produced event (= _lastSimStep.NextTime, Universe.cs:2393)."
+            + " 5638: Universe.cs:2382, unchanged.")]
     internal static double Ut()
     {
         try

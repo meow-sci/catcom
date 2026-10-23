@@ -28,13 +28,14 @@ internal static class TranslateActuator
         | ThrusterMapFlags.TranslateDown | ThrusterMapFlags.TranslateUp;
 
     [KsaAnchor("Vehicle._manualControlInputs.ThrusterCommandFlags (private; set by reflection); ThrusterMapFlags",
-        SourceFile = "KSA/Vehicle.cs / KSA/ThrusterMapFlags.cs / KSA/FlightComputer.cs", Verified = "2026-07-04",
-        GameVersion = "2026.7.3.4826", Risk = ChurnRisk.High,
+        SourceFile = "KSA/Vehicle.cs / KSA/ThrusterMapFlags.cs / KSA/FlightComputer.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
         Notes = "Same struct ThrottleActuator writes. FlightComputer.ComputeRcsControl consumes the flags "
             + "each solver step (Direct mode → SelectJetsToFire; Auto attitude strips only ROTATION bits, "
             + "so translation composes with tracking). Sign→flag mapping verified against the "
             + "KittenBackPackSubPart nozzle geometry (exhaust opposes thrust): +X=Forward(nose), "
-            + "+Y=Right, +Z=Down — KSA's body frame is X-nose/Y-right/Z-down.")]
+            + "+Y=Right, +Z=Down — KSA's body frame is X-nose/Y-right/Z-down."
+            + " 5638: _manualControlInputs and ThrusterCommandFlags unchanged; the RCS thruster map is now built in FlightComputer.Ctrl2Asmb (VehicleUpdateState.cs:393), the thrust-aligned TNM frame while thrusting, where 5554 used Vehicle.Ctrl2Body.")]
     internal static CommandResult SetTranslation(Vehicle vehicle, IReadOnlyList<double> axes)
     {
         // Re-validate through the shared game-free rule: the HTTP/MQTT command paths reach here
@@ -79,9 +80,10 @@ internal static class TranslateActuator
     }
 
     /// <summary>Read-back for the sampler: decode the live flags to body-axis signs (−1/0/+1).</summary>
-    [KsaAnchor("Vehicle.GetThrusterFlags()", SourceFile = "KSA/Vehicle.cs", Verified = "2026-07-04",
-        GameVersion = "2026.7.3.4826", Risk = ChurnRisk.Medium,
-        Notes = "Public reader of _manualControlInputs.ThrusterCommandFlags.")]
+    [KsaAnchor("Vehicle.GetThrusterFlags()", SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
+        Notes = "Public reader of _manualControlInputs.ThrusterCommandFlags."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static (double X, double Y, double Z) Read(Vehicle vehicle)
     {
         var flags = vehicle.GetThrusterFlags();

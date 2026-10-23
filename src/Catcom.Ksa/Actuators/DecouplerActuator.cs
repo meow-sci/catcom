@@ -14,8 +14,8 @@ namespace Catcom.Ksa.Actuators;
 internal static class DecouplerActuator
 {
     [KsaAnchor("Decoupler.IsActive / IsEnabled / SetIsActive(Vehicle, true)",
-        SourceFile = "KSA/Decoupler.cs:71,73,149", Verified = "2026-08-23",
-        GameVersion = "2026.8.22.5348", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Decoupler.cs:71,73,149", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Re-fire is rejected by KSA → EBUSY. 5168 (rev 5132): SetIsActive gained an IsEnabled "
             + "precondition (players may disable a part's decoupler module, e.g. turning an adapter into "
             + "a static fairing). Without the guard below the call is a silent no-op that gatOS would "
@@ -24,7 +24,8 @@ internal static class DecouplerActuator
             + "deleted and instances are built from template.Components — so a single part could now "
             + "host more than one. Stock content still has exactly one per part, so decouplers/<n> "
             + "ordinals are stable today. IsActive/IsEnabled/SetIsActive are otherwise unchanged; "
-            + "the cited line numbers moved.")]
+            + "the cited line numbers moved."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult Fire(Vehicle vehicle, int ordinal)
     {
         var decouplers = vehicle.Parts.Modules.Get<Decoupler>();

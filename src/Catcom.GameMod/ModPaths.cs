@@ -31,10 +31,11 @@ public sealed class ModPaths
     ///     StarMap loader relocated it with <c>-InstancePath</c> / <c>STARMAP_INSTANCE_PATH</c>), so the mod's data
     ///     follows the instance the game actually runs in.
     /// </summary>
-    [KsaAnchor("Constants.DocumentsFolderPath", SourceFile = "KSA/Constants.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+    [KsaAnchor("Constants.DocumentsFolderPath", SourceFile = "KSA/Constants.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "The folder KSA keeps settings.toml, logs and mods/ in. StarMap can override it (-InstancePath / STARMAP_INSTANCE_PATH). "
-            + "Falls back to <MyDocuments>/My Games/Kitten Space Agency when reading it throws.")]
+            + "Falls back to <MyDocuments>/My Games/Kitten Space Agency when reading it throws."
+            + " 5638: Constants.cs:283, unchanged.")]
     public static ModPaths Detect()
     {
         var install = Path.GetDirectoryName(typeof(ModPaths).Assembly.Location) ?? AppContext.BaseDirectory;

@@ -18,12 +18,13 @@ internal static class SplitPatch
 
     [KsaAnchor("Vehicle.Split(Part.Connection splitConnection, Part.Connection.IConnector splitEndpoint, "
             + "double splitImpulse, out PoseChange combinedToSplit, string? splitVehicleId = null) → Vehicle? instance postfix",
-        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Vehicle.cs:1527 — the connection-based overload that the (Part.Connector, double, out PoseChange, string?) "
             + "overload at :1516 (used by Decoupler.Decouple and DockingPort.Undock) forwards to, so patching this one "
             + "fires exactly once for every separation including part-failure debris, and survives JIT inlining of the "
             + "thin wrapper. The result is the new vehicle (null when the split failed: nothing is published). "
-            + "vesselId is the vehicle that was split, payload.newVesselId the new one.")]
+            + "vesselId is the vehicle that was split, payload.newVesselId the new one."
+            + " 5638: Vehicle.cs:1608; now also repartitions symmetry links by tree (Part.PartitionSymmetryLinksByTree). Parameters and split semantics unchanged.")]
     private static void Postfix(Vehicle __instance, Vehicle? __result)
     {
         if (_faulted || __result is null || EventPatches.Sink is null)
@@ -48,12 +49,13 @@ internal static class DockPatch
 
     [KsaAnchor("DockingPort.Dock(Vehicle thisVehicle, Vehicle otherVehicle, DockingPort otherVehicleDockingPort, "
             + "out PoseChange consumedToCombined) → Vehicle? instance postfix; DockingPort.Docked",
-        SourceFile = "KSA/DockingPort.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/DockingPort.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "DockingPort.cs:422. Merges thisVehicle into otherVehicle (otherVehicle.MergeFrom) and returns "
             + "otherVehicle — the survivor, which becomes vesselId; payload.otherVesselId is the vehicle that was "
             + "merged away. The result is non-null even if the merge failed, so the postfix also requires "
-            + "DockingPort.Docked (Connector.Connection != null).")]
+            + "DockingPort.Docked (Connector.Connection != null)."
+            + " 5638: DockingPort.cs:439, byte-identical.")]
     private static void Postfix(DockingPort __instance, Vehicle thisVehicle, Vehicle? __result)
     {
         if (_faulted || __result is null || EventPatches.Sink is null)
@@ -79,11 +81,12 @@ internal static class UndockPatch
     private static bool _faulted;
 
     [KsaAnchor("DockingPort.Undock(Vehicle oldVehicle, out PoseChange combinedToSplit) → Vehicle? instance postfix",
-        SourceFile = "KSA/DockingPort.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/DockingPort.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "DockingPort.cs:460. A one-line forward to oldVehicle.Split(Connector, PushoffImpulse, out ...); returns the "
             + "separated vehicle (null when nothing split). vesselId is the vehicle that undocked, "
-            + "payload.newVesselId the one that separated.")]
+            + "payload.newVesselId the one that separated."
+            + " 5638: DockingPort.cs:477, byte-identical.")]
     private static void Postfix(Vehicle oldVehicle, Vehicle? __result)
     {
         if (_faulted || __result is null || EventPatches.Sink is null)
@@ -107,12 +110,13 @@ internal static class VesselSpawnPatch
     private static bool _faulted;
 
     [KsaAnchor("CelestialSystem.Register(Astronomical celestial) instance postfix; Vehicle.Id",
-        SourceFile = "KSA/CelestialSystem.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/CelestialSystem.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "CelestialSystem.cs:88. Every registration (vehicles, debris, EVA kittens, save load); only Vehicle "
             + "instances publish. CelestialSystem.Rename re-registers a renamed vehicle through this method, so a "
             + "rename surfaces as vessel.spawn under the new id. payload.name is Vehicle.Id (KSA has no separate "
-            + "display name).")]
+            + "display name)."
+            + " 5638: CelestialSystem.cs:96, byte-identical.")]
     private static void Postfix(Astronomical celestial)
     {
         if (_faulted || celestial is not Vehicle vehicle || EventPatches.Sink is null)
@@ -136,10 +140,11 @@ internal static class VesselRemovePatch
     private static bool _faulted;
 
     [KsaAnchor("CelestialSystem.Deregister(Astronomical astronomical) instance postfix; Vehicle.Id",
-        SourceFile = "KSA/CelestialSystem.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/CelestialSystem.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "CelestialSystem.cs:93. Destroy, recovery and docking merges end here; DestroyAllVehicles (save load) and "
-            + "Rename deregister through the private collection and do not publish.")]
+            + "Rename deregister through the private collection and do not publish."
+            + " 5638: CelestialSystem.cs:101, byte-identical.")]
     private static void Postfix(Astronomical astronomical)
     {
         if (_faulted || astronomical is not Vehicle vehicle || EventPatches.Sink is null)
@@ -162,9 +167,10 @@ internal static class VesselLaunchPatch
 {
     private static bool _faulted;
 
-    [KsaAnchor("Vehicle.HasLaunched (bool, public getter)", SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
-        Notes = "Captured before MarkLaunched so the event fires only on the false → true edge (the method is idempotent).")]
+    [KsaAnchor("Vehicle.HasLaunched (bool, public getter)", SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "Captured before MarkLaunched so the event fires only on the false → true edge (the method is idempotent)."
+            + " 5638: Vehicle.cs:405, unchanged.")]
     private static void Prefix(Vehicle __instance, out bool __state)
     {
         __state = true;
@@ -182,8 +188,9 @@ internal static class VesselLaunchPatch
     }
 
     [KsaAnchor("Vehicle.MarkLaunched() instance postfix; Vehicle.HasLaunched", SourceFile = "KSA/Vehicle.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
-        Notes = "Vehicle.cs:905. Sets HasLaunched = true. The situation-change differ event covers the physical liftoff.")]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "Vehicle.cs:905. Sets HasLaunched = true. The situation-change differ event covers the physical liftoff."
+            + " 5638: Vehicle.cs:982, byte-identical.")]
     private static void Postfix(Vehicle __instance, bool __state)
     {
         if (_faulted || __state || EventPatches.Sink is null)
@@ -209,12 +216,13 @@ internal static class ImpactGroundPatch
 
     [KsaAnchor("Celestial.TrySpawnGroundImpact(GroundImpactEvent impactEvent) instance prefix; "
             + "GroundImpactEvent.{Vehicle, ImpactKineticEnergy}; Celestial.Id",
-        SourceFile = "KSA/Celestial.cs / KSA/GroundImpactEvent.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Celestial.cs / KSA/GroundImpactEvent.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Celestial.cs:262. The impact effect spawn; it returns early below 50 J of kinetic energy and the caller "
             + "(GroundImpactEvent.Apply) already skipped suppressed vehicles, so the same 50 J floor is applied here. "
             + "payload.kind = \"ground\", payload.body = the celestial's id. No script-visible energy field: the "
-            + "catalog lists only kind and body.")]
+            + "catalog lists only kind and body."
+            + " 5638: Celestial.cs:271, decompiler reshaping only.")]
     private static void Prefix(Celestial __instance, GroundImpactEvent impactEvent)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -242,11 +250,12 @@ internal static class ImpactWaterPatch
 
     [KsaAnchor("Celestial.TrySpawnWaterSplash(WaterSplashEvent splashEvent) instance prefix; "
             + "WaterSplashEvent.{Vehicle, ImpactKineticEnergy}; Celestial.Id",
-        SourceFile = "KSA/Celestial.cs / KSA/WaterSplashEvent.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Celestial.cs / KSA/WaterSplashEvent.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Celestial.cs:328. Returns early below 50 J (mirrored here) and when the body has no ocean "
             + "(BodyTemplate.OceanReference == null — not mirrored: a splash event only arises over an ocean). "
-            + "payload.kind = \"water\", payload.body = the celestial's id.")]
+            + "payload.kind = \"water\", payload.body = the celestial's id."
+            + " 5638: Celestial.cs:335; the ocean check joined the 50 J guard (same behavior).")]
     private static void Prefix(Celestial __instance, WaterSplashEvent splashEvent)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -301,13 +310,14 @@ internal static class DestroyFromEventPatch
 
     [KsaAnchor("Universe.DestroyVehicleFromEvent(Vehicle vehicle, VehicleDestructionEvent destructionEvent) static prefix; "
             + "VehicleDestructionEvent.{Cause, PeakGLoad, PeakDynamicPressure}; Vehicle.IsDisposed; Program.FrameNumber",
-        SourceFile = "KSA/Universe.cs / KSA/VehicleDestructionEvent.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Universe.cs / KSA/VehicleDestructionEvent.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Universe.cs:1971. Destruction with a cause (GroundImpact, OceanImpact, Collision, ExcessiveGForce, "
             + "AerodynamicForces, HydrodynamicForces — published as the enum name); it ends in DestroyVehicle, which "
             + "DestroyRemovedPatch de-duplicates per (vessel id, Program.FrameNumber). payload.peakG / peakQ are "
             + "PeakGLoad (g) / PeakDynamicPressure (Pa) as numbers. Skipped when the vehicle is already disposed "
-            + "(the game returns immediately).")]
+            + "(the game returns immediately)."
+            + " 5638: Universe.cs:1969, byte-identical.")]
     private static void Prefix(Vehicle vehicle, VehicleDestructionEvent destructionEvent)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -338,18 +348,21 @@ internal static class DestroyRemovedPatch
 
     [KsaAnchor("Universe.DestroyVehicle(Vehicle vehicle, CrewDisposition crew = EndMission) static prefix; "
             + "Vehicle.IsDisposed; Program.FrameNumber",
-        SourceFile = "KSA/Universe.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Universe.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Universe.cs:2018. Every removal: recovery, the console `destroy`, part-failure whole-vehicle loss and the "
             + "tail of DestroyVehicleFromEvent. Published with cause \"removed\" and peakG = peakQ = 0 unless "
             + "DestroyFromEventPatch already reported this vessel in the same Program.FrameNumber. Skipped when the "
-            + "vehicle is already disposed.")]
-    private static void Prefix(Vehicle vehicle)
+            + "vehicle is already disposed. 2026.10.19.5638: Universe.cs:2016; kitten boarding now ends here too "
+            + "(KittenEva.BoardVehicle → DestroyVehicle(this, CrewDisposition.Boarded), new enum value) where it used to "
+            + "Dispose the kitten directly — skipped, since boarding is not a destruction (vessel.remove still fires).")]
+    private static void Prefix(Vehicle vehicle, CrewDisposition crew)
     {
         if (_faulted || EventPatches.Sink is null)
             return;
         try
         {
-            if (vehicle.IsDisposed || DestroyDedupe.Seen(vehicle.Id, Program.FrameNumber))
+            if (crew == CrewDisposition.Boarded || vehicle.IsDisposed
+                || DestroyDedupe.Seen(vehicle.Id, Program.FrameNumber))
                 return;
             EventPatches.Emit("vessel.destroy", vehicle.Id, EventPatches.Payload(
                 ("cause", ScriptValue.From("removed")),
@@ -372,12 +385,13 @@ internal static class PartFailurePatch
 
     [KsaAnchor("PartFailureEvent.Apply(Vehicle vehicle) instance prefix; PartFailureEvent.{FailedParts, DestroyWholeVehicle}; "
             + "Part.Id; Vehicle.IsDisposed",
-        SourceFile = "KSA/PartFailureEvent.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/PartFailureEvent.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "PartFailureEvent.cs:16 (IVehicleRenderEvent, applied in ApplyVehicleSolvers). payload.parts is the list of "
             + "failed Part.Id strings (not unique across instances of one template — the part is gone afterwards, so "
             + "InstanceId could not be resolved by a script anyway), payload.destroyWholeVehicle the flag. Skipped when "
-            + "the vehicle is already disposed (the game returns immediately).")]
+            + "the vehicle is already disposed (the game returns immediately)."
+            + " 5638: PartFailureEvent.cs:16, decompiler reshaping only.")]
     private static void Prefix(PartFailureEvent __instance, Vehicle vehicle)
     {
         if (_faulted || EventPatches.Sink is null)

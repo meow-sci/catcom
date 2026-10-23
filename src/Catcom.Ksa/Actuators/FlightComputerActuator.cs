@@ -14,13 +14,14 @@ namespace Catcom.Ksa.Actuators;
 internal static class FlightComputerActuator
 {
     [KsaAnchor("FlightComputer.{AttitudeMode,AttitudeTrackTarget}; FlightComputerAttitudeMode/...TrackTarget",
-        SourceFile = "KSA/FlightComputer.cs", Verified = "2026-07-22", GameVersion = "2026.7.8.4980",
+        SourceFile = "KSA/FlightComputer.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "'manual' → AttitudeMode.Manual; any other token is an auto track-target. 4980 (rev "
             + "4946/4949): new FlightComputer.RCSMode (Enabled/Disabled, toggled in-game with R) gates the "
             + "RCS torque-authority scan in UpdateActiveControlSystems — with it Disabled, an auto hold on "
             + "an RCS-only vessel silently does not actuate (only gimballed TVC survives, and only while "
-            + "burning). gatOS neither reads nor sets it; pre-existing silent-ignore caveat extended.")]
+            + "burning). gatOS neither reads nor sets it; pre-existing silent-ignore caveat extended."
+            + " 5638: with track target PositiveDv/NegativeDv, an armed auto burn, or thrusting engines, the FC now steers its thrust-aligned TNM frame (FlightComputer.GetDesiredControlFrame :1433) instead of the command part's Helm frame (the old Ctrl frame). Enum zero values (the defaults) unchanged.")]
     internal static CommandResult SetAttitudeMode(Vehicle vehicle, string token)
     {
         var fc = vehicle.FlightComputer;
@@ -43,13 +44,14 @@ internal static class FlightComputerActuator
     ///     <c>FlightComputer.CopyFrom</c> snapshots and restores it.
     /// </summary>
     [KsaAnchor("FlightComputer.RCSMode (FlightComputerRCSMode)", SourceFile = "KSA/FlightComputer.cs:41,471,884",
-        Verified = "2026-08-05", GameVersion = "2026.8.5.5168", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "5168 (rev 5143) turned this into a HARD master cut-off: ComputeRcsControl now zeroes "
             + "inputs.ThrusterCommandFlags outright when RCSMode != Enabled (FlightComputer.cs:471), and "
             + "UpdateRcsParams zeroes the thruster authority (:884). Before 5168 only auto attitude holds "
             + "were gated and manual translate/rotate fired regardless — gatOS's scope/ docs said exactly "
             + "that, and 5143 falsified it. Exposed as a read + control so a flight program can see and "
-            + "clear the condition instead of watching ctl/translate silently do nothing.")]
+            + "clear the condition instead of watching ctl/translate silently do nothing."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetRcsMode(Vehicle vehicle, string token)
     {
         if (!Enum.TryParse<FlightComputerRCSMode>(token, ignoreCase: true, out var mode))
@@ -60,11 +62,11 @@ internal static class FlightComputerActuator
 
     /// <summary>Read-back for the sampler: the live RCS master mode name.</summary>
     [KsaAnchor("FlightComputer.RCSMode (read)", SourceFile = "KSA/FlightComputer.cs:41",
-        Verified = "2026-08-05", GameVersion = "2026.8.5.5168", Risk = ChurnRisk.Medium)]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium, Notes = "5638: unchanged (decompiler reshaping only).")]
     internal static string ReadRcsMode(Vehicle vehicle) => vehicle.FlightComputer.RCSMode.ToString();
 
     [KsaAnchor("FlightComputer.AttitudeFrame (VehicleReferenceFrame)", SourceFile = "KSA/FlightComputer.cs",
-        Verified = "2026-06-12", Risk = ChurnRisk.Medium)]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium, Notes = "5638: unchanged (decompiler reshaping only).")]
     internal static CommandResult SetAttitudeFrame(Vehicle vehicle, string token)
     {
         if (!Enum.TryParse<VehicleReferenceFrame>(token, ignoreCase: true, out var frame))
@@ -74,7 +76,7 @@ internal static class FlightComputerActuator
     }
 
     [KsaAnchor("FlightComputer.{CustomAttitudeTarget,AttitudeFrame}; VehicleReferenceFrameEx.{GetEclBody2Cci,QuaternionToEulerAngles}",
-        SourceFile = "KSA/FlightComputer.cs", Verified = "2026-07-22", GameVersion = "2026.7.8.4980",
+        SourceFile = "KSA/FlightComputer.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "Custom track recomputes Target2Cci from CustomAttitudeTarget (euler) every solver step "
             + "(UpdateAttitudeTarget), so a directly-set Target2Cci is discarded — we must set the euler "
@@ -82,7 +84,8 @@ internal static class FlightComputerActuator
             + "parent's Cce2Cci (no FlightComputerNavigation). 4980 (rev 4978): FlightComputer.RollMode "
             + "default flipped Up → Decoupled (\"ANY\"), so a fresh FC no longer actuates roll — the +X "
             + "pointing converges but the quaternion's roll component is held only if the player (or a "
-            + "loaded save) sets RollMode; gatOS does not set it.")]
+            + "loaded save) sets RollMode; gatOS does not set it."
+            + " 5638: the FC aligns Ctrl2Asmb = ActiveControlFrame.IsTnm() ? Tnm2Asmb : Helm2Asmb (FlightComputer.cs:530) with the target. TNM (+X along the trimmed net thrust) is active while thrusting or with an auto burn armed, so the held attitude then points the thrust vector rather than the command part's +X; identical for centred inline thrust. Members bound here unchanged.")]
     internal static CommandResult SetAttitudeTarget(Vehicle vehicle, IReadOnlyList<double> quat)
     {
         if (quat.Count != 4)
@@ -106,8 +109,8 @@ internal static class FlightComputerActuator
     }
 
     [KsaAnchor("FlightComputer.Burn = new BurnTarget{ImpulsiveInstant,DeltaVTargetCci}",
-        SourceFile = "KSA/BurnTarget.cs / KSA/FlightComputer.cs", Verified = "2026-10-11",
-        GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/BurnTarget.cs / KSA/FlightComputer.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "ut + Δv (CCI); the autopilot executes it. ImpulsiveInstant became UniverseTime at "
             + "rev 5211. UniverseTime's ctor THROWS ArgumentException on NaN (SimTime silently stored "
@@ -122,7 +125,8 @@ internal static class FlightComputerActuator
             + "the 5261 baseline for the same commanded Δv. 5554: fields used here retain their meaning; "
             + "auto burns now stop on active-engine propellant exhaustion (5506), can advance to a second "
             + "planned burn and reset warp (5540), and the TVC controller uses LQI with a variable "
-            + "steering interval (5549-5552). The simple gatOS target has no planned interstellar fields.")]
+            + "steering interval (5549-5552). The simple gatOS target has no planned interstellar fields."
+            + " 5638: BurnTarget gained PlannedIgnition (left null here, so TimeBurn keeps ImpulsiveInstant - 0.5 x duration) and the FC gained staged burns; an armed auto burn switches the FC to the TNM control frame.")]
     internal static CommandResult SetBurn(Vehicle vehicle, IReadOnlyList<double> burn)
     {
         if (burn.Count != 4)

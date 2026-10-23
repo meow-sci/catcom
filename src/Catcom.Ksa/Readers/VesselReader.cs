@@ -36,8 +36,9 @@ internal static class VesselReader
     private static bool _enrichErrorLogged;
 
     [KsaAnchor("Vehicle core state (Id/Situation/GetPositionCci/OrbitalSpeed/masses/attitude)",
-        SourceFile = "KSA/Vehicle.cs", Verified = "2026-09-02", GameVersion = "2026.9.7.5402", Risk = ChurnRisk.Low,
-        Notes = "Verified at M9; Name = Id (KSA has no separate display name). 5402: Vehicle gained IsDebris (Class => IsDebris ? \"Debris\" : \"Vehicle\") — KSA's new part-failure system spawns fragment vehicles ('<id>_N' via GenerateSplitId, from Vehicle.Split per severed connection) and single-part debris (SpawnSubPartDebris) as ordinary Vehicles in CurrentSystem.All, so vessels/ lists them (controllable=false, one part) and they are NOT distinguishable from real vessels on this surface yet (VesselSnapshot carries neither Class nor IsDebris — follow-up candidate). PartFailureEvent.Apply also hands Program.ControlledVehicle to the largest IsControllable fragment, so status/controlled_vessel can flip to '<id>_N' after a crash with no command; the Program.ControlledVehicle setter now ClearHeldPlayerInput()s the previous vehicle on change. GetSurfaceSpeed() is now GetSurfaceVelocityCci().Length() (same value).")]
+        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "Verified at M9; Name = Id (KSA has no separate display name). 5402: Vehicle gained IsDebris (Class => IsDebris ? \"Debris\" : \"Vehicle\") — KSA's new part-failure system spawns fragment vehicles ('<id>_N' via GenerateSplitId, from Vehicle.Split per severed connection) and single-part debris (SpawnSubPartDebris) as ordinary Vehicles in CurrentSystem.All, so vessels/ lists them (controllable=false, one part) and they are NOT distinguishable from real vessels on this surface yet (VesselSnapshot carries neither Class nor IsDebris — follow-up candidate). PartFailureEvent.Apply also hands Program.ControlledVehicle to the largest IsControllable fragment, so status/controlled_vessel can flip to '<id>_N' after a crash with no command; the Program.ControlledVehicle setter now ClearHeldPlayerInput()s the previous vehicle on change. GetSurfaceSpeed() is now GetSurfaceVelocityCci().Length() (same value)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     internal static VesselSnapshot Sample(Vehicle vehicle, string? activeVesselId, double utSeconds, bool detail)
     {
         // detail off (config telemetry_vessel_detail): skip the whole G3 extension surface. It is
@@ -173,9 +174,10 @@ internal static class VesselReader
     }
 
     [KsaAnchor("Vehicle.{GetPositionEcl,GetVelocityCci,CenterOfMassAsmb,GetManualThrottle}",
-        SourceFile = "KSA/Vehicle.cs", Verified = "2026-06-12", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "The G3 extension vectors + the writable-setpoint throttle read-back. Without the "
-            + "read-backs the snapshot reported record defaults (0/false/\"\") for the ctl files.")]
+            + "read-backs the snapshot reported record defaults (0/false/\"\") for the ctl files."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static VesselSnapshot BuildFull(Vehicle vehicle, string? activeVesselId, double utSeconds)
     {
         var b = ReadBasics(vehicle, activeVesselId);
@@ -259,28 +261,31 @@ internal static class VesselReader
     }
 
     [KsaAnchor("Vehicle.IsSet(VehicleEngine.MainIgnite, false) => _manualControlInputs.EngineOn",
-        SourceFile = "KSA/Vehicle.cs", Verified = "2026-07-03", GameVersion = "2026.7.3.4826", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "The live ignition master ctl/ignite (MainIgnite) and ctl/shutdown (MainShutdown) toggle; "
             + "the same state the game's ignite button reads. NOT per-engine IsActive (allowed-to-fire). "
             + "4826: Vehicle.Split now copies _manualControlInputs to the separated vehicle, so a freshly "
-            + "decoupled/undocked stage inherits the parent's engine-on state (was: reset to off).")]
+            + "decoupled/undocked stage inherits the parent's engine-on state (was: reset to off)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static bool ReadEngineOn(Vehicle vehicle) => vehicle.IsSet(VehicleEngine.MainIgnite, false);
 
     [KsaAnchor("Vehicle.IsControllable => _overrideIsControllable || Parts.Controls.NumModules > 0",
-        SourceFile = "KSA/Vehicle.cs", Verified = "2026-09-02", GameVersion = "2026.9.7.5402", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Vehicle.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "4750/rev 4699: a vessel with no Control Module (Parts.Controls.NumModules==0) cannot be "
             + "controlled by the player or the flight computer (control + FC paths gate via ControlsLockout). "
             + "Reported as vessels/<id>/controllable so guests/autopilots can pre-check; gatOS itself does not "
             + "gate (relies on KSA's lockout). The player-controlled vessel always has a Control Module."
-            + "5402: unchanged; gained a new caller — PartFailureEvent.Apply picks the largest IsControllable fragment after a structural failure and makes it Program.ControlledVehicle. Debris (one InertMass part) is never controllable.")]
+            + "5402: unchanged; gained a new caller — PartFailureEvent.Apply picks the largest IsControllable fragment after a structural failure and makes it Program.ControlledVehicle. Debris (one InertMass part) is never controllable."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static bool ReadControllable(Vehicle vehicle) => vehicle.IsControllable;
 
     [KsaAnchor("Vehicle.GetManualThrottle(); FlightComputer.{AttitudeMode,AttitudeTrackTarget,AttitudeFrame}",
-        SourceFile = "KSA/Vehicle.cs / KSA/FlightComputer.cs", Verified = "2026-07-03", GameVersion = "2026.7.3.4826", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Vehicle.cs / KSA/FlightComputer.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Read-back of the writable setpoints. Manual attitude reports \"manual\"; auto reports the "
                 + "track-target name (Prograde/…). Frame is the VehicleReferenceFrame name. 4826: a freshly "
                 + "split (decoupled/undocked) vehicle inherits the parent's manual throttle (Vehicle.Split "
-                + "copies _manualControlInputs), so the post-split ctl/throttle read-back is no longer 0.")]
+                + "copies _manualControlInputs), so the post-split ctl/throttle read-back is no longer 0."
+                + " 5638: unchanged (decompiler reshaping only).")]
     private static (string Mode, string Frame) SampleFlightComputer(Vehicle vehicle)
     {
         var fc = vehicle.FlightComputer;
@@ -323,8 +328,8 @@ internal static class VesselReader
     [KsaAnchor("Orbit.StateVectors.TrueAnomaly.Degrees; LongitudeOfAscendingNode/ArgumentOfPeriapsis (rad); "
                + "Orbit.{Apoapsis,Periapsis,IsBound()}; "
                + "Vehicle.NextApoapsisTime/NextPeriapsisTime/NextPatchEventTime (UniverseTime)",
-        SourceFile = "KSA/Orbit.cs:1180,1819 / KSA/Vehicle.cs / KSA/UniverseTime.cs", Verified = "2026-09-25",
-        GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Orbit.cs:1180,1819 / KSA/Vehicle.cs / KSA/UniverseTime.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "SEMANTIC DRIFT at rev 5211 — KSA replaced SimTime (double seconds) with UniverseTime "
             + "(Int128 nanoseconds). The 'no such event' sentinel changed from SimTime.PositiveInfinity "
             + "to UniverseTime.EndOfTime (Int128.MaxValue ns), whose .Seconds() is a FINITE ~1.7e29 and "
@@ -337,7 +342,8 @@ internal static class VesselReader
             + "negative, so Sanitize.RadiusToAltitude passed it through. Both CoreOrbit and FullOrbit now gate "
             + "it on Orbit.IsBound() (0 when unbound, matching time_to_ap), the gate KSA's Universe Manifest "
             + "adopted at 5439. Orbit.ApoapsisAltitude/PeriapsisAltitude (new at 5439) are plain "
-            + "radius-minus-MeanRadius and are not used.")]
+            + "radius-minus-MeanRadius and are not used."
+               + " 5638: unchanged (decompiler reshaping only).")]
     private static OrbitSnapshot? FullOrbit(Vehicle vehicle, IParentBody? parent, double utSeconds)
     {
         if (vehicle.Orbit is not { } o || parent is null)
@@ -378,7 +384,7 @@ internal static class VesselReader
     }
 
     [KsaAnchor("Vehicle.NavBallData{AttitudeAngles(int3,deg),ThrustWeightRatio,DeltaV,Frame,Speed}",
-        SourceFile = "KSA/NavBallData.cs", Verified = "2026-08-23", GameVersion = "2026.8.22.5348",
+        SourceFile = "KSA/NavBallData.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "AttitudeAngles X/Y/Z = pitch/yaw/roll in whole degrees. SEMANTIC DRIFT at rev 5114 — "
             + "BOTH navball performance values changed meaning while keeping their names: DeltaVInVacuum "
@@ -393,7 +399,8 @@ internal static class VesselReader
             + "testing part.Sequenceable + the part's Sequence, and decoupler jettison-mass attribution "
             + "changed the same way. That is the 'a part assigned to sequence 0 silently zeroed the "
             + "vehicle's delta-v and TWR' fix, so these two reads will differ (correctly) from the 5261 "
-            + "baseline on affected vehicles.")]
+            + "baseline on affected vehicles."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static NavballSnapshot SampleNavball(Vehicle vehicle)
     {
         ref readonly var nb = ref vehicle.NavBallData;
@@ -405,14 +412,15 @@ internal static class VesselReader
 
     [KsaAnchor("Vehicle.PhysicsEnvironment{AtmosphericPressure,AtmosphericDensity,OceanDensity,TerrainRadius}; "
                + "PhysicalAtmosphereReference.GetDynamicPressure(Vehicle); AccelerationBody/AngularAccelerationBody",
-        SourceFile = "KSA/PhysicsEnvironment.cs:83,109 / KSA/TerrainRadiusCache.cs / KSA/Vehicle.cs", Verified = "2026-09-25",
-        GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/PhysicsEnvironment.cs:83,109 / KSA/TerrainRadiusCache.cs / KSA/Vehicle.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "5482: the members read are unchanged. Two inherited value drifts: rev 5451 — "
             + "RecomputePositionalValues now takes a closest-parent-relative position (it used to add an "
             + "origin-parent offset, which could feed gravity/atmosphere from the WRONG body in a multi-body "
             + "bubble); rev 5460 — TerrainRadius comes from TerrainRadiusCache.ComputeRadiusCcf(..., 0.25), "
             + "re-sampled only after ~0.25 m of lateral motion. Revs 5455/5479 let more lone vessels go on "
-            + "rails, which can change environment/acceleration and body-rate readings for those vessels.")]
+            + "rails, which can change environment/acceleration and body-rate readings for those vessels."
+               + " 5638: unchanged (decompiler reshaping only).")]
     private static EnvironmentSnapshot SampleEnvironment(Vehicle vehicle)
     {
         ref readonly var env = ref vehicle.PhysicsEnvironment;
@@ -432,7 +440,7 @@ internal static class VesselReader
     // ---- engines (M9 core + G3 throttle/propellant, one pass) --------------------------------
 
     [KsaAnchor("vehicle.Parts.Modules.Get<EngineController>(); .IsActive, .VacuumData{ThrustMax,MassFlowRateMax}",
-        SourceFile = "KSA/EngineController.cs", Verified = "2026-08-23", GameVersion = "2026.8.22.5348", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/EngineController.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Isp computed thrust/(massflow·g0). Index is the vessel-level ordinal the control addresses. "
             + "4826: Decoupler.Decouple no longer force-deactivates the separated stage's IActivate modules, "
             + "so engines/<n>/active on a just-decoupled vehicle retains its pre-split state (was: false). "
@@ -442,14 +450,16 @@ internal static class VesselReader
             + "the lazily-flushed PartTree.RecomputeRocketControls (PartTree.cs:541, flushed in PrepareFrame, "
             + "Program.cs:2209), so after a structural change thrust_vac/isp can lag one frame. "
             + "RocketControllerData.ComputeFromCores lost its (unused) CoM argument; ThrustMax/MassFlowRateMax "
-            + "are unchanged.")]
+            + "are unchanged."
+            + " 5638: unchanged (decompiler reshaping only).")]
     [KsaAnchor("EngineControllerState{CommandThrottle,IsPropellantAvailable} via ModuleStateful.TryGetFrom",
-        SourceFile = "KSA/EngineControllerState.cs", Verified = "2026-07-14", GameVersion = "2026.7.5.4892", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/EngineControllerState.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Read in the same pass as the module walk (GP3); detail-off skips the state fetch and "
             + "leaves ThrottleCmd/PropellantAvailable at the record defaults, exactly as before. "
             + "4892: FlightComputer.CommandEngineThrottles now zeroes CommandThrottle/CommandBurnTime "
             + "when no burn is commanded, so engines/<n>/throttle reads an honest 0 after burn end "
-            + "instead of the last commanded value (members unchanged).")]
+            + "instead of the last commanded value (members unchanged)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static List<EngineSnapshot> SampleEngines(Vehicle vehicle, bool detail)
     {
         var modules = vehicle.Parts.Modules.Get<EngineController>();
@@ -496,7 +506,7 @@ internal static class VesselReader
 
     [KsaAnchor("vehicle.Parts.Modules.Get<Tank>().Moles; vehicle.Parts.Moles.GetState(mole).Mass; "
             + "Mole.FilledFraction; Mole.GetStoredMass(ContainerVolume) (capacity; 5018/rev 4992: renamed from GetLiquidMass)",
-        SourceFile = "KSA/Tank.cs / KSA/Mole.cs / Content/Core/CoreFairingAGameData.xml", Verified = "2026-09-25", GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Tank.cs / KSA/Mole.cs / Content/Core/CoreFairingAGameData.xml", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "A Tank holds one Mole per substance; amounts live in the SoA Moles state list. "
             + "4892: the rev-4884 combustion->Reactions refactor is additive here (Tank gains "
             + "RoleAffinity/AssignedMix; Moles/MoleState/FilledFraction untouched) - tanks now "
@@ -512,7 +522,8 @@ internal static class VesselReader
             + "5482 CONTENT DRIFT (rev 5475): seven nosecone/adapter parts (NoseconeC/E/F/G/H, "
             + "InterstageBridge2W1WB/3W2WB) gained a <Tank> (Cylindrical or the new ConicalTank template), so "
             + "vessels carrying them gain tanks/<n> rows and later tank ordinals shift. Cylindrical capacity math "
-            + "now delegates to the conical path with equal radii — analytically unchanged.")]
+            + "now delegates to the conical path with equal radii — analytically unchanged."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static List<TankSnapshot> SampleTanks(Vehicle vehicle)
     {
         var tanks = new List<TankSnapshot>();
@@ -543,7 +554,7 @@ internal static class VesselReader
         + "Length,GrainVolume,ComputeGrainDepth}; RocketCoreState.{Throttle,IsPropellantAvailable,"
         + "MassFlowRate,ThrustTimeRemaining,Conditions.{Core,Exit}.{Pressure,Temperature}}",
         SourceFile = "KSA/SolidMotor.cs / KSA/SolidGrainSegment.cs / KSA/RocketCoreState.cs / KSA/PartTree.cs:537,621",
-        Verified = "2026-09-25", GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "5018/rev 4992 added solid rocket motors. A SolidMotor is a RocketCore (so it lives in "
             + "the shared Parts.RocketCores SoA list alongside Combustor) driven by an ordinary "
             + "EngineController - which is why SRBs already appear in engines/<n>. Its propellant is "
@@ -555,7 +566,8 @@ internal static class VesselReader
             + "brand-new rev-4990 StateList.GetUsing<TSub>() segment enumerator - Modules/GetState are "
             + "the long-stable APIs the rest of this reader uses. 5482 (rev 5464): SolidMotor.Stack is still a "
             + "plain field, now rebuilt by the lazily-flushed PartTree.RecomputeSolidMotorStacks, so "
-            + "srb/<n>/stack_valid can lag one frame after staging/decouple; members unchanged.")]
+            + "srb/<n>/stack_valid can lag one frame after staging/decouple; members unchanged."
+        + " 5638: unchanged (decompiler reshaping only).")]
     private static IReadOnlyList<SrbSnapshot> SampleSrbs(Vehicle vehicle)
     {
         var cores = vehicle.Parts.RocketCores;
@@ -666,10 +678,11 @@ internal static class VesselReader
     // ---- battery / power ----------------------------------------------------------------------
 
     [KsaAnchor("vehicle.Parts.Batteries.GetState(b).Charge, b.MaximumCapacity",
-        SourceFile = "KSA/Battery.cs", Verified = "2026-06-27", GameVersion = "2026.6.9.4750", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Battery.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Charge fraction + capacity (Joules) summed across all batteries; null when none. Walked "
             + "once per sample (GP3 — the fraction and capacity come from the same pass). 4750/rev 4681: "
-            + "Charge/MaximumCapacity are now the Joules struct (.Value() float, magnitude unchanged).")]
+            + "Charge/MaximumCapacity are now the Joules struct (.Value() float, magnitude unchanged)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static (double? Fraction, double? CapacityJoules) SampleBattery(Vehicle vehicle)
     {
         var batteries = vehicle.Parts.Batteries;
@@ -686,7 +699,8 @@ internal static class VesselReader
     }
 
     [KsaAnchor("vehicle.Parts.PowerConsumers.GetState(c).Consumed (Watts; .Value() float)",
-        SourceFile = "KSA/PowerConsumerState.cs", Verified = "2026-06-27", GameVersion = "2026.6.9.4750", Risk = ChurnRisk.Medium, Notes = "Instantaneous watts (W); 4750/rev 4681 Joules→Watts.")]
+        SourceFile = "KSA/PowerConsumerState.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium, Notes = "Instantaneous watts (W); 4750/rev 4681 Joules→Watts."
+                + " 5638: unchanged (decompiler reshaping only).")]
     private static double SamplePowerConsumed(Vehicle vehicle)
     {
         double total = 0;
@@ -699,9 +713,10 @@ internal static class VesselReader
     // ---- RCS / solar / generators / lights / docking / decouplers -----------------------------
 
     [KsaAnchor("vehicle.Parts.Modules.Get<ThrusterController>(); .IsActive; ThrusterControllerState{ControlMap,IsPropellantAvailable}",
-        SourceFile = "KSA/ThrusterController.cs", Verified = "2026-07-03", GameVersion = "2026.7.3.4826", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/ThrusterController.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "4826: Decoupler.Decouple no longer force-deactivates the separated stage's IActivate modules, "
-            + "so rcs/<n>/active on a just-decoupled vehicle retains its pre-split state (was: false).")]
+            + "so rcs/<n>/active on a just-decoupled vehicle retains its pre-split state (was: false)."
+            + " 5638: ThrusterControllerState.ControlMap is now built in FlightComputer.Ctrl2Asmb (the TNM frame while thrusting) instead of Vehicle.Ctrl2Body.")]
     private static IReadOnlyList<RcsSnapshot> SampleRcs(Vehicle vehicle)
     {
         var modules = vehicle.Parts.Modules.Get<ThrusterController>();
@@ -731,11 +746,12 @@ internal static class VesselReader
 
     [KsaAnchor("vehicle.Parts.Modules.Get<SolarPanel>(); SolarPanelState{Produced,IsOccluded,SunAoA,SunEfficiency}; "
                + "SolarTrackerState.CurrentAngle",
-        SourceFile = "KSA/SolarPanel.cs / KSA/SolarTracker.cs", Verified = "2026-06-27", GameVersion = "2026.6.9.4750", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/SolarPanel.cs / KSA/SolarTracker.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Produced is instantaneous watts (W) (4750/rev 4681 Joules→Watts), and the per-panel values "
                 + "are accumulated into the vessel PowerProducedW sum in this same pass (GP3 — no separate "
                 + "power-state read). AnimationIndex comes from the AnimationLinks cache; tracker 1:1 by "
-                + "index when counts match.")]
+                + "index when counts match."
+               + " 5638: unchanged (decompiler reshaping only).")]
     private static (IReadOnlyList<SolarSnapshot> Panels, double ProducedW) SampleSolar(
         Vehicle vehicle, AnimationLinks.Entry links)
     {
@@ -784,9 +800,10 @@ internal static class VesselReader
     }
 
     [KsaAnchor("vehicle.Parts.Modules.Get<Generator>(); GeneratorState{Active,Produced (Watts)}",
-        SourceFile = "KSA/Generator.cs", Verified = "2026-06-27", GameVersion = "2026.6.9.4750", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Generator.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Produced is instantaneous watts (W); 4750/rev 4681 Joules→Watts. Per-generator values are "
-            + "accumulated into the vessel PowerProducedW sum in this same pass (GP3).")]
+            + "accumulated into the vessel PowerProducedW sum in this same pass (GP3)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static (IReadOnlyList<GeneratorSnapshot> Generators, double ProducedW) SampleGenerators(Vehicle vehicle)
     {
         var modules = vehicle.Parts.Modules.Get<Generator>();
@@ -808,12 +825,13 @@ internal static class VesselReader
 
     [KsaAnchor("vehicle.Parts.Modules.Get<LightModule>(); .Template.Intensity.Value/.ColorRgb/.OuterAngle.Value/.InnerAngle.Value; "
                + "Parent.FullPart.LightSwitch.LightIsActive",
-        SourceFile = "KSA/LightModule.cs", Verified = "2026-06-23", Risk = ChurnRisk.High,
+        SourceFile = "KSA/LightModule.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
         Notes = "Template internals are High-churn; on-state reads the part's LightSwitch PowerConsumer. "
                 + "OuterAngle/InnerAngle are the spotlight cone half-angles (radians); exposed as "
                 + "outer_angle/inner_angle (degrees) — read per tick, NOT cached, because the light "
                 + "controls write them live. AnimationIndex comes from the AnimationLinks cache (GP3), "
-                + "so lights/<n>/goal co-locates the deploy control alongside on/brightness/color/angles.")]
+                + "so lights/<n>/goal co-locates the deploy control alongside on/brightness/color/angles."
+               + " 5638: unchanged (decompiler reshaping only).")]
     private static IReadOnlyList<LightSnapshot> SampleLights(Vehicle vehicle, AnimationLinks.Entry links)
     {
         var modules = vehicle.Parts.Modules.Get<LightModule>();
@@ -839,12 +857,13 @@ internal static class VesselReader
     }
 
     [KsaAnchor("vehicle.Parts.Modules.Get<DockingPort>(); .Docked, .DockedToPart.Id, .PushoffImpulse",
-        SourceFile = "KSA/DockingPort.cs", Verified = "2026-06-27", GameVersion = "2026.6.9.4750",
+        SourceFile = "KSA/DockingPort.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "PushoffImpulse is a public required float (newton-seconds, N·s) seeded from "
             + "DockingPortTemplate.PushoffImpulse (stock 7000 N·s); the undock separation impulse "
             + "Vehicle.Split(Connector, splitImpulse) applies. Read here so the debug control reads it "
-            + "back. 4750 (rev 4683) renamed PushoffForce→PushoffImpulse, force (N)→impulse (N·s).")]
+            + "back. 4750 (rev 4683) renamed PushoffForce→PushoffImpulse, force (N)→impulse (N·s)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static IReadOnlyList<DockingSnapshot> SampleDocking(Vehicle vehicle)
     {
         var modules = vehicle.Parts.Modules.Get<DockingPort>();
@@ -864,8 +883,8 @@ internal static class VesselReader
     }
 
     [KsaAnchor("vehicle.Parts.Modules.Get<Decoupler>(); .IsActive (fired, irreversible); .IsEnabled",
-        SourceFile = "KSA/Decoupler.cs:71,73 / Content/Core/CoreFairingAGameData.xml", Verified = "2026-09-25",
-        GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Decoupler.cs:71,73 / Content/Core/CoreFairingAGameData.xml", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "4826: Decoupler.Decouple dropped its fire-time cascade that walked the separated vehicle "
             + "deactivating every IActivate module — module active/fired state on the separated stage now "
             + "persists as-is. IsActive itself (fired, irreversible) is unchanged. 5168 (rev 5132): "
@@ -879,7 +898,8 @@ internal static class VesselReader
             + "the cited line numbers moved. 5482 CONTENT DRIFT (rev 5475): Decoupler.cs is unchanged, but "
             + "CoreFairingA_Prefab_InterstageBridge2W1WB/3W2WB LOST their <Decoupler> (they became fuel tanks), "
             + "so decouplers/<n> loses rows on vessels using them, later ordinals shift, and ctl/stage no longer "
-            + "separates at those adapters.")]
+            + "separates at those adapters."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static IReadOnlyList<DecouplerSnapshot> SampleDecouplers(Vehicle vehicle)
     {
         var modules = vehicle.Parts.Modules.Get<Decoupler>();
@@ -893,7 +913,7 @@ internal static class VesselReader
 
     [KsaAnchor("vehicle.Patch.Encounters; Encounter{Body.Id,GameTime,ClosestDistance}",
         SourceFile = "KSA/PatchedConic.cs / KSA/Encounter.cs / KSA/ConjunctionAssessment.cs",
-        Verified = "2026-10-11", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "5348: Vehicle.Patch.Encounters and Encounter{Body,GameTime,ClosestDistance} are "
             + "unchanged. Rev 5266's target-gauge rework (FlightPlan.TryFindNextClosestApproach, "
             + "earliest-in-time on the current trajectory, replacing a global-minimum scan) writes "
@@ -908,7 +928,8 @@ internal static class VesselReader
             + " 5554 POPULATION DRIFT: revs 5494/5510 add interstellar patch crossings and search "
             + "for encounters on departing/arriving star trajectories. The same Encounters record "
             + "now reports newly reachable planetary and companion-star flybys; body ids still "
-            + "resolve through Astronomical.Id.")]
+            + "resolve through Astronomical.Id."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static IReadOnlyList<EncounterSnapshot> SampleEncounters(Vehicle vehicle)
     {
         var patch = vehicle.Patch;
@@ -929,10 +950,11 @@ internal static class VesselReader
     // ---- animations (M9) ----------------------------------------------------------------------
 
     [KsaAnchor("vehicle.Parts.Modules.Get<KeyframeAnimationModule>(); .TimeGoal, .Shared.Duration, State.{TimeCurrent,DeploymentState}",
-        SourceFile = "KSA/KeyframeAnimationModule.cs", Verified = "2026-06-12", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/KeyframeAnimationModule.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Deploy fraction = time/Duration. The IsSolar flag comes from the AnimationLinks cache "
                 + "(GP3 — the per-tick SubtreeModules.HasAny scan moved there). State read via "
-                + "ModuleStateful.TryGetFrom(vehicle.Parts.States, …); falls back to goal-derived.")]
+                + "ModuleStateful.TryGetFrom(vehicle.Parts.States, …); falls back to goal-derived."
+                + " 5638: unchanged (decompiler reshaping only).")]
     private static List<AnimationSnapshot> SampleAnimations(Vehicle vehicle, AnimationLinks.Entry links)
     {
         var modules = vehicle.Parts.Modules.Get<KeyframeAnimationModule>();

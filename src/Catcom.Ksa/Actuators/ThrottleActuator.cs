@@ -20,10 +20,11 @@ internal static class ThrottleActuator
 
     [KsaAnchor("Vehicle._manualControlInputs.EngineThrottle (private; set by reflection)",
         SourceFile = "KSA/Vehicle.cs / KSA/FlightComputer.cs:489-493,1067-1090",
-        Verified = "2026-10-11", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.High,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.High,
         Notes = "No public throttle setter; GetManualThrottle() reads this requested setpoint. "
             + "5497: the flight computer now limits applied manual EngineThrottle to the vehicle's "
-            + "g-force cap (90% of MaxGLoad); this reflected field and read-back stay unchanged.")]
+            + "g-force cap (90% of MaxGLoad); this reflected field and read-back stay unchanged."
+            + " 5638: Vehicle._manualControlInputs and ManualControlInputs.EngineThrottle unchanged.")]
     internal static CommandResult Set(Vehicle vehicle, double fraction)
     {
         if (ManualInputsField is null)

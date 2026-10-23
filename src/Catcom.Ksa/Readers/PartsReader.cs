@@ -29,12 +29,13 @@ internal static class PartsReader
 
     [KsaAnchor("Vehicle.Parts.Parts (ReadOnlySpan<Part>), .Count; Part.{InstanceId,Id,DisplayName,"
             + "Template.Id,PartParent,SubParts,PositionVehicleAsmb}",
-        SourceFile = "KSA/Part.cs / KSA/PartTree.cs", Verified = "2026-09-02", GameVersion = "2026.9.7.5402",
+        SourceFile = "KSA/Part.cs / KSA/PartTree.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "Part + subpart enumeration for the welds anchor picker (subparts are Part instances "
             + "with their own InstanceId; PositionVehicleAsmb is subpart-aware). Cached; rebuilt on "
             + "Parts.Count change (no public part-tree version exists) or every 10 s."
-            + "5402 SEMANTIC DRIFT: Part..ctor now sets DisplayName = (Template.DisplayName != Template.Id ? Template.DisplayName : Id) — i.e. the AUTHORED template name ('Parachute Bay', 'Drogue Radial A'…) where one exists, the runtime Id otherwise. parts/<n>/display_name is therefore no longer unique per instance; Id and InstanceId are unchanged and remain the addressing keys. Also new at 5402: KSA's part-failure system (PartFailure.IsolateAndDestroy → Vehicle.Split per severed connection, SpawnSubPartDebris) can move a Part — keeping its InstanceId — into a NEW fragment/debris Vehicle ('<id>_N') between two samples with no command; the Parts.Count-change rebuild catches it on the source vessel.")]
+            + "5402 SEMANTIC DRIFT: Part..ctor now sets DisplayName = (Template.DisplayName != Template.Id ? Template.DisplayName : Id) — i.e. the AUTHORED template name ('Parachute Bay', 'Drogue Radial A'…) where one exists, the runtime Id otherwise. parts/<n>/display_name is therefore no longer unique per instance; Id and InstanceId are unchanged and remain the addressing keys. Also new at 5402: KSA's part-failure system (PartFailure.IsolateAndDestroy → Vehicle.Split per severed connection, SpawnSubPartDebris) can move a Part — keeping its InstanceId — into a NEW fragment/debris Vehicle ('<id>_N') between two samples with no command; the Parts.Count-change rebuild catches it on the source vessel."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public static IReadOnlyList<PartSnapshot> Sample(Vehicle vehicle, double utSeconds)
     {
         var entry = Cache.GetOrCreateValue(vehicle);

@@ -79,10 +79,11 @@ public sealed class VesselCache
     /// <returns>The snapshot, or <see langword="null"/> when the vessel is gone or could not be read.</returns>
     [KsaAnchor("VesselReader.Sample(Vehicle, activeId, ut, detail: true); PartsReader.Sample(Vehicle, ut); "
             + "Program.ControlledVehicle?.Id; Universe.GetElapsedSeconds()",
-        SourceFile = "KSA/Universe.cs / KSA/Program.cs / KSA/Vehicle.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Universe.cs / KSA/Program.cs / KSA/Vehicle.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "On-demand vessel read with the full G3 detail pass (the differ and the module getters need it). "
-            + "The parts list is its own cache (PartsReader rebuilds only when Parts.Count changes or every 10 s).")]
+            + "The parts list is its own cache (PartsReader rebuilds only when Parts.Count changes or every 10 s)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public VesselSnapshot? Get(string id, bool withParts = false)
     {
         try
@@ -117,10 +118,11 @@ public sealed class VesselCache
     /// <summary>Samples every vessel of the current system (cached for the current step).</summary>
     /// <returns>The snapshots in the system's stable order; empty when no system is loaded.</returns>
     [KsaAnchor("Universe.CurrentSystem.All.UnsafeAsList(); VesselReader.Sample(...); VesselForceRender.Prune(...)",
-        SourceFile = "KSA/Universe.cs / KSA/CelestialSystem.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        SourceFile = "KSA/Universe.cs / KSA/CelestialSystem.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Each vehicle sampled in its own try/catch; force-render marks of despawned vessels are pruned on "
-            + "the enumeration that just happened (as the gatOS sampler did).")]
+            + "the enumeration that just happened (as the gatOS sampler did)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public IReadOnlyList<VesselSnapshot> All()
     {
         if (_all is not null)
@@ -157,8 +159,9 @@ public sealed class VesselCache
     /// <summary>Lists the vehicle ids of the current system without sampling anything.</summary>
     /// <returns>The ids in the system's stable order.</returns>
     [KsaAnchor("Universe.CurrentSystem.All.UnsafeAsList(); Vehicle.Id", SourceFile = "KSA/Universe.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
-        Notes = "Enumeration only; fragment/debris vehicles are listed like any other.")]
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
+        Notes = "Enumeration only; fragment/debris vehicles are listed like any other."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public IReadOnlyList<string> Ids()
     {
         var ids = new List<string>();
@@ -235,10 +238,11 @@ public sealed class VesselCache
     /// </summary>
     /// <returns>The selectable warp factors; empty when unavailable.</returns>
     [KsaAnchor("Universe.GetSimulationSpeeds() (SimulationSpeed.Value per warp rung)",
-        SourceFile = "KSA/Universe.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/Universe.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "The session-fixed warp ladder (time.warpSpeeds); cached after the first successful read. "
-            + "GetSimulationSpeeds() is at Universe.cs:2522 and returns List<SimSpeed>.")]
+            + "GetSimulationSpeeds() is at Universe.cs:2522 and returns List<SimSpeed>."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public IReadOnlyList<double> WarpSpeeds()
     {
         // The ladder is fixed per session; cache it after the first successful read so a hot Read("time")
@@ -259,9 +263,10 @@ public sealed class VesselCache
 
     /// <summary>Whether an auto-warp-to-time is running.</summary>
     /// <returns><see langword="true"/> while auto-warp is engaged; false on any failure.</returns>
-    [KsaAnchor("Universe.IsAutoWarpActive", SourceFile = "KSA/Universe.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
-        Notes = "time.autoWarp active flag (public static bool property :118).")]
+    [KsaAnchor("Universe.IsAutoWarpActive", SourceFile = "KSA/Universe.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
+        Notes = "time.autoWarp active flag (public static bool property :118)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public bool AutoWarpActive()
     {
         try
@@ -276,9 +281,10 @@ public sealed class VesselCache
 
     /// <summary>The target UT of the running auto-warp.</summary>
     /// <returns>The target in seconds, or 0 when none is scheduled (or on any failure).</returns>
-    [KsaAnchor("Universe.AutoWarpTime?.Seconds()", SourceFile = "KSA/Universe.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Medium,
-        Notes = "time.autoWarpTargetUt; AutoWarpTime is UniverseTime? (:120), null when no auto-warp is scheduled.")]
+    [KsaAnchor("Universe.AutoWarpTime?.Seconds()", SourceFile = "KSA/Universe.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
+        Notes = "time.autoWarpTargetUt; AutoWarpTime is UniverseTime? (:120), null when no auto-warp is scheduled."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public double AutoWarpTargetUt()
     {
         try
@@ -298,10 +304,11 @@ public sealed class VesselCache
     /// <param name="ut">Universal time, in seconds, stamped on the events.</param>
     /// <returns>The new events (possibly empty).</returns>
     [KsaAnchor("Universe.SimulationSpeed; Program.ControlledVehicle?.Id; VesselCache.All()",
-        SourceFile = "KSA/Universe.cs / KSA/Program.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/Universe.cs / KSA/Program.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
         Notes = "The sampler-direct warp/active reads that feed EventDiffer.Diff; the same fields the gatOS "
-            + "sampler used. Universe.SimulationSpeed is a public static property (:122), Program.ControlledVehicle :502.")]
+            + "sampler used. Universe.SimulationSpeed is a public static property (:122), Program.ControlledVehicle :502."
+            + " 5638: unchanged (decompiler reshaping only).")]
     public IReadOnlyList<SimEvent> DiffEvents(double ut)
     {
         try
@@ -329,9 +336,10 @@ public sealed class VesselCache
     }
 
     [KsaAnchor("VesselReader.Sample(Vehicle, activeId, ut, detail: true); Program.ControlledVehicle?.Id",
-        SourceFile = "KSA/Vehicle.cs / KSA/Program.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/Vehicle.cs / KSA/Program.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Low,
-        Notes = "One mid-teardown vehicle must not kill the read: failures are swallowed per vehicle (logged once).")]
+        Notes = "One mid-teardown vehicle must not kill the read: failures are swallowed per vehicle (logged once)."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private static VesselSnapshot? SampleVehicle(Vehicle vehicle, double ut)
     {
         try
@@ -346,9 +354,10 @@ public sealed class VesselCache
     }
 
     [KsaAnchor("Universe.CurrentSystem; BodyReader.Sample(CelestialSystem)", SourceFile = "KSA/Universe.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Celestial catalog sampled at most once per second of wall time (SampleBodiesPaced logic); a new "
-            + "CelestialSystem instance (system.load) resamples immediately.")]
+            + "CelestialSystem instance (system.load) resamples immediately."
+            + " 5638: unchanged (decompiler reshaping only).")]
     private void SampleBodiesPaced()
     {
         try

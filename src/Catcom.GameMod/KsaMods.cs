@@ -20,10 +20,11 @@ internal static class KsaMods
     /// <summary>True when the game's mod library knows a loaded mod with this id. Never throws; any failure reads as "not loaded".</summary>
     /// <param name="modId">The mod id as written in <c>mod.toml</c> (<c>ModMenu</c>, <c>purrTTY</c>, ...).</param>
     /// <returns>Whether the mod is loaded.</returns>
-    [KsaAnchor("ModLibrary.Find(string)", SourceFile = "KSA/ModLibrary.cs", Verified = "2026-10-16",
-        GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+    [KsaAnchor("ModLibrary.Find(string)", SourceFile = "KSA/ModLibrary.cs", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Reached by reflection (the Find(KeyHash) overload needs Planet.Render.Core). When the method cannot be found, "
-            + "the already-loaded assemblies are scanned for the mod id as an assembly name instead.")]
+            + "the already-loaded assemblies are scanned for the mod id as an assembly name instead."
+            + " 5638: ModLibrary.cs:187, unchanged.")]
     public static bool IsLoaded(string modId)
     {
         try

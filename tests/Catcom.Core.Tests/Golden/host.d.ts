@@ -314,7 +314,7 @@ declare namespace ksa {
      */
     setRcs(on: boolean): CommandResult;
     /**
-     * Latches a manual RCS translation input along the vessel body axes. Only the sign of each component matters (bang-bang thrust, 0 turns that axis off); it stays in effect until you set it again, so send `0, 0, 0` to stop.
+     * Latches a manual RCS translation input along the vessel body axes. Only the sign of each component matters (bang-bang thrust, 0 turns that axis off); it stays in effect until you set it again, so send `0, 0, 0` to stop. While the engines are thrusting (or an automatic burn is armed) the flight computer uses a thrust-aligned frame instead, with +X along the net thrust.
      *
      * Action: `vessel.translate` (Frame)
      * @param x Forward (+) or back (-) along the nose axis.
@@ -323,7 +323,7 @@ declare namespace ksa {
      */
     translate(x: number, y: number, z: number): CommandResult;
     /**
-     * Latches a manual RCS rotation input about the vessel body axes. Only the sign of each component matters (bang-bang torque, 0 turns that axis off); it stays in effect until you set it again, so send `0, 0, 0` to stop.
+     * Latches a manual RCS rotation input about the vessel body axes. Only the sign of each component matters (bang-bang torque, 0 turns that axis off); it stays in effect until you set it again, so send `0, 0, 0` to stop. While the engines are thrusting (or an automatic burn is armed) the flight computer uses a thrust-aligned frame instead, with +X along the net thrust.
      *
      * Action: `vessel.rotate` (Frame)
      * @param x Roll right (+) or left (-).
@@ -366,7 +366,7 @@ declare namespace ksa {
      */
     setAttitudeFrame(f: string): Promise<CommandResult>;
     /**
-     * Sets the flight computer's target attitude as a quaternion. Waits for the solver slot.
+     * Sets the flight computer's target attitude as a quaternion; the flight computer turns its control frame (the command part's axes) to match it. While the engines are thrusting (or an automatic burn is armed) that control frame is thrust-aligned instead, with +X along the net thrust. Waits for the solver slot.
      *
      * Action: `vessel.attitude_target` (Solver)
      * @param q The target orientation.

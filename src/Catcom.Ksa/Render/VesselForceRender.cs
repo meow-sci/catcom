@@ -112,7 +112,7 @@ internal static class VesselForceRender
     private static void Publish() => _published = Marked.Count == 0 ? null : new HashSet<string>(Marked, StringComparer.Ordinal);
 
     [KsaAnchor("Vehicle.GetWorldMatrix(Camera) (prefix); Vehicle.UpdateRenderData(IViewport,int) (prefix, virtual)",
-        SourceFile = "KSA/Vehicle.cs:3694,3707,3713", Verified = "2026-09-25", GameVersion = "2026.9.22.5482",
+        SourceFile = "KSA/Vehicle.cs:3694,3707,3713", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "The always_render patch targets — both cull on GetObjectDiameterPixelsAsDouble < 1.0. "
             + "UpdateRenderData is virtual: the patch binds Vehicle's implementation, so overrides "
@@ -124,7 +124,8 @@ internal static class VesselForceRender
             + "cull to the new public Vehicle.IsLargeEnoughToRender(Camera) (:3707, same math, no other caller) and "
             + "adds a debug-only SubmitClutterTerrainDebugOverlay beside the terrain one. Both prefixes still "
             + "replace the whole body for marked vessels, so the helper is simply bypassed; parameter names "
-            + "(camera / viewport, inFrameIndex) unchanged.")]
+            + "(camera / viewport, inFrameIndex) unchanged."
+            + " 5638: GetWorldMatrix (Vehicle.cs:3723) decompiler reshaping only; UpdateRenderData (:3740) byte-identical.")]
     private static void InstallPatches()
     {
         if (_harmony is not null)
@@ -181,11 +182,12 @@ internal static class VesselForceRender
     ///     stock implementation.
     /// </summary>
     [KsaAnchor("Camera.GetPositionEgo(Vehicle); Vehicle.Body2Cce; float3.Pack; floatQuat.Pack",
-        SourceFile = "KSA/Vehicle.cs:3694 / KSA/Camera.cs:231", Verified = "2026-09-25",
-        GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Vehicle.cs:3694 / KSA/Camera.cs:231", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Reproduces the GetWorldMatrix body (rotation * translation) without the "
             + "< 1 px visibility check. Ported from unscience i-feel-seen."
-            + "5402: GetWorldMatrix is byte-identical. 5482: still byte-identical.")]
+            + "5402: GetWorldMatrix is byte-identical. 5482: still byte-identical."
+            + " 5638: Camera.GetPositionEgo and the Brutal.Numerics types are byte-identical.")]
     private static bool GetWorldMatrixPrefix(Vehicle __instance, KsaCamera camera, ref float4x4? __result)
     {
         try
@@ -212,15 +214,16 @@ internal static class VesselForceRender
     /// </summary>
     [KsaAnchor("Vehicle.GetMatrixAsmb2Ego(Camera); IViewport.GetCamera(); Vehicle.IsEditedVehicle; "
             + "PartTree.UpdateRenderData(in double4x4,bool,IViewport,int)",
-        SourceFile = "KSA/Vehicle.cs:3713 / KSA/PartTree.cs:1158", Verified = "2026-09-25",
-        GameVersion = "2026.9.22.5482", Risk = ChurnRisk.Medium,
+        SourceFile = "KSA/Vehicle.cs:3713 / KSA/PartTree.cs:1158", Verified = "2026-10-22",
+        GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Medium,
         Notes = "Reproduces the UpdateRenderData body without the < 1 px visibility check. "
             + "Ported from unscience i-feel-seen."
             + "5402: PartTree.UpdateRenderData takes IViewport; its module fan-out is unchanged. "
             + "5482: PartTree.UpdateRenderData(ref readonly double4x4, bool, IViewport, int) (:1158) keeps its "
             + "call shape, but its fan-out is now the cached PartTreeRenderData (EnsureBuilt + Compose/"
             + "ComposeDynamic/ComposeGlass, rev 5456) instead of per-module UpdateRenderData — transparent to "
-            + "this call. The only stock step not reproduced is the debug-only terrain/clutter overlay.")]
+            + "this call. The only stock step not reproduced is the debug-only terrain/clutter overlay."
+            + " 5638: Vehicle.UpdateRenderData (Vehicle.cs:3740) byte-identical; PartTree.UpdateRenderData (:1161) now first updates fuel-link connector poses, which this call inherits.")]
     private static bool UpdateRenderDataPrefix(Vehicle __instance, IViewport viewport, int inFrameIndex)
     {
         try

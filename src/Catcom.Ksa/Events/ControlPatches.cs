@@ -15,12 +15,13 @@ internal static class EngineActivatePatch
 
     [KsaAnchor("EngineController.SetIsActive(Vehicle? vehicle, bool activationState) instance postfix; "
             + "Parts.Modules.Get<EngineController>(); Part.FullPart.Tree.OwningVehicle",
-        SourceFile = "KSA/EngineController.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/EngineController.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "EngineController.cs:77. Only enqueues InputEvents.IActivateInputData (applied next ApplyInputEvents), "
             + "so this is the command intent, not the physical edge. `vehicle` may be null: the owner is then "
             + "recovered through Parent.FullPart.Tree.OwningVehicle. payload.engine is the index in "
-            + "Parts.Modules.Get<EngineController>() (the same ordinal EngineActuator and VesselReader use), -1 if absent.")]
+            + "Parts.Modules.Get<EngineController>() (the same ordinal EngineActuator and VesselReader use), -1 if absent."
+            + " 5638: EngineController.cs:100, byte-identical.")]
     private static void Postfix(EngineController __instance, Vehicle? vehicle, bool activationState)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -60,11 +61,12 @@ internal static class RcsActivatePatch
 
     [KsaAnchor("ThrusterController.SetIsActive(Vehicle? vehicle, bool activationState) instance postfix; "
             + "Parts.Modules.Get<ThrusterController>()",
-        SourceFile = "KSA/ThrusterController.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/ThrusterController.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "ThrusterController.cs:61. Same shape as EngineController.SetIsActive (enqueues "
             + "IActivateInputData). payload.thruster is the index in Parts.Modules.Get<ThrusterController>() "
-            + "(the rcs ordinal), payload.active the requested state. A master RCS toggle fires one event per thruster.")]
+            + "(the rcs ordinal), payload.active the requested state. A master RCS toggle fires one event per thruster."
+            + " 5638: ThrusterController.cs:61, byte-identical.")]
     private static void Postfix(ThrusterController __instance, Vehicle? vehicle, bool activationState)
     {
         if (_faulted || EventPatches.Sink is null)
@@ -104,9 +106,10 @@ internal static class StagePatch
     private static bool _faulted;
 
     [KsaAnchor("SequenceList.ActiveSequence (int, public getter)", SourceFile = "KSA/SequenceList.cs",
-        Verified = "2026-10-16", GameVersion = "2026.10.10.5554", Risk = ChurnRisk.Low,
+        Verified = "2026-10-22", GameVersion = "2026.10.19.5638", Risk = ChurnRisk.Low,
         Notes = "Captures the active sequence before ActivateNextSequence so the postfix can tell whether a stage "
-            + "was really activated (the method does nothing when no un-activated sequence remains).")]
+            + "was really activated (the method does nothing when no un-activated sequence remains)."
+            + " 5638: getter unchanged; rev 5604 also restores each sequence's Activated flag from ActiveSequence on load (not the stage event's path).")]
     private static void Prefix(SequenceList __instance, out int __state)
     {
         __state = Unset;
@@ -124,11 +127,12 @@ internal static class StagePatch
     }
 
     [KsaAnchor("SequenceList.ActivateNextSequence(Vehicle vehicle) instance postfix; SequenceList.ActiveSequence",
-        SourceFile = "KSA/SequenceList.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/SequenceList.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "SequenceList.cs:171. Sets ActiveSequence and activates the ISequenced modules of the stage (their own "
             + "SetIsActive enqueue lands next frame). Published only when ActiveSequence changed; payload.sequence is "
-            + "the newly active sequence number.")]
+            + "the newly active sequence number."
+            + " 5638: SequenceList.cs:171, byte-identical.")]
     private static void Postfix(SequenceList __instance, Vehicle vehicle, int __state)
     {
         if (_faulted || __state == Unset || EventPatches.Sink is null)
@@ -155,11 +159,12 @@ internal static class DecouplePatch
     private static bool _faulted;
 
     [KsaAnchor("Decoupler.Decouple(Vehicle oldVehicle) → Vehicle? instance postfix (__result)",
-        SourceFile = "KSA/Decoupler.cs", Verified = "2026-10-16", GameVersion = "2026.10.10.5554",
+        SourceFile = "KSA/Decoupler.cs", Verified = "2026-10-22", GameVersion = "2026.10.19.5638",
         Risk = ChurnRisk.Medium,
         Notes = "Decoupler.cs:163. Reached through Decoupler.SetIsActive → IActivateInputData { Decouple }; returns the "
             + "separated vehicle (null when the split failed, in which case nothing is published). vesselId is the "
-            + "vehicle that decoupled, payload.newVesselId the one that separated.")]
+            + "vehicle that decoupled, payload.newVesselId the one that separated."
+            + " 5638: Decoupler.cs:161, byte-identical.")]
     private static void Postfix(Vehicle oldVehicle, Vehicle? __result)
     {
         if (_faulted || __result is null || EventPatches.Sink is null)
